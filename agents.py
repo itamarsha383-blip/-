@@ -7,12 +7,13 @@
 
   🧑‍💼 מנכ"ל     - מפרק מטרה עסקית למשימות מחקר ומסכם דוח החלטות
   🔍 חוקרים     - מחפשים בשוק האמריקאי האמיתי (מחירים, מתחרים, ביקוש)
+  📦 ספקים      - מחפשים ב-Alibaba/AliExpress ומחשבים עלות נחיתה אמיתית
   💰 כלכלן      - מחשב עלויות, תמחור ורווחיות למכירה אונליין
   ✍️  שיווק      - כותב תוכן שיווקי באנגלית (לשוק האמריקאי) + הסבר בעברית
 
-המערכת בנויה לעסק אונליין שלא דורש ממך אנגלית - הסוכנים מטפלים באנגלית
-ומסבירים לך הכל בעברית. הכל רץ על Claude API של Anthropic.
-ראה README.md להוראות הפעלה צעד-צעד.
+הפעלה דרך שורת הפקודה:  python3 agents.py
+הפעלה דרך דפדפן:        python3 app.py
+ראה README.md להוראות צעד-צעד.
 """
 
 import os
@@ -31,8 +32,8 @@ except ImportError:
 # הגדרות
 # ---------------------------------------------------------------------------
 
-# בחירת מודל: אפשר לבחור בלי לגעת בקוד, דרך משתנה הסביבה AGENT_MODEL.
-#   "claude-sonnet-4-6"  -> ברירת מחדל. האיזון הכי טוב בין איכות למחיר (מומלץ)
+# בחירת מודל דרך משתנה סביבה AGENT_MODEL (בלי לגעת בקוד):
+#   "claude-sonnet-4-6"  -> ברירת מחדל. האיזון הכי טוב בין איכות למחיר
 #   "claude-opus-4-8"    -> הכי חכם, יקר יותר. להחלטות גדולות
 #   "claude-haiku-4-5"   -> הכי זול ומהיר, פחות מעמיק
 MODEL = os.environ.get("AGENT_MODEL", "claude-sonnet-4-6")
@@ -68,7 +69,7 @@ def run_agent(client, system_prompt, user_prompt, use_web=False, max_tokens=1600
     tools = [WEB_SEARCH_TOOL] if use_web else []
     messages = [{"role": "user", "content": user_prompt}]
 
-    # לולאה שמטפלת ב-"pause_turn" - קורה כשהסוכן עושה הרבה חיפושים ברצף
+    # לולאה שמטפלת ב-pause_turn (קורה כשהסוכן עושה הרבה חיפושים ברצף)
     for _ in range(10):
         resp = client.messages.create(
             model=MODEL,
@@ -92,16 +93,13 @@ def run_agent(client, system_prompt, user_prompt, use_web=False, max_tokens=1600
 # ---------------------------------------------------------------------------
 
 def ceo_plan(client, business_goal):
-    """
-    המנכ"ל: מקבל מטרה עסקית ומפרק אותה ל-NUM_RESEARCH_TASKS שאלות מחקר חדות.
-    מחזיר רשימת מחרוזות (שאלות לחוקרים).
-    """
+    """המנכ"ל: מפרק מטרה עסקית ל-NUM_RESEARCH_TASKS שאלות מחקר."""
     system = (
         "אתה מנכ\"ל מנוסה של חברת ייעוץ לעסקים אונליין שמתמחה בשוק האמריקאי. "
         "הלקוח שלך מוכר אונליין בלבד ואינו דובר אנגלית, לכן התמקד בהזדמנויות "
         "שלא דורשות שיחה עם לקוחות (מסחר אלקטרוני, דרופשיפינג, מוצרים דיגיטליים). "
         "המשימה שלך: לפרק מטרה עסקית למשימות מחקר ממוקדות שאפשר לבדוק עם חיפוש "
-        "באינטרנט - מחירים, מתחרים, גודל שוק, ביקוש, ועלויות כניסה נמוכות."
+        "באינטרנט — מחירים, מתחרים, גודל שוק, ביקוש, ועלויות כניסה נמוכות."
     )
     user = (
         f"המטרה העסקית: {business_goal}\n\n"
@@ -130,22 +128,46 @@ def ceo_plan(client, business_goal):
 
 def researcher(client, question, idx, total):
     """חוקר: מחפש באינטרנט נתונים אמיתיים על שאלת מחקר אחת."""
-    print(f"  [{idx}/{total}] חוקר: {question}")
     system = (
         "אתה חוקר שוק מקצועי. השתמש בחיפוש באינטרנט כדי למצוא נתונים אמיתיים "
         "ועדכניים על השוק האמריקאי: מחירים בדולרים, שמות מתחרים אמיתיים, מספרים, "
-        "מגמות. צטט מקורות כשאפשר. אל תמציא מספרים - אם לא מצאת נתון, אמור זאת. "
+        "מגמות. צטט מקורות כשאפשר. אל תמציא מספרים — אם לא מצאת נתון, אמור זאת. "
         "כתוב את הממצאים בעברית, בצורה תמציתית ומסודרת עם נקודות."
     )
     return run_agent(client, system, question, use_web=True, max_tokens=8000)
 
 
+def supplier(client, business_goal, findings):
+    """
+    ספק: מחפש ספקים ב-Alibaba/AliExpress ואתרי סיטונאות,
+    ומחשב עלות נחיתה אמיתית (Landed Cost) לפריט.
+    """
+    context = "\n\n".join(f"ממצא {i+1}:\n{f}" for i, f in enumerate(findings))
+    system = (
+        "אתה מומחה רכש ושרשרת אספקה למכירה אונליין. "
+        "חפש באינטרנט ב-Alibaba.com, AliExpress ואתרי סיטונאות נוספים. מצא: "
+        "(1) ספקים ספציפיים + טווח מחירים לפריט (FOB price), "
+        "(2) כמות מינימלית להזמנה (MOQ), "
+        "(3) עלויות משלוח מסין לארה\"ב — אוויר (7-14 יום) מול ים (30-45 יום), "
+        "(4) מיסי יבוא אמריקאיים (US import tariffs/duties) לקטגוריה הזו, "
+        "(5) חישוב Landed Cost לפריט = מחיר מוצר + משלוח + מיסים. "
+        "אם רלוונטי, כלול גם עלות Amazon FBA Fulfillment לפריט. "
+        "השווה לפחות 2–3 אפשרויות ספקים שונות. "
+        "כתוב הכל בעברית עם מספרים ספציפיים בדולרים ואחוזים."
+    )
+    user = (
+        f"התחום/המוצר: {business_goal}\n\n"
+        f"ממצאי מחקר שוק לקונטקסט:\n{context}\n\n"
+        "חפש ספקים ומצא את אפשרות הנחיתה (Landed Cost) הכי אטרקטיבית."
+    )
+    return run_agent(client, system, user, use_web=True, max_tokens=10000)
+
+
 def economist(client, business_goal, findings):
     """
-    כלכלן: על בסיס ממצאי המחקר, מחשב עלויות, תמחור ורווחיות למכירה אונליין.
-    משתמש בחיפוש כדי למצוא עמלות פלטפורמות ועלויות אמיתיות.
+    כלכלן: מחשב עלויות, תמחור ורווחיות על בסיס ממצאי המחקר.
+    משתמש בחיפוש כדי למצוא עמלות פלטפורמות אמיתיות.
     """
-    print("\n  💰 הכלכלן מחשב עלויות ורווחיות...")
     combined = "\n\n".join(f"ממצא {i+1}:\n{f}" for i, f in enumerate(findings))
     system = (
         "אתה כלכלן עסקי שמתמחה במכירה אונליין בארה\"ב. על בסיס ממצאי המחקר, "
@@ -161,10 +183,9 @@ def economist(client, business_goal, findings):
 
 def marketer(client, business_goal, findings):
     """
-    שיווק: כותב תוכן שיווקי באנגלית לשוק האמריקאי, ומסביר אותו בעברית.
-    זה הסוכן שמגשר על פער השפה - הלקוח מקבל אנגלית מוכנה למכירה.
+    שיווק: כותב תוכן שיווקי באנגלית לשוק האמריקאי, עם הסבר בעברית לכל חלק.
+    זה הסוכן שמגשר על פער השפה — הלקוח מקבל אנגלית מוכנה להעתקה.
     """
-    print("\n  ✍️  סוכן השיווק כותב תוכן באנגלית + הסבר בעברית...")
     context = "\n\n".join(f"ממצא {i+1}:\n{f}" for i, f in enumerate(findings))
     system = (
         "אתה קופירייטר מומחה למסחר אלקטרוני בשוק האמריקאי. הלקוח אינו דובר "
@@ -175,7 +196,7 @@ def marketer(client, business_goal, findings):
         "(3) 5 נקודות מכירה (bullet points) באנגלית, "
         "(4) טקסט קצר למודעת פרסום באנגלית, "
         "(5) רשימת מילות מפתח באנגלית (SEO). "
-        "לכל חלק באנגלית - הוסף מיד אחריו תרגום/הסבר קצר בעברית בסוגריים. "
+        "לכל חלק באנגלית — הוסף מיד אחריו תרגום/הסבר קצר בעברית בסוגריים. "
         "סדר את הכל עם כותרות ברורות."
     )
     user = (
@@ -185,21 +206,22 @@ def marketer(client, business_goal, findings):
     return run_agent(client, system, user, use_web=False, max_tokens=12000)
 
 
-def ceo_synthesize(client, business_goal, findings, economics):
+def ceo_synthesize(client, business_goal, findings, supply, economics):
     """המנכ"ל מסכם הכל לדוח החלטות עם המלצה קונקרטית."""
-    print("\n  🧑‍💼 המנכ\"ל מסכם את הדוח הסופי...")
     combined = "\n\n".join(f"### ממצאי מחקר {i+1}:\n{f}" for i, f in enumerate(findings))
     system = (
         "אתה מנכ\"ל שמכין דוח החלטות לבעלים של עסק אונליין שאינו דובר אנגלית. "
-        "על בסיס המחקר וניתוח הרווחיות, כתוב דוח ברור בעברית הכולל: "
-        "(1) סיכום השוק והביקוש, (2) המתחרים והמחירים, (3) ההזדמנות הכי מבטיחה "
-        "עם השקעה נמוכה ומכירה אונליין, (4) המלצה קונקרטית עם 3-5 צעדים ראשונים "
-        "ריאליסטיים, (5) הערכת סיכונים ולוחות זמנים כנה. "
-        "אם משהו לא משתלם - אמור זאת בכנות."
+        "על בסיס המחקר, נתוני הספקים וניתוח הרווחיות, כתוב דוח ברור בעברית: "
+        "(1) סיכום השוק והביקוש, (2) המתחרים והמחירים, (3) ניתוח שרשרת האספקה — "
+        "מאיפה לקנות, מה עולה להגיע לארה\"ב, (4) ההזדמנות הכי מבטיחה עם השקעה "
+        "נמוכה, (5) המלצה קונקרטית עם 3-5 צעדים ראשונים ריאליסטיים, "
+        "(6) הערכת סיכונים ולוחות זמנים כנה. "
+        "אם משהו לא משתלם — אמור זאת בכנות."
     )
     user = (
         f"המטרה העסקית: {business_goal}\n\n"
         f"ממצאי צוות המחקר:\n{combined}\n\n"
+        f"נתוני ספקים ועלות נחיתה:\n{supply}\n\n"
         f"ניתוח רווחיות מהכלכלן:\n{economics}\n\n"
         "כתוב את דוח ההחלטות המלא."
     )
@@ -207,7 +229,146 @@ def ceo_synthesize(client, business_goal, findings, economics):
 
 
 # ---------------------------------------------------------------------------
-# הרצה ראשית
+# ייצוא ל-Word
+# ---------------------------------------------------------------------------
+
+def _add_md_content(doc, text):
+    """ממיר markdown פשוט לפסקאות ב-Word."""
+    from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
+
+    def set_rtl(paragraph):
+        pPr = paragraph._p.get_or_add_pPr()
+        bidi = OxmlElement("w:bidi")
+        bidi.set(qn("w:val"), "1")
+        pPr.append(bidi)
+
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("### "):
+            p = doc.add_heading(stripped[4:], 3)
+        elif stripped.startswith("## "):
+            p = doc.add_heading(stripped[3:], 2)
+        elif stripped.startswith("# "):
+            p = doc.add_heading(stripped[2:], 1)
+        elif stripped.startswith(("- ", "* ", "• ")):
+            p = doc.add_paragraph(stripped[2:], style="List Bullet")
+            set_rtl(p)
+        elif stripped == "":
+            p = doc.add_paragraph()
+            set_rtl(p)
+        else:
+            clean = stripped.replace("**", "").replace("*", "")
+            p = doc.add_paragraph(clean)
+            set_rtl(p)
+
+
+def create_word_report(business_goal, report, supply, economics, marketing, stamp):
+    """יוצר קובץ Word מעוצב מהדוח. מחזיר שם הקובץ, או None אם הספרייה חסרה."""
+    try:
+        from docx import Document
+        from docx.shared import Pt, RGBColor
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.oxml.ns import qn
+        from docx.oxml import OxmlElement
+    except ImportError:
+        return None
+
+    doc = Document()
+
+    # כותרת ראשית
+    title = doc.add_heading(f"דוח עסקי: {business_goal}", 0)
+    title.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    sub = doc.add_paragraph(f"נוצר: {stamp}  |  מודל: {MODEL}")
+    sub.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    doc.add_paragraph()
+
+    sections = [
+        ("🧑‍💼 דוח החלטות (המנכ\"ל)", report),
+        ("📦 ספקים ועלות נחיתה", supply),
+        ("💰 ניתוח רווחיות (הכלכלן)", economics),
+        ("✍️ תוכן שיווקי (סוכן השיווק)", marketing),
+    ]
+
+    for heading, content in sections:
+        h = doc.add_heading(heading, 1)
+        h.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        _add_md_content(doc, content)
+        doc.add_paragraph()
+
+    docx_filename = f"report_{stamp}.docx"
+    doc.save(docx_filename)
+    return docx_filename
+
+
+# ---------------------------------------------------------------------------
+# פונקציה מרכזית — קוראת לכל הסוכנים בתור
+# ---------------------------------------------------------------------------
+
+def run_analysis(business_goal, on_progress=None):
+    """
+    מריץ את כל הסוכנים ומחזיר dict עם כל התוצאות + שמות קבצים.
+    on_progress(step, msg) — callback אופציונלי לעדכוני התקדמות.
+    """
+
+    def _progress(step, msg):
+        if on_progress:
+            on_progress(step, msg)
+        else:
+            print(msg)
+
+    client = get_client()
+
+    _progress("plan", 'שלב 1 — המנכ"ל מפרק את המטרה למשימות מחקר...')
+    tasks = ceo_plan(client, business_goal)
+
+    findings = []
+    for i, q in enumerate(tasks):
+        _progress("research", f"שלב 2 — חוקר {i+1}/{len(tasks)}: {q}")
+        findings.append(researcher(client, q, i + 1, len(tasks)))
+
+    _progress("supply", "שלב 3 — סוכן הספקים מחפש מקורות ועלויות...")
+    supply_data = supplier(client, business_goal, findings)
+
+    _progress("econ", "שלב 4 — הכלכלן מחשב עלויות ורווחיות...")
+    economics = economist(client, business_goal, findings)
+
+    _progress("market", "שלב 5 — סוכן השיווק כותב תוכן שיווקי באנגלית...")
+    marketing = marketer(client, business_goal, findings)
+
+    _progress("report", 'שלב 6 — המנכ"ל מסכם את הדוח הסופי...')
+    report = ceo_synthesize(client, business_goal, findings, supply_data, economics)
+
+    stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
+    md_filename = f"report_{stamp}.md"
+
+    with open(md_filename, "w", encoding="utf-8") as f:
+        f.write(f"# דוח עסקי מלא: {business_goal}\n\n")
+        f.write(f"_נוצר ב-{stamp} | מודל: {MODEL}_\n\n")
+        f.write("---\n\n")
+        f.write("## 🧑‍💼 דוח החלטות (המנכ\"ל)\n\n" + report + "\n\n")
+        f.write("## 📦 ספקים ועלות נחיתה\n\n" + supply_data + "\n\n")
+        f.write("## 💰 ניתוח רווחיות (הכלכלן)\n\n" + economics + "\n\n")
+        f.write("## ✍️ תוכן שיווקי מוכן (סוכן השיווק)\n\n" + marketing + "\n")
+
+    _progress("export", "שומר קבצים...")
+    docx_filename = create_word_report(
+        business_goal, report, supply_data, economics, marketing, stamp
+    )
+
+    return {
+        "report": report,
+        "supply": supply_data,
+        "economics": economics,
+        "marketing": marketing,
+        "md_filename": md_filename,
+        "docx_filename": docx_filename,
+        "stamp": stamp,
+    }
+
+
+# ---------------------------------------------------------------------------
+# הרצה ראשית (שורת פקודה)
 # ---------------------------------------------------------------------------
 
 def main():
@@ -228,39 +389,16 @@ def main():
         print("לא הוזנה מטרה. יציאה.")
         return
 
-    client = get_client()
     print(f"\nמטרה: {business_goal}\n")
-
-    print("שלב 1 - המנכ\"ל מפרק את המטרה למשימות מחקר...")
-    tasks = ceo_plan(client, business_goal)
-
-    print(f"\nשלב 2 - צוות החוקרים יוצא לדרך ({len(tasks)} משימות):")
-    findings = [researcher(client, q, i + 1, len(tasks)) for i, q in enumerate(tasks)]
-
-    print("\nשלב 3 - ניתוח כלכלי:")
-    economics = economist(client, business_goal, findings)
-
-    print("\nשלב 4 - תוכן שיווקי:")
-    marketing = marketer(client, business_goal, findings)
-
-    print("\nשלב 5 - דוח החלטות:")
-    report = ceo_synthesize(client, business_goal, findings, economics)
-
-    # שמירת הכל לקובץ אחד
-    stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
-    filename = f"report_{stamp}.md"
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(f"# דוח עסקי מלא: {business_goal}\n\n")
-        f.write(f"_נוצר ב-{stamp} על ידי מערכת סוכני AI (מודל: {MODEL})_\n\n")
-        f.write("## 🧑‍💼 דוח החלטות (המנכ\"ל)\n\n" + report + "\n\n")
-        f.write("## 💰 ניתוח רווחיות (הכלכלן)\n\n" + economics + "\n\n")
-        f.write("## ✍️ תוכן שיווקי מוכן (סוכן השיווק)\n\n" + marketing + "\n")
+    result = run_analysis(business_goal)
 
     print("\n" + "=" * 60)
-    print(report)
+    print(result["report"])
     print("=" * 60)
-    print(f"\n[נשמר] הדוח המלא (החלטות + רווחיות + תוכן שיווקי) בקובץ: {filename}")
-    print("פתח אותו בכל עורך טקסט כדי לראות הכל.")
+    print(f"\n[נשמר] דוח מלא:    {result['md_filename']}")
+    if result["docx_filename"]:
+        print(f"[נשמר] קובץ Word:   {result['docx_filename']}")
+    print("פתח את הקבצים בכל עורך טקסט / Word כדי לראות הכל.")
 
 
 if __name__ == "__main__":

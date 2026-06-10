@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🤖 מערכת סוכני AI לעסק אונליין</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      min-height: 100vh;
+      direction: rtl;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a56db 0%, #0d3b7a 100%);
+      color: #fff;
+      padding: 32px 24px 28px;
+      text-align: center;
+    }
+    header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+    header p  { font-size: 1rem; opacity: 0.85; }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 24px 16px 60px; }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    label { display: block; font-weight: 600; font-size: 1.05rem; margin-bottom: 10px; }
+
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      border: 2px solid #d1d9e6;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 1rem;
+      font-family: inherit;
+      direction: rtl;
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+    textarea:focus { outline: none; border-color: #1a56db; }
+
+    .row { display: flex; align-items: center; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
+
+    #run-btn {
+      background: #1a56db;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 32px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+      white-space: nowrap;
+    }
+    #run-btn:hover:not(:disabled) { background: #1447c0; }
+    #run-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .model-badge {
+      background: #e8f0fe;
+      color: #1a56db;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    /* ── Progress ── */
+    #progress-section { display: none; }
+    #progress-section h2 { font-size: 1.15rem; margin-bottom: 16px; color: #374151; }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f4f8;
+      font-size: 0.97rem;
+    }
+    .step:last-child { border-bottom: none; }
+
+    .step-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.9rem; }
+    .step-icon.done    { background: #d1fae5; color: #047857; }
+    .step-icon.current { background: #dbeafe; color: #1d4ed8; animation: pulse 1.4s ease-in-out infinite; }
+    .step-icon.pending { background: #f3f4f6; color: #9ca3af; }
+
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    .step-text { padding-top: 4px; line-height: 1.5; }
+
+    /* ── Results ── */
+    #results-section { display: none; }
+    #results-section h2 { font-size: 1.2rem; margin-bottom: 16px; }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      background: #e8f0fe;
+      color: #1a56db;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .tab-btn.active, .tab-btn:hover { background: #1a56db; color: #fff; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Markdown-rendered content */
+    .md-content { line-height: 1.75; font-size: 0.97rem; }
+    .md-content h1,.md-content h2,.md-content h3 { margin: 1.2em 0 0.5em; color: #1a56db; }
+    .md-content h1 { font-size: 1.4rem; }
+    .md-content h2 { font-size: 1.2rem; }
+    .md-content h3 { font-size: 1.05rem; }
+    .md-content p  { margin-bottom: 0.75em; }
+    .md-content ul, .md-content ol { padding-right: 1.5em; margin-bottom: 0.75em; }
+    .md-content li { margin-bottom: 0.3em; }
+    .md-content table { width: 100%; border-collapse: collapse; margin-bottom: 1em; font-size: 0.92rem; }
+    .md-content th   { background: #e8f0fe; color: #1a56db; padding: 8px 12px; text-align: right; border: 1px solid #d1d9e6; }
+    .md-content td   { padding: 7px 12px; border: 1px solid #e5e7eb; }
+    .md-content tr:nth-child(even) td { background: #f8fafc; }
+    .md-content strong { color: #111827; }
+    .md-content blockquote { border-right: 3px solid #1a56db; padding: 4px 12px; margin: 0.5em 0; background: #f0f4ff; color: #374151; }
+    .md-content code { background: #f3f4f6; padding: 2px 5px; border-radius: 4px; font-size: 0.88em; font-family: monospace; }
+    .md-content pre  { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 14px; overflow-x: auto; margin-bottom: 1em; }
+    .md-content pre code { background: none; color: inherit; padding: 0; }
+
+    /* Downloads */
+    .downloads {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #f0f4f8;
+      border: 2px solid #d1d9e6;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #374151;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .dl-btn:hover { background: #e8f0fe; border-color: #1a56db; color: #1a56db; }
+
+    /* Error */
+    .error-box {
+      background: #fff5f5;
+      border: 2px solid #fc8181;
+      border-radius: 8px;
+      padding: 16px;
+      color: #c53030;
+      font-weight: 500;
+    }
+
+    /* Success banner */
+    .success-banner {
+      background: #d1fae5;
+      border-radius: 8px;
+      padding: 14px 20px;
+      color: #065f46;
+      font-weight: 600;
+      margin-bottom: 20px;
+      font-size: 1.05rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🤖 מערכת סוכני AI לעסק אונליין</h1>
+  <p>מחקר שוק אמריקאי אמיתי, ספקים, רווחיות ותוכן שיווקי — הכל בעברית, בלי שתצטרך אנגלית</p>
+</header>
+
+<div class="container">
+
+  <!-- Input -->
+  <div class="card" id="input-card">
+    <label for="goal">מה תרצה לחקור? 🎯</label>
+    <textarea id="goal"
+      placeholder="לדוגמה: מכירת מוצרי טיפוח טבעיים אונליין בארה&quot;ב"
+      rows="3"></textarea>
+    <div class="row">
+      <button id="run-btn" onclick="runAnalysis()">🚀 התחל מחקר</button>
+      <span class="model-badge">מודל: {{ model }}</span>
+      <span style="color:#6b7280; font-size:0.88rem;">5–10 דקות בממוצע</span>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="card" id="progress-section">
+    <h2 id="progress-title">⏳ המערכת עובדת... אנא המתן</h2>
+    <div id="steps-list"></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results-section">
+    <div class="success-banner">✅ הדוח מוכן! בחר לשונית לצפייה</div>
+
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('tab-report', this)">🧑‍💼 דוח החלטות</button>
+        <button class="tab-btn" onclick="showTab('tab-supply', this)">📦 ספקים</button>
+        <button class="tab-btn" onclick="showTab('tab-econ',   this)">💰 רווחיות</button>
+        <button class="tab-btn" onclick="showTab('tab-market', this)">✍️ שיווק</button>
+      </div>
+
+      <div id="tab-report" class="tab-content active md-content"></div>
+      <div id="tab-supply" class="tab-content          md-content"></div>
+      <div id="tab-econ"   class="tab-content          md-content"></div>
+      <div id="tab-market" class="tab-content          md-content"></div>
+
+      <div class="downloads">
+        <a id="dl-md"   class="dl-btn" href="#" style="display:none">📄 הורד קובץ Markdown</a>
+        <a id="dl-docx" class="dl-btn" href="#" style="display:none">📝 הורד קובץ Word</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const STEP_LABELS = {
+    plan:    { icon: "🧑‍💼", label: "המנכ\"ל מפרק את המטרה" },
+    research:{ icon: "🔍", label: "צוות החוקרים" },
+    supply:  { icon: "📦", label: "סוכן הספקים" },
+    econ:    { icon: "💰", label: "הכלכלן" },
+    market:  { icon: "✍️",  label: "סוכן השיווק" },
+    report:  { icon: "🧑‍💼", label: "המנכ\"ל — דוח סופי" },
+    export:  { icon: "💾", label: "שומר קבצים" },
+  };
+
+  let stepEls = {};
+
+  function addStep(step, msg) {
+    const list = document.getElementById("steps-list");
+
+    // Update existing step to "done"
+    if (stepEls[step]) {
+      const prev = stepEls[step];
+      prev.querySelector(".step-icon").className = "step-icon done";
+      prev.querySelector(".step-icon").textContent = "✓";
+      return;
+    }
+
+    // Mark previous "current" as done
+    Object.values(stepEls).forEach(el => {
+      const icon = el.querySelector(".step-icon");
+      if (icon.classList.contains("current")) {
+        icon.className = "step-icon done";
+        icon.textContent = "✓";
+      }
+    });
+
+    const info = STEP_LABELS[step] || { icon: "⚙️", label: step };
+    const el = document.createElement("div");
+    el.className = "step";
+    el.innerHTML = `
+      <div class="step-icon current">${info.icon}</div>
+      <div class="step-text">${msg || info.label}</div>
+    `;
+    list.appendChild(el);
+    stepEls[step] = el;
+    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function showTab(id, btn) {
+    document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+    document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    if (btn) btn.classList.add("active");
+  }
+
+  function renderMd(id, text) {
+    document.getElementById(id).innerHTML = marked.parse(text || "");
+  }
+
+  async function runAnalysis() {
+    const goal = document.getElementById("goal").value.trim();
+    if (!goal) { alert("אנא הכנס מטרה עסקית"); return; }
+
+    // Reset UI
+    document.getElementById("run-btn").disabled = true;
+    document.getElementById("progress-section").style.display = "block";
+    document.getElementById("progress-title").textContent = "⏳ המערכת עובדת... אנא המתן";
+    document.getElementById("steps-list").innerHTML = "";
+    document.getElementById("results-section").style.display = "none";
+    stepEls = {};
+
+    let response;
+    try {
+      response = await fetch("/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goal }),
+      });
+    } catch (e) {
+      showError("שגיאת רשת: " + e.message);
+      return;
+    }
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: "שגיאה לא ידועה" }));
+      showError(err.error || "שגיאה בשרת");
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        let data;
+        try { data = JSON.parse(line.slice(6)); }
+        catch { continue; }
+        handleEvent(data);
+      }
+    }
+  }
+
+  function handleEvent(data) {
+    if (data.type === "progress") {
+      addStep(data.step, data.msg);
+    } else if (data.type === "done") {
+      // Mark last step done
+      Object.values(stepEls).forEach(el => {
+        const icon = el.querySelector(".step-icon");
+        if (icon.classList.contains("current")) {
+          icon.className = "step-icon done";
+          icon.textContent = "✓";
+        }
+      });
+
+      document.getElementById("progress-title").textContent = "✅ הדוח מוכן!";
+      document.getElementById("run-btn").disabled = false;
+
+      // Render results
+      renderMd("tab-report", data.report);
+      renderMd("tab-supply", data.supply);
+      renderMd("tab-econ",   data.economics);
+      renderMd("tab-market", data.marketing);
+
+      // Download links
+      if (data.md_filename) {
+        const a = document.getElementById("dl-md");
+        a.href = "/download/" + data.md_filename;
+        a.download = data.md_filename;
+        a.style.display = "inline-flex";
+      }
+      if (data.docx_filename) {
+        const a = document.getElementById("dl-docx");
+        a.href = "/download/" + data.docx_filename;
+        a.download = data.docx_filename;
+        a.style.display = "inline-flex";
+      }
+
+      document.getElementById("results-section").style.display = "block";
+      document.getElementById("results-section").scrollIntoView({ behavior: "smooth" });
+
+    } else if (data.type === "error") {
+      showError(data.msg);
+    }
+  }
+
+  function showError(msg) {
+    document.getElementById("run-btn").disabled = false;
+    const list = document.getElementById("steps-list");
+    const el = document.createElement("div");
+    el.className = "error-box";
+    el.textContent = "❌ שגיאה: " + msg;
+    list.appendChild(el);
+  }
+
+  // Allow Enter+Ctrl to submit
+  document.getElementById("goal").addEventListener("keydown", e => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) runAnalysis();
+  });
+</script>
+
+</body>
+</html>
