@@ -1,11 +1,9 @@
 /* ============================================================================
    Novixel — admin config
-   Paste your Supabase keys here AFTER you create the project (see SETUP.md).
-   Until both are filled in, the admin panel runs in PREVIEW mode
-   (changes are saved only in your browser, not to the live site).
-   Use only the "anon public" key here — never the service_role key.
+   Supabase keys for the admin panel. Only the "anon public" key belongs here
+   (safe for front-end). Never put the service_role key in this file.
    ============================================================================ */
 window.NOVIXEL_CONFIG = {
-  SUPABASE_URL: "",       // e.g. "https://abcdxyz.supabase.co"
-  SUPABASE_ANON_KEY: ""   // the "anon public" key from Settings → API
+  SUPABASE_URL: "https://sqdmjnbcjmybludvuwks.supabase.co",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZG1qbmJjam15Ymx1ZHZ1d2tzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2OTk0MDQsImV4cCI6MjA5ODI3NTQwNH0.eFoefFaGL1PYLthVqWWNlBWi3JEfp6hZof62Z_f3klg"
 };
