@@ -487,6 +487,29 @@ h1.headline .serif{font-size:1.04em;font-weight:400}
 .compare svg{width:17px;height:17px;vertical-align:-3px}
 @media (max-width:620px){ .compare{font-size:.78rem} .compare th,.compare td{padding:.7rem .55rem} }
 
+/* voice demo */
+.vd-card{margin-top:2.8rem;max-width:780px;background:linear-gradient(180deg,rgba(28,29,38,.6),rgba(16,17,23,.72));border-radius:var(--r);padding:1.7rem;box-shadow:inset 0 0 0 1px var(--hair);position:relative;overflow:hidden}
+.vd-card::before{content:"";position:absolute;inset:0;border-radius:var(--r);padding:1px;background:var(--irid);background-size:200%;opacity:.4;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:iridShift 8s linear infinite}
+.vd-head{display:flex;align-items:center;gap:.7rem;margin-bottom:1.2rem}
+.vd-ava{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-family:"Space Grotesk";font-weight:600;color:#0B0C10;background:var(--irid);background-size:160%}
+.vd-nm{display:block;font-family:"Space Grotesk";font-weight:600;font-size:.95rem}
+.vd-meta{display:block;font-size:.75rem;color:var(--muted)}
+.vd-time{margin-inline-start:auto;font-family:"JetBrains Mono";font-size:.82rem;color:var(--plat-soft)}
+.vd-wave{display:flex;align-items:center;gap:3px;height:52px;margin-bottom:1.2rem}
+.vd-wave i{flex:1;background:var(--irid);background-size:300% 100%;border-radius:2px;height:18%;transition:height .11s ease;opacity:.85}
+.vd-transcript{height:170px;overflow:hidden;display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.3rem;justify-content:flex-end;
+  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 16px);mask-image:linear-gradient(to bottom,transparent,#000 16px)}
+.vd-line{max-width:86%;padding:.5rem .78rem;border-radius:13px;font-size:.86rem;line-height:1.4;animation:bin .4s var(--ease) both}
+.vd-line.caller{align-self:flex-start;background:rgba(243,241,234,.06);box-shadow:inset 0 0 0 1px var(--hair-2);border-bottom-left-radius:5px}
+.vd-line.novi{align-self:flex-end;color:#0B0C10;background:var(--plat);border-bottom-right-radius:5px}
+.vd-line .who{display:block;font-family:"JetBrains Mono";font-size:.55rem;letter-spacing:.08em;text-transform:uppercase;opacity:.55;margin-bottom:.18rem}
+.vd-controls{display:flex;align-items:center;gap:1rem}
+.vd-play{width:52px;height:52px;border-radius:50%;flex:0 0 auto;background:var(--plat);color:#0B0C10;display:grid;place-items:center;cursor:pointer;transition:transform .2s var(--ease),box-shadow .2s}
+.vd-play:hover{transform:scale(1.06);box-shadow:0 12px 30px -10px rgba(243,241,234,.5)}
+.vd-play svg{width:22px;height:22px}
+.vd-hint{font-family:"JetBrains Mono";font-size:.66rem;letter-spacing:.04em;color:var(--faint)}
+.vd-booked{align-self:center;margin-top:.3rem}
+
 /* ============================================================
    RESPONSIVE
    ============================================================ */
@@ -713,6 +736,28 @@ h1.headline .serif{font-size:1.04em;font-weight:400}
         <div class="ix">05 / HANDOFF</div>
         <div class="k">You're notified — fully briefed</div>
         <div class="v">You get the booking and the entire conversation, logged. A human on your team can step in at any moment.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VOICE DEMO — hear a sample call -->
+<section class="sec voice reveal" id="voice">
+  <div class="wrap">
+    <div class="lead-line"><span class="ln"></span>Hear it live</div>
+    <h2>Hear Novi take a <span class="serif irid-text">call</span>.</h2>
+    <p class="sub">A real after-hours call — answered, qualified and booked in under a minute. Press play.</p>
+    <div class="vd-card">
+      <div class="vd-head">
+        <span class="vd-ava">N</span>
+        <span><span class="vd-nm">Novi · Receptionist</span><span class="vd-meta" id="vdMeta">Incoming call · after hours</span></span>
+        <span class="vd-time" id="vdTime">0:00</span>
+      </div>
+      <div class="vd-wave" id="vdWave" aria-hidden="true"></div>
+      <div class="vd-transcript" id="vdTranscript" data-noi18n></div>
+      <div class="vd-controls">
+        <button class="vd-play" id="vdPlay" type="button" aria-label="Play"></button>
+        <span class="vd-hint" id="vdHint">Sample call · plays a live transcript</span>
       </div>
     </div>
   </div>
@@ -1293,6 +1338,58 @@ h1.headline .serif{font-size:1.04em;font-weight:400}
       else{ clearInterval(timer);timer=null; }
     }),{threshold:.15}).observe(body);
   })();
+})();
+</script>
+<script>
+/* ---- voice demo player (animated waveform + synced transcript) ---- */
+(function(){
+  var ES = document.documentElement.lang==="es";
+  var wave=document.getElementById("vdWave"), tr=document.getElementById("vdTranscript"),
+      playBtn=document.getElementById("vdPlay"), timeEl=document.getElementById("vdTime");
+  if(!wave||!playBtn) return;
+  var bars=[]; for(var i=0;i<46;i++){ var bi=document.createElement("i"); wave.appendChild(bi); bars.push(bi); }
+  var PLAY='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+  var PAUSE='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+  playBtn.innerHTML=PLAY;
+  var SCRIPT = ES ? [
+    [0.5,"caller","Hola — ¿hacen reparaciones de techo de emergencia?"],
+    [3,"novi","Sí, incluso fuera de horario. ¿Está entrando agua ahora mismo?"],
+    [6,"caller","Sí, el techo está goteando."],
+    [8,"novi","Enviemos a alguien rápido. Tengo mañana 9 AM o mediodía — ¿cuál te queda?"],
+    [12,"caller","A las nueve."],
+    [13.5,"novi","Agendado a las 9 AM. Te envío la confirmación y el nombre del técnico ahora."],
+    [17,"caller","¡Vaya, qué fácil — gracias!"],
+    [18.5,"novi","Con gusto. ¡Todo listo — hablamos pronto!"]
+  ] : [
+    [0.5,"caller","Hi — do you do emergency roof repairs?"],
+    [3,"novi","We do, even after hours. Is water coming in right now?"],
+    [6,"caller","Yeah, the ceiling's dripping."],
+    [8,"novi","Let's get someone out fast. I have tomorrow 9 AM or noon — which works?"],
+    [12,"caller","Nine works."],
+    [13.5,"novi","Booked for 9 AM. I'm texting you the confirmation and the tech's name now."],
+    [17,"caller","Wow, that was easy — thanks!"],
+    [18.5,"novi","Happy to help. You're all set — talk soon!"]
+  ];
+  var TOTAL=21, playing=false, t0=0, elapsed=0, raf=null, shown=0, wt=null, ended=false;
+  function fmt(s){ s=Math.max(0,Math.floor(s)); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
+  function addLine(l){ var d=document.createElement("div"); d.className="vd-line "+(l[1]==="caller"?"caller":"novi");
+    var w=document.createElement("span"); w.className="who"; w.textContent=l[1]==="caller"?(ES?"Cliente":"Caller"):"Novi";
+    d.appendChild(w); d.appendChild(document.createTextNode(l[2])); tr.appendChild(d); tr.scrollTop=tr.scrollHeight; }
+  function idle(){ bars.forEach(function(b){ b.style.height="18%"; }); }
+  function animate(){ if(!playing) return; bars.forEach(function(b){ b.style.height=(15+Math.random()*80)+"%"; }); wt=setTimeout(animate,110); }
+  function tick(now){ var t=(now-t0)/1000; elapsed=t; timeEl.textContent=fmt(t);
+    while(shown<SCRIPT.length && t>=SCRIPT[shown][0]){ addLine(SCRIPT[shown]); shown++; }
+    if(t>=TOTAL){ finish(); return; } raf=requestAnimationFrame(tick); }
+  function finish(){ playing=false; clearTimeout(wt); ended=true; playBtn.innerHTML=PLAY; playBtn.setAttribute("aria-label","Play"); idle();
+    var chip=document.createElement("div"); chip.className="booked-chip vd-booked";
+    chip.innerHTML='<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> '+(ES?"AGENDADO Y CONFIRMADO":"BOOKED & CONFIRMED");
+    tr.appendChild(chip); tr.scrollTop=tr.scrollHeight; }
+  function start(){ if(playing) return; if(ended){ tr.innerHTML=""; shown=0; elapsed=0; ended=false; }
+    playing=true; playBtn.innerHTML=PAUSE; playBtn.setAttribute("aria-label","Pause"); t0=performance.now()-elapsed*1000;
+    raf=requestAnimationFrame(tick); animate(); }
+  function pause(){ playing=false; clearTimeout(wt); if(raf)cancelAnimationFrame(raf); elapsed=(performance.now()-t0)/1000; playBtn.innerHTML=PLAY; playBtn.setAttribute("aria-label","Play"); idle(); }
+  idle();
+  playBtn.addEventListener("click", function(){ playing?pause():start(); });
 })();
 </script>
 <script src="assets/config.js"></script>

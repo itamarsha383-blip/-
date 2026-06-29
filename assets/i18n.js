@@ -59,6 +59,13 @@ window.NX_I18N = {
       "05 / HANDOFF":"05 / ENTREGA","You're notified — fully briefed":"Recibes aviso — con todo el contexto",
       "You get the booking and the entire conversation, logged. A human on your team can step in at any moment.":
         "Recibes la cita y toda la conversación, registrada. Una persona de tu equipo puede intervenir en cualquier momento.",
+      /* voice demo */
+      "Hear it live":"Escúchalo en vivo",
+      "Hear Novi take a":"Escucha a Novi atender una","call":"llamada",
+      "A real after-hours call — answered, qualified and booked in under a minute. Press play.":
+        "Una llamada real fuera de horario — atendida, calificada y agendada en menos de un minuto. Dale play.",
+      "Incoming call · after hours":"Llamada entrante · fuera de horario",
+      "Sample call · plays a live transcript":"Llamada de ejemplo · reproduce una transcripción en vivo",
       /* live system */
       "Live system":"Sistema en vivo","Watch the machine":"Mira la máquina","work":"trabajar",
       "Every lead — from any channel — flows through Novi in real time: caught, understood, qualified, and booked. Nothing waits, nothing drops.":

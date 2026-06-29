@@ -32,6 +32,11 @@ window.NOVIXEL_SCHEMA = {
       { key:"promo.text",    type:"text",     he:"טקסט הבאנר", en:"Banner text" },
       { key:"promo.url",     type:"url",       he:"קישור בלחיצה (אופציונלי)", en:"Click link (optional)" }
     ]},
+    { id:"whatsapp", he:"כפתור וואטסאפ צף", en:"Floating WhatsApp button", fields:[
+      { key:"whatsapp.enabled", type:"checkbox", he:"להציג כפתור וואטסאפ", en:"Show WhatsApp button" },
+      { key:"whatsapp.number",  type:"text",     he:"מספר וואטסאפ (כולל קידומת, ספרות בלבד)", en:"WhatsApp number (country code, digits only)" },
+      { key:"whatsapp.text",    type:"text",     he:"הודעה מוכנה מראש", en:"Pre-filled message" }
+    ]},
     { id:"hero", he:"כותרת ראשית", en:"Hero", fields:[
       { key:"hero.subline", type:"textarea", he:"טקסט תיאור", en:"Subtitle" },
       { key:"cta.primary",  type:"text",     he:"כפתור ראשי", en:"Primary button" },
@@ -68,6 +73,9 @@ window.NOVIXEL_SCHEMA = {
       "promo.enabled":false,
       "promo.text":"🎉 Limited offer — 20% off your first 3 months. Book a call today.",
       "promo.url":"https://calendly.com/hello-novixelai",
+      "whatsapp.enabled":false,
+      "whatsapp.number":"",
+      "whatsapp.text":"Hi! I'd like to learn more about Novixel.",
       "hero.subline":"Novixel is the AI receptionist that answers, qualifies, and books every lead in seconds — 24/7, with the poise of a flawless front desk that never sleeps.",
       "cta.primary":"Book your free setup call",
       "calendly.url":"https://calendly.com/hello-novixelai",
@@ -90,6 +98,9 @@ window.NOVIXEL_SCHEMA = {
       "promo.enabled":false,
       "promo.text":"🎉 Oferta limitada — 20% de descuento en tus primeros 3 meses. Agenda hoy.",
       "promo.url":"https://calendly.com/hello-novixelai",
+      "whatsapp.enabled":false,
+      "whatsapp.number":"",
+      "whatsapp.text":"¡Hola! Quiero saber más sobre Novixel.",
       "hero.subline":"Novixel es la recepcionista con IA que responde, califica y agenda a cada cliente potencial en segundos — 24/7, con la elegancia de una recepción impecable que nunca duerme.",
       "cta.primary":"Reserva tu llamada de configuración gratuita",
       "calendly.url":"https://calendly.com/hello-novixelai",
