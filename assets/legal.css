@@ -1,0 +1,32 @@
+/* Novixel — shared styling for legal pages (privacy / terms) */
+:root{--bg:#0B0C10;--plat:#F3F1EA;--plat-soft:#C7C7D1;--muted:#8A8B99;--faint:#565869;
+  --hair:rgba(243,241,234,.10);--hair2:rgba(243,241,234,.06);
+  --irid:linear-gradient(100deg,#B7A6FF,#7FE0FF 45%,#F4A8FF);}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:radial-gradient(120% 60% at 50% -8%,#1b1c24,#0B0C10 60%);color:var(--plat);
+  font-family:"Plus Jakarta Sans",system-ui,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:var(--plat-soft)}
+.wrap{max-width:780px;margin-inline:auto;padding:clamp(1.2rem,4vw,2.4rem)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.4rem 0;border-bottom:1px solid var(--hair2);margin-bottom:2.4rem}
+.brand{display:flex;align-items:center;gap:.6rem;font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:1.1rem}
+.brand img{width:30px;height:30px}
+.brand .ai{background:var(--irid);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tbright{display:flex;align-items:center;gap:.8rem}
+.back{font-size:.86rem;color:var(--muted)}
+.back:hover{color:var(--plat)}
+.lang{display:inline-flex;gap:2px;background:rgba(243,241,234,.05);border-radius:999px;padding:3px;box-shadow:inset 0 0 0 1px var(--hair2)}
+.lang button{font:600 .78rem/1 "Space Grotesk",sans-serif;color:var(--muted);background:none;border:0;cursor:pointer;padding:.34rem .72rem;border-radius:999px;transition:.2s}
+.lang button.on{background:var(--plat);color:#0B0C10}
+article{padding-bottom:4rem}
+article h1{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:clamp(1.8rem,1.2rem+2vw,2.6rem);letter-spacing:-.02em;margin-bottom:.5rem}
+article .updated{font-family:"JetBrains Mono",monospace;font-size:.72rem;letter-spacing:.06em;color:var(--faint);margin-bottom:2rem;text-transform:uppercase}
+article h2{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:1.2rem;margin:2rem 0 .7rem}
+article p{color:var(--plat-soft);margin-bottom:1rem}
+article ul{margin:0 0 1rem 1.2rem;color:var(--plat-soft)}
+article li{margin-bottom:.5rem}
+article a{color:#B7A6FF}
+.note{background:rgba(183,166,255,.08);box-shadow:inset 0 0 0 1px rgba(183,166,255,.25);border-radius:12px;padding:1rem 1.1rem;font-size:.88rem;color:var(--plat-soft);margin-bottom:2rem}
+[data-lang]{display:none}
+[data-lang].show{display:block}
+.foot{border-top:1px solid var(--hair2);padding:2rem 0;font-family:"JetBrains Mono",monospace;font-size:.7rem;color:var(--faint);display:flex;gap:1.2rem;flex-wrap:wrap}
+.foot a{color:var(--plat-soft)}

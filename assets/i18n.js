@@ -169,6 +169,7 @@ window.NX_I18N = {
         "Novi no. Agenda una llamada de 15 minutos y mírala atender tus leads — en vivo.",
       /* footer + sticky */
       "AI that works while you don't. ·":"IA que trabaja cuando tú no. ·",
+      "Privacy Policy":"Política de Privacidad","Terms of Service":"Términos del Servicio",
       "NOVIXEL.AI — © 2026 · UNITED STATES":"NOVIXEL.AI — © 2026 · ESTADOS UNIDOS",
       "Every passing minute is a lead.":"Cada minuto que pasa es un lead.",
       "See it answer yours in 15 min.":"Míralo atender los tuyos en 15 min."
