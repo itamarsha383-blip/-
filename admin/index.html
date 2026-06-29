@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Novixel · Admin</title>
+<link rel="icon" type="image/svg+xml" href="../assets/logo-mark.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Heebo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#0B0C10;--bg2:#15161D;--card:rgba(22,23,30,.7);--plat:#F3F1EA;--plat-soft:#C7C7D1;
+  --muted:#8A8B99;--faint:#565869;--hair:rgba(243,241,234,.10);--hair2:rgba(243,241,234,.06);
+  --irid:linear-gradient(100deg,#B7A6FF,#7FE0FF 45%,#F4A8FF);--green:#5BE5A0;--red:#FF9B9B;
+  --ease:cubic-bezier(.18,1,.25,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:radial-gradient(120% 80% at 50% -8%,#23242F,#15161D 34%,#0B0C10 70%);color:var(--plat);
+  font-family:"Heebo","Space Grotesk",system-ui,sans-serif;min-height:100vh}
+html[dir=ltr] body{font-family:"Space Grotesk","Heebo",system-ui,sans-serif}
+a{color:var(--plat-soft)}
+#app{max-width:1100px;margin-inline:auto;padding:clamp(1rem,3vw,2rem)}
+.mono,.leads .mono{font-family:"JetBrains Mono",monospace}
+
+/* top bar */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.4rem 0 1.4rem;border-bottom:1px solid var(--hair2);margin-bottom:1.4rem}
+.brand{display:flex;align-items:center;gap:.7rem}
+.brand .bt{font-family:"Space Grotesk";font-weight:600;font-size:1.15rem}
+.barright{display:flex;align-items:center;gap:.8rem}
+.langtoggle{display:inline-flex;gap:2px;background:rgba(243,241,234,.05);border-radius:999px;padding:3px;box-shadow:inset 0 0 0 1px var(--hair2)}
+.langtoggle.center{margin-top:1rem;justify-content:center}
+.lt{font-family:inherit;font-size:.8rem;color:var(--muted);background:none;border:0;cursor:pointer;padding:.35rem .8rem;border-radius:999px;transition:.2s}
+.lt.on{background:var(--plat);color:#0B0C10;font-weight:600}
+
+/* buttons */
+.btn{font-family:"Space Grotesk";font-weight:600;background:var(--plat);color:#0B0C10;border:0;border-radius:999px;
+  padding:.6rem 1.2rem;cursor:pointer;transition:transform .2s var(--ease),box-shadow .2s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 12px 28px -12px rgba(243,241,234,.5)}
+.btn:disabled{opacity:.5;cursor:default;transform:none}
+.btn.full{width:100%;justify-content:center;margin-top:.6rem}
+.btn.ghost{background:rgba(243,241,234,.04);color:var(--plat);box-shadow:inset 0 0 0 1px var(--hair)}
+
+/* preview banner */
+.preview{background:rgba(183,166,255,.1);box-shadow:inset 0 0 0 1px rgba(183,166,255,.3);border-radius:12px;
+  padding:.8rem 1rem;font-size:.86rem;color:var(--plat-soft);margin-bottom:1.2rem;line-height:1.5}
+
+/* tabs */
+.tabs{display:flex;gap:.5rem;margin-bottom:1.4rem}
+.tabbtn{font-family:inherit;font-size:.95rem;font-weight:600;color:var(--muted);background:none;border:0;cursor:pointer;
+  padding:.6rem 1rem;border-radius:10px;transition:.2s}
+.tabbtn.on{color:var(--plat);background:rgba(243,241,234,.06);box-shadow:inset 0 0 0 1px var(--hair)}
+
+/* panel + fields */
+.panel{background:var(--card);border-radius:18px;padding:clamp(1.1rem,2.5vw,1.8rem);box-shadow:inset 0 0 0 1px var(--hair2);backdrop-filter:blur(10px)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.2rem;padding-bottom:1.2rem;border-bottom:1px solid var(--hair2)}
+.lbl{font-size:.9rem;color:var(--plat-soft);font-weight:500}
+.grp{font-family:"Space Grotesk";font-weight:600;font-size:1.05rem;margin:1.6rem 0 .9rem;color:var(--plat)}
+.grp:first-of-type{margin-top:.4rem}
+.field{margin-bottom:1rem}
+.flbl{display:block;font-size:.72rem;letter-spacing:.04em;color:var(--muted);margin-bottom:.4rem;text-transform:uppercase;font-family:"JetBrains Mono"}
+input,textarea,select{width:100%;background:rgba(11,12,16,.6);color:var(--plat);border:1px solid var(--hair);border-radius:10px;
+  padding:.7rem .85rem;font-family:"Space Grotesk",sans-serif;font-size:.92rem;transition:border-color .2s,box-shadow .2s;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:none;border-color:rgba(183,166,255,.55);box-shadow:0 0 0 3px rgba(183,166,255,.12)}
+.actions{display:flex;align-items:center;gap:1rem;margin-top:1.4rem;flex-wrap:wrap}
+.savemsg{font-family:"JetBrains Mono";font-size:.82rem;color:var(--green)}
+
+/* login */
+.loginwrap{min-height:80vh;display:grid;place-items:center}
+.logincard{width:min(380px,92vw);background:var(--card);border-radius:18px;padding:2rem;box-shadow:inset 0 0 0 1px var(--hair);backdrop-filter:blur(12px)}
+.loginbrand{display:flex;align-items:center;gap:.7rem;justify-content:center;margin-bottom:1.6rem}
+.loginbrand .lt2{font-family:"Space Grotesk";font-weight:600;font-size:1.2rem}
+.logincard .flbl{margin-top:.8rem}
+.err{color:var(--red);font-size:.84rem;min-height:1.2em;margin-top:.6rem}
+
+/* leads table */
+.leads{width:100%;border-collapse:collapse;font-size:.88rem}
+.leads th{text-align:start;font-family:"JetBrains Mono";font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:400;padding:.6rem .7rem;border-bottom:1px solid var(--hair)}
+.leads td{padding:.7rem .7rem;border-bottom:1px solid var(--hair2);vertical-align:middle}
+.stsel{padding:.4rem .6rem;font-size:.82rem;width:auto;min-width:120px}
+.del{background:rgba(255,155,155,.1);color:var(--red);border:0;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:.8rem;box-shadow:inset 0 0 0 1px rgba(255,155,155,.3)}
+.del:hover{background:rgba(255,155,155,.2)}
+.empty{text-align:center;color:var(--muted);padding:3rem 1rem;font-size:.95rem}
+.holder{padding-bottom:3rem}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<script src="./content-schema.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
