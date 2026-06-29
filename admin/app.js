@@ -113,6 +113,14 @@
       wrap.appendChild(el("h3",{class:"grp",text:g[uiLang]}));
       g.fields.forEach(f=>{
         const id="f_"+f.key.replace(/\W/g,"_");
+        if (f.type==="checkbox"){
+          const cb = el("input",{id, type:"checkbox"});
+          cb.checked = data[f.key]===true || data[f.key]==="true";
+          cb.style.width="auto"; cb.style.height="20px";
+          inputs[f.key]=cb;
+          wrap.appendChild(el("div",{class:"field cbfield"},[ cb, el("label",{class:"flbl cb",for:id,text:f[uiLang]}) ]));
+          return;
+        }
         const input = f.type==="textarea"
           ? el("textarea",{id, dir:"ltr", rows:"2"})
           : el("input",{id, type: f.type==="url"?"url":"text", dir:"ltr"});
@@ -124,7 +132,7 @@
     const status = el("span",{class:"savemsg"});
     const saveBtn = el("button",{class:"btn", text:T().save, onclick:async()=>{
       saveBtn.disabled=true; status.textContent=T().saving;
-      const obj={}; Object.entries(inputs).forEach(([k,inp])=>obj[k]=inp.value);
+      const obj={}; Object.entries(inputs).forEach(([k,inp])=>obj[k]= inp.type==="checkbox" ? inp.checked : inp.value);
       try { await saveContent(contentLang, obj); status.textContent=T().saved; }
       catch(e){ status.textContent="⚠ "+(e.message||e); }
       saveBtn.disabled=false; setTimeout(()=>status.textContent="",2500);

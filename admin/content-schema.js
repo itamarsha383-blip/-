@@ -27,6 +27,11 @@ window.NOVIXEL_SCHEMA = {
 
   /* ---- editable site content, grouped (labels shown in admin UI lang) ---- */
   groups: [
+    { id:"promo", he:"באנר פרסום (רצועה עליונה)", en:"Promo bar (top strip)", fields:[
+      { key:"promo.enabled", type:"checkbox", he:"להציג את הבאנר", en:"Show the banner" },
+      { key:"promo.text",    type:"text",     he:"טקסט הבאנר", en:"Banner text" },
+      { key:"promo.url",     type:"url",       he:"קישור בלחיצה (אופציונלי)", en:"Click link (optional)" }
+    ]},
     { id:"hero", he:"כותרת ראשית", en:"Hero", fields:[
       { key:"hero.subline", type:"textarea", he:"טקסט תיאור", en:"Subtitle" },
       { key:"cta.primary",  type:"text",     he:"כפתור ראשי", en:"Primary button" },
@@ -60,6 +65,9 @@ window.NOVIXEL_SCHEMA = {
   /* ---- default values per public locale (English + Spanish) ---- */
   defaults: {
     en: {
+      "promo.enabled":false,
+      "promo.text":"🎉 Limited offer — 20% off your first 3 months. Book a call today.",
+      "promo.url":"https://calendly.com/hello-novixelai",
       "hero.subline":"Novixel is the AI receptionist that answers, qualifies, and books every lead in seconds — 24/7, with the poise of a flawless front desk that never sleeps.",
       "cta.primary":"Book your free setup call",
       "calendly.url":"https://calendly.com/hello-novixelai",
@@ -79,6 +87,9 @@ window.NOVIXEL_SCHEMA = {
       "faq.a5":"Conversations are encrypted and never sold. You own your data, see every conversation, and can export or delete it anytime."
     },
     es: {
+      "promo.enabled":false,
+      "promo.text":"🎉 Oferta limitada — 20% de descuento en tus primeros 3 meses. Agenda hoy.",
+      "promo.url":"https://calendly.com/hello-novixelai",
       "hero.subline":"Novixel es la recepcionista con IA que responde, califica y agenda a cada cliente potencial en segundos — 24/7, con la elegancia de una recepción impecable que nunca duerme.",
       "cta.primary":"Reserva tu llamada de configuración gratuita",
       "calendly.url":"https://calendly.com/hello-novixelai",
