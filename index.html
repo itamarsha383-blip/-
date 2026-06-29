@@ -10,6 +10,14 @@
 <meta property="og:title" content="Novixel.ai — The AI receptionist that books every lead, 24/7" />
 <meta property="og:description" content="Answers, qualifies and books your leads in seconds — 24/7. Engineered like a flawless front desk." />
 <meta property="og:type" content="website" />
+<meta property="og:url" content="https://novixel.ai/" />
+<meta property="og:image" content="https://novixel.ai/og-image.svg" />
+<meta property="og:image:alt" content="Novixel.ai — the AI receptionist that books every lead, 24/7" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Novixel.ai — The AI receptionist that books every lead, 24/7" />
+<meta name="twitter:description" content="Answers, qualifies and books your leads in seconds — 24/7." />
+<meta name="twitter:image" content="https://novixel.ai/og-image.svg" />
+<link rel="canonical" href="https://novixel.ai/" />
 <meta name="theme-color" content="#0B0C10" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230B0C10'/%3E%3Cpath d='M8 23V9l16 14V9' stroke='%23F3F1EA' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E" />
 
@@ -437,9 +445,52 @@ h1.headline .serif{font-size:1.04em;font-weight:400}
   font-family:"JetBrains Mono";font-size:.68rem;letter-spacing:.08em;color:var(--faint)}
 .foot a{color:var(--plat-soft)}
 
+/* ROI calculator */
+.roi-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(1.4rem,3vw,2.6rem);margin-top:3rem;align-items:stretch}
+.roi-inputs{background:linear-gradient(180deg,rgba(28,29,38,.55),rgba(16,17,23,.6));border-radius:var(--r);padding:2rem;box-shadow:inset 0 0 0 1px var(--hair);position:relative;overflow:hidden}
+.roi-inputs::before{content:"";position:absolute;inset:0;border-radius:var(--r);padding:1px;background:var(--irid);background-size:200%;opacity:.3;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.roi-field{margin-bottom:1.5rem}
+.roi-field:last-child{margin-bottom:0}
+.roi-field .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.7rem}
+.roi-field label{font-family:"JetBrains Mono";font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.roi-field .val{font-family:"Space Grotesk";font-weight:600;font-size:1.15rem}
+.roi-field input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:4px;background:var(--hair);outline:none}
+.roi-field input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--plat);cursor:pointer;box-shadow:0 0 0 4px rgba(183,166,255,.18),0 4px 12px -2px rgba(0,0,0,.6);transition:transform .2s var(--ease)}
+.roi-field input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.12)}
+.roi-field input[type=range]::-moz-range-thumb{width:20px;height:20px;border:0;border-radius:50%;background:var(--plat);cursor:pointer;box-shadow:0 0 0 4px rgba(183,166,255,.18)}
+.roi-result{border-radius:var(--r);padding:2rem;display:flex;flex-direction:column;justify-content:center;gap:.4rem;position:relative;overflow:hidden;
+  background:radial-gradient(120% 100% at 50% 0%,rgba(28,29,38,.85),rgba(16,17,23,.92));box-shadow:inset 0 0 0 1px var(--hair)}
+.roi-result::before{content:"";position:absolute;inset:0;border-radius:var(--r);padding:1px;background:var(--irid);background-size:200%;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:iridShift 8s linear infinite}
+.roi-result .rk{font-family:"JetBrains Mono";font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.roi-result .rbig{font-family:"Space Grotesk";font-weight:600;font-size:clamp(2.6rem,1.4rem + 4vw,4rem);letter-spacing:-.03em;line-height:1;background:var(--irid);background-size:220%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:iridShift 8s linear infinite}
+.roi-result .rsub{color:var(--plat-soft);font-size:.95rem;margin-top:.2rem;line-height:1.5}
+.roi-result .rrow{display:flex;gap:1.4rem;margin-top:1.4rem;padding-top:1.4rem;border-top:1px solid var(--hair-2);flex-wrap:wrap}
+.roi-result .rrow .c .n{font-family:"Space Grotesk";font-weight:600;font-size:1.4rem}
+.roi-result .rrow .c .k{font-family:"JetBrains Mono";font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-top:.2rem}
+.roi-result .btn{margin-top:1.6rem;align-self:flex-start}
+.roi-note{font-family:"JetBrains Mono";font-size:.6rem;color:var(--faint);margin-top:1rem;letter-spacing:.04em}
+
+/* comparison table */
+.compare{margin-top:3rem;border-radius:var(--r);overflow:hidden;box-shadow:inset 0 0 0 1px var(--hair-2)}
+.compare table{width:100%;border-collapse:collapse;font-size:.92rem}
+.compare th,.compare td{padding:1rem 1.1rem;text-align:left;border-bottom:1px solid var(--hair-2)}
+.compare thead th{font-family:"JetBrains Mono";font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400;background:rgba(255,255,255,.02)}
+.compare thead th.feat{color:var(--plat);position:relative}
+.compare tbody td:first-child{color:var(--plat-soft);font-weight:500}
+.compare td.col{text-align:center}
+.compare td.feat{background:rgba(183,166,255,.05)}
+.compare .yes{color:#5BE5A0}.compare .no{color:var(--faint)}
+.compare svg{width:17px;height:17px;vertical-align:-3px}
+@media (max-width:620px){ .compare{font-size:.78rem} .compare th,.compare td{padding:.7rem .55rem} }
+
 /* ============================================================
    RESPONSIVE
    ============================================================ */
+@media (max-width:940px){
+  .roi-grid{grid-template-columns:1fr}
+}
 @media (max-width:940px){
   .hero-grid{grid-template-columns:1fr;gap:3.4rem}
   .stage{order:2;min-height:470px}
@@ -454,6 +505,62 @@ h1.headline .serif{font-size:1.04em;font-weight:400}
   .monolith,.proof{transform:none!important}
 }
 </style>
+
+<!-- Structured data for rich results -->
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@graph":[
+    {
+      "@type":"Organization",
+      "@id":"https://novixel.ai/#org",
+      "name":"Novixel.ai",
+      "url":"https://novixel.ai/",
+      "email":"hello@novixel.ai",
+      "description":"Novixel is the AI receptionist that answers, qualifies and books your leads in seconds — 24/7.",
+      "areaServed":"US"
+    },
+    {
+      "@type":"Product",
+      "name":"Novixel AI Receptionist",
+      "brand":{"@id":"https://novixel.ai/#org"},
+      "description":"AI receptionist that answers, qualifies and books leads across phone, SMS, web chat, forms and DMs — 24/7.",
+      "offers":[
+        {"@type":"Offer","name":"Launch","price":"197","priceCurrency":"USD","description":"Per month + $747 one-time setup."},
+        {"@type":"Offer","name":"Convert","price":"397","priceCurrency":"USD","description":"Per month + $1,497 one-time setup."},
+        {"@type":"Offer","name":"Dominate","price":"697","priceCurrency":"USD","description":"Per month + $2,997 one-time setup."}
+      ]
+    },
+    {
+      "@type":"FAQPage",
+      "mainEntity":[
+        {"@type":"Question","name":"Will it sound like a robot?","acceptedAnswer":{"@type":"Answer","text":"No. Novi is trained on your business and brand voice, so replies feel natural and on-message. Most leads can't tell — and a human on your team can step in at any moment."}},
+        {"@type":"Question","name":"What if it can't answer something?","acceptedAnswer":{"@type":"Answer","text":"Novi handles the everyday 90% — pricing ranges, availability, qualifying questions. Anything unusual, it captures the details, sets expectations, and hands off to you with the full context attached."}},
+        {"@type":"Question","name":"How fast can we go live?","acceptedAnswer":{"@type":"Answer","text":"Most setups go live within days. We configure your channels, calendar, scripts and brand voice, test it together, then switch it on — no engineering on your side."}},
+        {"@type":"Question","name":"Which channels does it cover?","acceptedAnswer":{"@type":"Answer","text":"Phone calls, SMS, web chat, web forms, and social DMs — every place a lead might reach you, answered from one system."}},
+        {"@type":"Question","name":"Is my data safe?","acceptedAnswer":{"@type":"Answer","text":"Conversations are encrypted and never sold. You own your data, see every conversation, and can export or delete it anytime."}}
+      ]
+    }
+  ]
+}
+</script>
+
+<!-- =========================================================================
+     ANALYTICS — paste your IDs to activate. The site already fires events
+     ("book_call_click", "lead_submit") via dataLayer/gtag/fbq automatically.
+     -------------------------------------------------------------------------
+     Google Analytics 4 (replace G-XXXXXXXXXX):
+     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
+       gtag('js',new Date());gtag('config','G-XXXXXXXXXX');</script>
+
+     Meta Pixel (replace PIXEL_ID):
+     <script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+       n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+       n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+       t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,
+       'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','PIXEL_ID');fbq('track','PageView');</script>
+     ========================================================================= -->
 </head>
 <body>
 
@@ -645,6 +752,88 @@ h1.headline .serif{font-size:1.04em;font-weight:400}
   </div>
 </section>
 
+<!-- ROI CALCULATOR -->
+<section class="sec reveal" id="roi">
+  <div class="wrap">
+    <div class="lead-line"><span class="ln"></span>The cost of silence</div>
+    <h2>Every missed call is <span class="serif irid-text">money</span> walking out the door.</h2>
+    <p class="sub">Most businesses miss 1 in 4 calls — and 85% of those callers never call back. Move the sliders to see what that's costing you.</p>
+
+    <div class="roi-grid">
+      <div class="roi-inputs">
+        <div class="roi-field">
+          <div class="top"><label for="roi-leads">Leads / calls per month</label><span class="val" id="roi-leads-v">120</span></div>
+          <input id="roi-leads" type="range" min="20" max="800" step="10" value="120" />
+        </div>
+        <div class="roi-field">
+          <div class="top"><label for="roi-missed">% currently missed / unanswered</label><span class="val" id="roi-missed-v">25%</span></div>
+          <input id="roi-missed" type="range" min="5" max="70" step="1" value="25" />
+        </div>
+        <div class="roi-field">
+          <div class="top"><label for="roi-close">% of answered leads you close</label><span class="val" id="roi-close-v">30%</span></div>
+          <input id="roi-close" type="range" min="5" max="80" step="1" value="30" />
+        </div>
+        <div class="roi-field">
+          <div class="top"><label for="roi-value">Avg value of a customer ($)</label><span class="val" id="roi-value-v">$1,500</span></div>
+          <input id="roi-value" type="range" min="100" max="20000" step="100" value="1500" />
+        </div>
+      </div>
+
+      <div class="roi-result">
+        <div class="rk">You're leaving on the table</div>
+        <div class="rbig" id="roi-lost">$13,500</div>
+        <div class="rsub" id="roi-lostsub">per month in missed-lead revenue — that's <b id="roi-year">$162,000</b> a year.</div>
+        <div class="rrow">
+          <div class="c"><div class="n" id="roi-deals">9</div><div class="k">deals missed / mo</div></div>
+          <div class="c"><div class="n" id="roi-recover">$10,800</div><div class="k">Novixel could recover*</div></div>
+        </div>
+        <a class="btn btn-plat" href="https://calendly.com/hello-novixelai" target="_blank" rel="noopener">Stop the leak — book a call</a>
+        <div class="roi-note">*Estimate assuming Novixel answers 100% of leads. Illustrative, not a guarantee.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section class="sec reveal" id="compare">
+  <div class="wrap">
+    <div class="lead-line"><span class="ln"></span>The honest comparison</div>
+    <h2>Why owners switch to <span class="serif irid-text">Novi</span>.</h2>
+    <div class="compare">
+      <table>
+        <thead>
+          <tr>
+            <th>&nbsp;</th>
+            <th class="col">Missed call → voicemail</th>
+            <th class="col">Human receptionist</th>
+            <th class="col feat">Novixel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Answers 24/7 / nights / weekends</td>
+            <td class="col"><span class="no">✕</span></td><td class="col"><span class="no">✕</span></td>
+            <td class="col feat"><span class="yes"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td></tr>
+          <tr><td>Replies in seconds, every time</td>
+            <td class="col"><span class="no">✕</span></td><td class="col">Sometimes</td>
+            <td class="col feat"><span class="yes"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td></tr>
+          <tr><td>Handles unlimited leads at once</td>
+            <td class="col"><span class="no">✕</span></td><td class="col"><span class="no">✕</span></td>
+            <td class="col feat"><span class="yes"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td></tr>
+          <tr><td>Books straight to your calendar</td>
+            <td class="col"><span class="no">✕</span></td><td class="col"><span class="yes"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            <td class="col feat"><span class="yes"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td></tr>
+          <tr><td>Never sick, never quits, no training</td>
+            <td class="col"><span class="no">✕</span></td><td class="col"><span class="no">✕</span></td>
+            <td class="col feat"><span class="yes"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td></tr>
+          <tr><td>Monthly cost</td>
+            <td class="col">Lost revenue</td><td class="col">$2,500–4,000+</td>
+            <td class="col feat"><b>from $197</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
 <!-- PRICING -->
 <section class="sec reveal" id="pricing">
   <div class="wrap">
@@ -733,6 +922,7 @@ h1.headline .serif{font-size:1.04em;font-weight:400}
     <div class="contact-grid">
       <div class="form-card">
         <form id="leadForm" novalidate>
+          <input type="text" name="company_website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" />
           <div class="field"><label for="f-name">Full name</label><input id="f-name" name="full_name" type="text" placeholder="Jordan Rivera" required /></div>
           <div class="field"><label for="f-email">Business email</label><input id="f-email" name="business_email" type="email" placeholder="you@yourbusiness.com" required /></div>
           <div class="field"><label for="f-type">Business type</label>
@@ -749,6 +939,7 @@ h1.headline .serif{font-size:1.04em;font-weight:400}
           </div>
           <button type="submit" class="btn btn-plat">Get my live demo</button>
           <div class="form-note">No spam. We'll be in touch within 2 hours.</div>
+          <div class="form-note" id="formError" style="display:none;color:#FF9B9B">Something went wrong — please email <a href="mailto:hello@novixel.ai" style="color:#FFC7C7">hello@novixel.ai</a> or book a call above.</div>
         </form>
         <div class="form-success" id="formSuccess">
           <div class="ring"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -959,17 +1150,59 @@ h1.headline .serif{font-size:1.04em;font-weight:400}
     }),{threshold:.2}).observe(simStage);
   }
 
-  /* ---- lead form → Make webhook ---- */
+  /* ---- analytics event helper (wires to GA4 / Meta Pixel when added) ---- */
+  function track(name,params){
+    try{ window.dataLayer=window.dataLayer||[]; window.dataLayer.push({event:name,...(params||{})}); }catch(e){}
+    try{ if(typeof gtag==="function") gtag("event",name,params||{}); }catch(e){}
+    try{ if(typeof fbq==="function") fbq("trackCustom",name,params||{}); }catch(e){}
+  }
+  /* fire a lightweight intent event on every booking CTA */
+  document.querySelectorAll('a[href*="calendly.com"]').forEach(a=>a.addEventListener("click",()=>track("book_call_click",{location:a.closest("section,header,nav,.sticky")?.id||"page"})));
+
+  /* ---- lead form → Make webhook (hardened) ---- */
   const lf=document.getElementById("leadForm");
   if(lf){ lf.addEventListener("submit",async e=>{
     e.preventDefault();
+    if(lf.company_website && lf.company_website.value){ return; } // honeypot: silently drop bots
     if(!lf.checkValidity()){ lf.reportValidity(); return; }
-    const btn=lf.querySelector('button[type=submit]'); btn.disabled=true; btn.textContent="Sending…";
+    const btn=lf.querySelector('button[type=submit]'); const err=document.getElementById("formError");
+    if(err) err.style.display="none";
+    btn.disabled=true; btn.textContent="Sending…";
     const data=Object.fromEntries(new FormData(lf).entries());
-    data.source="novixel.ai"; data.page=location.href;
-    try{ await fetch("https://hook.us2.make.com/ua4bnw3x6m50fguwgq5q6z3h2fndwhx4",{method:"POST",mode:"no-cors",body:JSON.stringify(data)}); }catch(err){}
-    lf.style.display="none"; const s=document.getElementById("formSuccess"); if(s)s.classList.add("show");
+    delete data.company_website;
+    data.source="novixel.ai"; data.page=location.href; data.submitted_at=new Date().toISOString();
+    try{
+      await fetch("https://hook.us2.make.com/ua4bnw3x6m50fguwgq5q6z3h2fndwhx4",{method:"POST",mode:"no-cors",body:JSON.stringify(data)});
+      track("lead_submit",{business_type:data.business_type,monthly_lead_volume:data.monthly_lead_volume});
+      lf.style.display="none"; const s=document.getElementById("formSuccess"); if(s)s.classList.add("show");
+    }catch(err2){
+      btn.disabled=false; btn.textContent="Get my live demo";
+      const ee=document.getElementById("formError"); if(ee) ee.style.display="block";
+    }
   }); }
+
+  /* ---- ROI calculator: the cost of missed leads ---- */
+  (function roi(){
+    const leads=document.getElementById("roi-leads"), missed=document.getElementById("roi-missed"),
+          close=document.getElementById("roi-close"), value=document.getElementById("roi-value");
+    if(!leads) return;
+    const money=n=>"$"+Math.round(n).toLocaleString("en-US");
+    function calc(){
+      const L=+leads.value, M=+missed.value/100, C=+close.value/100, V=+value.value;
+      const missedDeals=L*M*C;            // deals lost to unanswered leads each month
+      const lostMo=missedDeals*V;
+      document.getElementById("roi-leads-v").textContent=L;
+      document.getElementById("roi-missed-v").textContent=missed.value+"%";
+      document.getElementById("roi-close-v").textContent=close.value+"%";
+      document.getElementById("roi-value-v").textContent=money(V);
+      document.getElementById("roi-lost").textContent=money(lostMo);
+      document.getElementById("roi-year").textContent=money(lostMo*12);
+      document.getElementById("roi-deals").textContent=Math.round(missedDeals);
+      document.getElementById("roi-recover").textContent=money(lostMo*0.8); // conservative 80% recovery
+    }
+    [leads,missed,close,value].forEach(el=>el.addEventListener("input",calc));
+    calc();
+  })();
 
   /* ---- faq accordion ---- */
   document.querySelectorAll(".qa button").forEach(b=>b.addEventListener("click",()=>{
