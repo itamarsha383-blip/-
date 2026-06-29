@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<script>try{var _l=new URLSearchParams(location.search).get('lang')||localStorage.getItem('nx_lang');if(_l==='es')document.documentElement.lang='es';}catch(e){}</script>
 <title>Novixel.ai — The AI receptionist that books every lead, 24/7</title>
 <meta name="description" content="Novixel is the AI receptionist that answers, qualifies and books your leads in seconds — 24/7. Engineered like a flawless front desk." />
 <meta name="generator" content="Kortix" />
@@ -1008,7 +1009,8 @@ h1.headline .serif{font-size:1.04em;font-weight:400}
 
   /* ---- live chat engine ---- */
   const chatLog=document.getElementById("chatLog");
-  const CONVOS=[
+  const NX_ES = document.documentElement.lang==="es";
+  const CONVOS_EN=[
     [["lead","Roof's leaking after the storm — can someone come out?"],
      ["ai","Sorry you're dealing with that! Is it actively dripping inside right now?"],
      ["lead","Yeah, into the kitchen."],
@@ -1022,6 +1024,22 @@ h1.headline .serif{font-size:1.04em;font-weight:400}
      ["lead","Yes please."],
      ["ai","Booked — Thursday 2:00 PM. You'll get a confirmation text shortly."]]
   ];
+  const CONVOS_ES=[
+    [["lead","El techo gotea después de la tormenta — ¿pueden venir?"],
+     ["ai","¡Lamento que estés pasando por eso! ¿Está goteando dentro de casa ahora mismo?"],
+     ["lead","Sí, hacia la cocina."],
+     ["ai","Entendido — es urgente. Tengo mañana 9:00 AM o el jueves 2:00 PM para una inspección de emergencia. ¿Cuál te queda?"],
+     ["lead","Mañana a las 9."],
+     ["ai","Listo — mañana 9:00 AM confirmado. Te enviaré por mensaje el nombre del inspector y la hora estimada. ¡Tranquilo!"]],
+    [["lead","¿Cuánto cuesta cambiar todo el techo?"],
+     ["ai","Buena pregunta — depende del tamaño y el material. Lo más rápido es una cotización gratis de 20 min en sitio. ¿Cuál es tu código postal?"],
+     ["lead","33101."],
+     ["ai","Perfecto, cubrimos esa zona. Puedo apartar el jueves 2:00 PM — sin compromiso, precio exacto por escrito. ¿Lo quieres?"],
+     ["lead","Sí, por favor."],
+     ["ai","Agendado — jueves 2:00 PM. Recibirás un mensaje de confirmación en breve."]]
+  ];
+  const CONVOS = NX_ES ? CONVOS_ES : CONVOS_EN;
+  const BOOKED_TXT = NX_ES ? "AGENDADO Y CONFIRMADO" : "BOOKED & CONFIRMED";
   let tok=0;
   const stamp=()=>{const d=new Date();let h=d.getHours(),m=d.getMinutes();const ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+(m<10?"0":"")+m+" "+ap;};
   const sleep=(ms,t)=>new Promise(r=>setTimeout(()=>r(t===tok),ms));
@@ -1037,17 +1055,26 @@ h1.headline .serif{font-size:1.04em;font-weight:400}
       else{if(!(await sleep(440+Math.random()*340,t)))return;if(t!==tok)return;if(!(await type(add("lead"),x,t)))return;}
       chatLog.scrollTop=chatLog.scrollHeight;}
     if(t!==tok)return;const chip=document.createElement("div");chip.className="booked-chip";
-    chip.innerHTML='<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> BOOKED &amp; CONFIRMED';
+    chip.innerHTML='<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> '+BOOKED_TXT+'';
     chatLog.appendChild(chip);trim();flareOrb();if(!(await sleep(4200,t)))return;run();}
   function staticChat(){chatLog.innerHTML="";CONVOS[0].forEach(([w,x])=>{const b=document.createElement("div");b.className="bubble "+w;b.textContent=x;
     const ts=document.createElement("span");ts.className="ts";ts.textContent=stamp();b.appendChild(ts);chatLog.appendChild(b);});
-    const chip=document.createElement("div");chip.className="booked-chip";chip.innerHTML='<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> BOOKED &amp; CONFIRMED';chatLog.appendChild(chip);}
+    const chip=document.createElement("div");chip.className="booked-chip";chip.innerHTML='<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> '+BOOKED_TXT+'';chatLog.appendChild(chip);}
   reduce?staticChat():run();
 
   /* ---- interactive composer: the visitor can talk to Novi ---- */
   const composer=document.getElementById("composer"), cInput=document.getElementById("composerInput");
   function novReply(text){
     const t=text.toLowerCase();
+    if(NX_ES){
+      if(/precio|cuesta|cuánto|cuanto|costo|tarifa|\$/.test(t)) return "El precio depende de tu configuración, así que lo más justo es una llamada rápida y personalizada. ¿Te agendo una llamada gratis de 15 minutos?";
+      if(/agend|cita|reserv|demo|reunión|reunion|llamada|registr/.test(t)) return "¡Me encanta! Puedo ponerte en el calendario — toca “Agenda una llamada” arriba, o dime un día que te quede y lo aparto.";
+      if(/hora|abierto|noche|fin de semana|24|festivo|tarde/.test(t)) return "Novixel funciona 24/7 — tu IA responde noches, fines de semana y festivos, para que un lead nunca caiga al buzón.";
+      if(/humano|real|robot|\bbot\b|falso/.test(t)) return "Soy Novi, la IA de Novixel — entrenada con la voz de tu marca para que tus leads se sientan bien atendidos. Una persona de tu equipo puede intervenir cuando quiera.";
+      if(/techo|dental|abogad|spa|climatiz|plomer|clínica|clinica|salón|salon|contratista/.test(t)) return "Adaptamos Novixel a tu rubro exacto. ¿Quieres verlo atendiendo leads de tu negocio? Te agendo una llamada rápida.";
+      if(/^(hola|hey|buenas|qué tal|que tal)\b/.test(t)) return "¡Hola! Soy Novi, tu recepcionista con IA. Pregúntame lo que sea — o te agendo una llamada gratis para verlo en tu negocio.";
+      return "¡Buena pregunta! Novixel responde, califica y agenda tus leads en segundos, 24/7. ¿Quieres verlo en tu negocio? Puedo agendar una llamada gratis de 15 minutos.";
+    }
     if(/price|cost|how much|pricing|\$|fee/.test(t)) return "Pricing depends on your setup, so the fairest way is a quick tailored call. Want me to book you a free 15-minute setup call?";
     if(/book|appointment|schedule|demo|meeting|set ?up|sign/.test(t)) return "Love that. I can get you on the calendar — tap “Book a Call” above, or tell me a day that works and I'll lock it in.";
     if(/hour|open|night|weekend|24|holiday|late/.test(t)) return "Novixel runs 24/7 — your AI answers nights, weekends and holidays, so a lead never hits voicemail again.";
@@ -1168,16 +1195,25 @@ h1.headline .serif{font-size:1.04em;font-weight:400}
     if(!lf.checkValidity()){ lf.reportValidity(); return; }
     const btn=lf.querySelector('button[type=submit]'); const err=document.getElementById("formError");
     if(err) err.style.display="none";
-    btn.disabled=true; btn.textContent="Sending…";
+    btn.disabled=true; btn.textContent=NX_ES?"Enviando…":"Sending…";
     const data=Object.fromEntries(new FormData(lf).entries());
     delete data.company_website;
     data.source="novixel.ai"; data.page=location.href; data.submitted_at=new Date().toISOString();
+    data.locale=document.documentElement.lang||"en";
+    // Supabase (if configured) → powers the admin leads inbox / "customer memory"
+    try{ const C=window.NOVIXEL_CONFIG||{};
+      if(C.SUPABASE_URL&&C.SUPABASE_ANON_KEY){
+        fetch(C.SUPABASE_URL.replace(/\/$/,"")+"/rest/v1/leads",{method:"POST",
+          headers:{"Content-Type":"application/json","apikey":C.SUPABASE_ANON_KEY,"Authorization":"Bearer "+C.SUPABASE_ANON_KEY,"Prefer":"return=minimal"},
+          body:JSON.stringify({full_name:data.full_name,business_email:data.business_email,business_type:data.business_type,monthly_lead_volume:data.monthly_lead_volume,locale:data.locale,source:data.source,page:data.page})});
+      }
+    }catch(e){}
     try{
       await fetch("https://hook.us2.make.com/ua4bnw3x6m50fguwgq5q6z3h2fndwhx4",{method:"POST",mode:"no-cors",body:JSON.stringify(data)});
       track("lead_submit",{business_type:data.business_type,monthly_lead_volume:data.monthly_lead_volume});
       lf.style.display="none"; const s=document.getElementById("formSuccess"); if(s)s.classList.add("show");
     }catch(err2){
-      btn.disabled=false; btn.textContent="Get my live demo";
+      btn.disabled=false; btn.textContent=NX_ES?"Quiero mi demo en vivo":"Get my live demo";
       const ee=document.getElementById("formError"); if(ee) ee.style.display="block";
     }
   }); }
@@ -1258,5 +1294,8 @@ h1.headline .serif{font-size:1.04em;font-weight:400}
   })();
 })();
 </script>
+<script src="assets/config.js"></script>
+<script src="assets/i18n.js"></script>
+<script src="assets/site.js"></script>
 </body>
 </html>
