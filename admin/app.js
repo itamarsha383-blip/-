@@ -205,8 +205,14 @@
 
   async function render(){
     applyDir();
-    const user = await currentUser();
     const r = root(); r.innerHTML="";
+    if (LIVE && !sb){
+      r.appendChild(el("div",{class:"preview",text: uiLang==="he"
+        ? "⚠ לא הצלחנו לטעון את ספריית ההתחברות. בדוק חיבור אינטרנט ורענן את העמוד."
+        : "⚠ Couldn't load the auth library. Check your connection and refresh."}));
+      return;
+    }
+    const user = await currentUser();
     if (LIVE && !user){ r.appendChild(loginView()); return; }
     r.appendChild(topbar());
     if (!LIVE) r.appendChild(el("div",{class:"preview",text:T().preview}));
