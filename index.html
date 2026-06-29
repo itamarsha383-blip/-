@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Novixel.ai — The AI receptionist that books every lead, 24/7</title>
+<meta name="description" content="Novixel is the AI receptionist that answers, qualifies and books your leads in seconds — 24/7. Engineered like a flawless front desk." />
+<meta name="generator" content="Kortix" />
+<meta name="author" content="Kortix" />
+<meta property="og:title" content="Novixel.ai — The AI receptionist that books every lead, 24/7" />
+<meta property="og:description" content="Answers, qualifies and books your leads in seconds — 24/7. Engineered like a flawless front desk." />
+<meta property="og:type" content="website" />
+<meta name="theme-color" content="#0B0C10" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230B0C10'/%3E%3Cpath d='M8 23V9l16 14V9' stroke='%23F3F1EA' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E" />
+
+<!-- Space Grotesk (display), Instrument Serif (luxe italic accent), JetBrains Mono (technical), Plus Jakarta Sans (body) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<style>
+/* ============================================================
+   NOVIXEL — OBSIDIAN ATELIER
+   Hi-tech luxury. Cinematic obsidian with a luminous core,
+   iridescent accents (chrome/holographic), platinum type,
+   precise mono micro-detailing. Light & color inside depth.
+   ============================================================ */
+:root{
+  --bg:#0B0C10;
+  --bg-lift:#15161D;
+  --plat:#F3F1EA;            /* warm platinum white */
+  --plat-soft:#C7C7D1;
+  --muted:#8A8B99;
+  --faint:#565869;
+  --hair:rgba(243,241,234,.10);
+  --hair-2:rgba(243,241,234,.06);
+  --glass:rgba(22,23,30,.55);
+
+  /* iridescent / holographic signature */
+  --irid:linear-gradient(100deg,#B7A6FF 0%,#7FE0FF 26%,#F4A8FF 52%,#FFE6A0 74%,#B7A6FF 100%);
+  --irid-soft:linear-gradient(100deg,rgba(183,166,255,.9),rgba(127,224,255,.9),rgba(244,168,255,.9),rgba(255,230,160,.9));
+
+  --ease:cubic-bezier(.18,1,.25,1);
+  --r:18px;
+  --px:0;--py:0;
+  --fs-h1:clamp(3rem,1.7rem + 5.6vw,7rem);
+  --fs-sub:clamp(1.02rem,.95rem + .5vw,1.32rem);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--plat);
+  font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-size:1.05rem;line-height:1.55;letter-spacing:-.01em;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+:focus-visible{outline:1px solid var(--plat-soft);outline-offset:4px;border-radius:6px}
+::selection{background:rgba(183,166,255,.28)}
+.wrap{max-width:1280px;margin-inline:auto;padding-inline:clamp(1.2rem,4vw,2.6rem)}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;letter-spacing:.02em}
+h1,h2,h3{font-family:"Space Grotesk",sans-serif;font-weight:500;letter-spacing:-.03em;line-height:1.0;text-wrap:balance}
+.serif{font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-weight:400;letter-spacing:0}
+.irid-text{background:var(--irid);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:iridShift 8s linear infinite}
+@keyframes iridShift{to{background-position:220% 0}}
+
+/* ============================================================
+   CINEMATIC BACKDROP — luminous core, iridescent haze, grain, grid
+   ============================================================ */
+.backdrop{position:fixed;inset:0;z-index:-3;background:
+  radial-gradient(120% 80% at 50% -8%, #23242F 0%, #15161D 34%, #0B0C10 70%)}
+.haze{position:fixed;inset:-20%;z-index:-2;pointer-events:none;opacity:.5;filter:blur(80px);
+  background:
+   radial-gradient(34% 40% at 64% 30%,rgba(183,166,255,.35),transparent 70%),
+   radial-gradient(30% 36% at 36% 56%,rgba(127,224,255,.26),transparent 72%),
+   radial-gradient(26% 32% at 72% 70%,rgba(244,168,255,.22),transparent 72%);
+  animation:hazeDrift 24s ease-in-out infinite alternate}
+@keyframes hazeDrift{to{transform:translate3d(3%,2%,0) scale(1.08)}}
+.gridlines{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(var(--hair-2) 1px,transparent 1px),linear-gradient(90deg,var(--hair-2) 1px,transparent 1px);
+  background-size:72px 72px;
+  -webkit-mask-image:radial-gradient(120% 80% at 50% 0%,#000 0%,transparent 72%);mask-image:radial-gradient(120% 80% at 50% 0%,#000 0%,transparent 72%)}
+.grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.045;mix-blend-mode:overlay}
+@media (prefers-reduced-motion:reduce){ .haze,.irid-text{animation:none} }
+
+/* page-load reveal — pure CSS, never blocks content */
+.preload{position:fixed;inset:0;z-index:300;background:radial-gradient(120% 80% at 50% 40%,#1a1b22,#0B0C10 70%);display:grid;place-items:center;pointer-events:none;
+  animation:preOut .7s var(--ease) .55s forwards}
+.preload .mk{width:56px;height:56px;border-radius:15px;background:linear-gradient(150deg,#23242E,#121319);display:grid;place-items:center;position:relative;box-shadow:inset 0 0 0 1px var(--hair);animation:preMk .9s var(--ease) infinite alternate}
+.preload .mk::before{content:"";position:absolute;inset:0;border-radius:15px;padding:1px;background:var(--irid);background-size:200%;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:iridShift 3s linear infinite}
+.preload .mk svg{width:30px;height:30px}
+@keyframes preMk{to{transform:scale(.9);opacity:.75}}
+@keyframes preOut{to{opacity:0;visibility:hidden}}
+@media (prefers-reduced-motion:reduce){ .preload{display:none} }
+
+/* custom iridescent cursor ring (desktop, additive to native cursor) */
+.cursor-ring{position:fixed;top:0;left:0;z-index:200;width:30px;height:30px;border-radius:50%;pointer-events:none;
+  transform:translate(-50%,-50%);border:1px solid rgba(183,166,255,.55);mix-blend-mode:screen;
+  transition:width .25s var(--ease),height .25s var(--ease),background .25s,border-color .25s,opacity .3s;will-change:left,top}
+.cursor-ring.hot{width:52px;height:52px;background:radial-gradient(circle,rgba(183,166,255,.16),transparent 70%);border-color:rgba(127,224,255,.85)}
+.cursor-ring.down{width:22px;height:22px}
+@media (hover:none),(max-width:940px){ .cursor-ring{display:none} }
+
+/* orb reacts to a closed booking */
+.iris-orb.flare{animation:orbFlare .9s var(--ease)}
+@keyframes orbFlare{0%,100%{filter:none}34%{filter:brightness(1.55) saturate(1.35)}}
+
+/* ============================================================
+   TOP TICKER (hi-tech micro-detail) + NAV
+   ============================================================ */
+.ticker{position:fixed;top:0;left:0;right:0;z-index:51;display:flex;align-items:center;justify-content:center;gap:1.4rem;
+  padding:.4rem 1rem;font-family:"JetBrains Mono";font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);
+  border-bottom:1px solid var(--hair-2);background:rgba(11,12,16,.6);backdrop-filter:blur(8px)}
+.ticker .g{color:var(--plat-soft)}
+.ticker .d{width:4px;height:4px;border-radius:50%;background:#5BE5A0;box-shadow:0 0 8px #5BE5A0}
+@media (max-width:680px){ .ticker span.opt{display:none} }
+
+.nav{position:fixed;top:28px;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  padding:clamp(.8rem,1.4vw,1.15rem) clamp(1.2rem,4vw,2.6rem);transition:background .4s var(--ease),box-shadow .4s,backdrop-filter .4s}
+.nav.scrolled{background:rgba(11,12,16,.66);backdrop-filter:blur(16px) saturate(1.3);box-shadow:0 1px 0 var(--hair-2)}
+.brand{display:flex;align-items:center;gap:.65rem;font-family:"Space Grotesk";font-weight:600;font-size:1.24rem;letter-spacing:-.04em}
+.brand .logo{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;position:relative;
+  background:linear-gradient(150deg,#23242E,#121319);box-shadow:inset 0 0 0 1px var(--hair),0 8px 22px -10px rgba(183,166,255,.5)}
+.brand .logo::before{content:"";position:absolute;inset:0;border-radius:10px;padding:1px;background:var(--irid);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.7}
+.brand .logo svg{width:18px;height:18px;position:relative}
+.brand .dot{background:var(--irid);background-size:200%;-webkit-background-clip:text;background-clip:text;color:transparent}
+.nav-links{display:flex;align-items:center;gap:clamp(1rem,2.2vw,2rem);font-size:.92rem}
+.nav-links a{color:var(--muted);font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--plat)}
+.btn{display:inline-flex;align-items:center;gap:.5rem;font-weight:600;border-radius:999px;font-family:"Space Grotesk";
+  transition:transform .35s var(--ease),box-shadow .35s var(--ease),background .3s,color .3s;will-change:transform}
+.btn-plat{background:var(--plat);color:#0B0C10;padding:.72rem 1.3rem;box-shadow:0 10px 30px -12px rgba(243,241,234,.5)}
+.btn-plat:hover{transform:translateY(-2px);box-shadow:0 18px 44px -14px rgba(243,241,234,.7)}
+.btn-wire{position:relative;color:var(--plat);padding:.72rem 1.3rem;background:rgba(243,241,234,.03)}
+.btn-wire::before{content:"";position:absolute;inset:0;border-radius:999px;padding:1px;background:var(--irid);background-size:200%;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.55;transition:opacity .3s}
+.btn-wire:hover{transform:translateY(-2px)}
+.btn-wire:hover::before{opacity:1}
+.btn-lg{padding:1rem 1.7rem;font-size:1.04rem}
+.nav-cta{padding:.6rem 1.15rem;font-size:.9rem}
+@media (max-width:760px){ .nav-links a:not(.contact){display:none} }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{position:relative;padding:clamp(140px,18vh,210px) 0 clamp(70px,9vh,110px)}
+.hero-grid{display:grid;grid-template-columns:1.04fr .96fr;gap:clamp(2rem,4vw,4.5rem);align-items:center}
+
+.eyebrow{display:inline-flex;align-items:center;gap:.7rem;font-family:"JetBrains Mono";font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:1.7rem}
+.eyebrow .ln{width:34px;height:1px;background:var(--irid);background-size:200%;opacity:.8}
+h1.headline{font-size:var(--fs-h1);font-weight:500;letter-spacing:-.035em;margin-bottom:1.5rem}
+h1.headline .l{display:block;overflow:hidden}
+h1.headline .l > span{display:inline-block;transform:translateY(108%);animation:rise 1s var(--ease) forwards}
+h1.headline .l:nth-child(2) > span{animation-delay:.12s}
+h1.headline .l:nth-child(3) > span{animation-delay:.24s}
+@keyframes rise{to{transform:translateY(0)}}
+h1.headline .serif{font-size:1.04em;font-weight:400}
+.subline{font-size:var(--fs-sub);color:var(--plat-soft);max-width:34ch;margin-bottom:2.2rem;font-weight:400;line-height:1.5}
+.subline b{color:var(--plat);font-weight:600}
+.cta-row{display:flex;gap:.9rem;flex-wrap:wrap;margin-bottom:2.4rem}
+
+/* precise mono spec row */
+.spec{display:flex;gap:clamp(1.2rem,3vw,2.6rem);flex-wrap:wrap;padding-top:1.6rem;border-top:1px solid var(--hair-2)}
+.spec .item .n{font-family:"Space Grotesk";font-weight:600;font-size:1.5rem;letter-spacing:-.02em}
+.spec .item .n .u{font-size:.9rem;color:var(--plat-soft)}
+.spec .item .k{font-family:"JetBrains Mono";font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-top:.2rem}
+
+/* ---------- the monolith: dramatically-lit chat device ---------- */
+.stage{position:relative;perspective:1700px;min-height:520px;display:flex;align-items:center;justify-content:center}
+.halo{position:absolute;inset:2% 0 6%;z-index:0;border-radius:50%;filter:blur(46px);opacity:.8;
+  background:radial-gradient(50% 50% at 50% 42%,rgba(183,166,255,.5),transparent 70%),
+            radial-gradient(42% 42% at 64% 64%,rgba(127,224,255,.4),transparent 72%);
+  animation:halopulse 8s ease-in-out infinite}
+@keyframes halopulse{0%,100%{opacity:.66}50%{opacity:.92}}
+
+/* iridescent chrome orb — the AI "presence" (pure CSS, no deps) */
+.iris-orb{position:absolute;z-index:1;width:min(290px,58%);aspect-ratio:1;right:-4%;top:6%;border-radius:50%;overflow:hidden;isolation:isolate;
+  transform:translate3d(calc(var(--px)*-18px),calc(var(--py)*-14px),0);
+  box-shadow:0 50px 120px -28px rgba(183,166,255,.5),0 0 0 1px var(--hair);animation:orbBob 9s ease-in-out infinite}
+@keyframes orbBob{0%,100%{translate:0 0}50%{translate:0 -14px}}
+.iris-orb .sheen{position:absolute;inset:-35%;background:conic-gradient(from 0deg,#B7A6FF,#7FE0FF,#9DFFD8,#FFE6A0,#F4A8FF,#7FE0FF,#B7A6FF);
+  filter:blur(3px) saturate(1.15);animation:orbSpin 18s linear infinite;will-change:transform}
+@keyframes orbSpin{to{transform:rotate(360deg)}}
+.iris-orb .shade{position:absolute;inset:0;border-radius:50%;mix-blend-mode:overlay;
+  background:radial-gradient(circle at 36% 28%,rgba(255,255,255,.92),transparent 26%),radial-gradient(circle at 66% 78%,rgba(0,0,0,.6),transparent 58%)}
+.iris-orb .gloss{position:absolute;inset:0;border-radius:50%;
+  box-shadow:inset -16px -22px 54px rgba(0,0,0,.6),inset 12px 16px 38px rgba(255,255,255,.18)}
+.iris-orb .spec{position:absolute;top:16%;left:24%;width:26%;height:18%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,255,255,.95),transparent);filter:blur(2px)}
+@media (max-width:940px){ .iris-orb{right:2%;top:-4%;width:160px} }
+@media (prefers-reduced-motion:reduce){ .iris-orb .sheen{animation:none} .iris-orb{animation:none} }
+.corner{position:absolute;z-index:5;font-family:"JetBrains Mono";font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.corner.tl{top:-6px;left:2%}.corner.br{bottom:-6px;right:2%}
+
+.monolith{position:relative;z-index:3;width:min(412px,92%);transform-style:preserve-3d;
+  transform:translate3d(calc(var(--px)*-10px),calc(var(--py)*-8px),0) rotateY(-9deg) rotateX(3deg);
+  animation:mono 8s ease-in-out infinite}
+@keyframes mono{0%,100%{translate:0 0}50%{translate:0 -12px}}
+.device{position:relative;border-radius:24px;background:linear-gradient(180deg,rgba(28,29,38,.86),rgba(16,17,23,.92));
+  box-shadow:0 60px 120px -40px rgba(0,0,0,.9),0 0 0 1px var(--hair) inset;overflow:hidden;backdrop-filter:blur(14px)}
+.device::before{content:"";position:absolute;inset:0;border-radius:24px;padding:1px;background:var(--irid);background-size:200%;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.45;animation:iridShift 8s linear infinite}
+.titlebar{display:flex;align-items:center;gap:.5rem;padding:.7rem .95rem;border-bottom:1px solid var(--hair-2)}
+.titlebar .dots{display:flex;gap:6px}.titlebar .dots i{width:9px;height:9px;border-radius:50%;background:rgba(243,241,234,.16);display:block}
+.titlebar .u{margin-left:.4rem;font-family:"JetBrains Mono";font-size:.62rem;color:var(--faint)}
+.titlebar .live{margin-left:auto;font-family:"JetBrains Mono";font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:#5BE5A0;display:flex;align-items:center;gap:.35rem}
+.titlebar .live i{width:6px;height:6px;border-radius:50%;background:#5BE5A0;box-shadow:0 0 8px #5BE5A0}
+.app-head{display:flex;align-items:center;gap:.6rem;padding:.85rem 1rem;border-bottom:1px solid var(--hair-2)}
+.app-head .ava{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-family:"Space Grotesk";font-weight:600;color:#0B0C10;background:var(--irid);background-size:160%;position:relative}
+.app-head .ava .on{position:absolute;right:-1px;bottom:-1px;width:10px;height:10px;border-radius:50%;background:#5BE5A0;border:2px solid #15161D}
+.app-head .nm{font-family:"Space Grotesk";font-weight:600;font-size:.93rem}
+.app-head .st{font-size:.7rem;color:#5BE5A0;font-weight:500}
+.chat-log{padding:1rem;display:flex;flex-direction:column;gap:.55rem;height:250px;overflow:hidden;
+  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 22px,#000 calc(100% - 6px),transparent);mask-image:linear-gradient(to bottom,transparent,#000 22px,#000 calc(100% - 6px),transparent)}
+.bubble{max-width:84%;padding:.58rem .82rem;border-radius:15px;font-size:.88rem;line-height:1.4;animation:bin .45s var(--ease) both}
+@keyframes bin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.bubble .ts{display:block;font-family:"JetBrains Mono";font-size:.58rem;color:var(--faint);margin-top:.28rem}
+.bubble.lead{align-self:flex-start;background:rgba(243,241,234,.06);box-shadow:inset 0 0 0 1px var(--hair-2);border-bottom-left-radius:5px}
+.bubble.ai{align-self:flex-end;color:#0B0C10;background:var(--plat);border-bottom-right-radius:5px}
+.bubble.ai .ts{color:rgba(11,12,16,.5)}
+.bubble .caret{display:inline-block;width:2px;height:1.02em;background:currentColor;margin-left:1px;vertical-align:-2px;animation:cr .9s steps(1) infinite}
+@keyframes cr{0%,49%{opacity:1}50%,100%{opacity:0}}
+.typing{align-self:flex-end;display:inline-flex;gap:4px;padding:.6rem .78rem;background:var(--plat);border-radius:15px;border-bottom-right-radius:5px}
+.typing i{width:6px;height:6px;border-radius:50%;background:#0B0C10;opacity:.5;animation:td 1.1s ease-in-out infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes td{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-4px);opacity:1}}
+.booked-chip{align-self:flex-end;display:inline-flex;align-items:center;gap:.42rem;font-family:"JetBrains Mono";font-size:.7rem;font-weight:500;
+  color:#5BE5A0;background:rgba(91,229,160,.1);box-shadow:inset 0 0 0 1px rgba(91,229,160,.34);border-radius:9px;padding:.42rem .65rem;animation:bin .45s var(--ease) both}
+.booked-chip svg{width:13px;height:13px}
+/* interactive composer — visitor can type to Novi */
+.composer{display:flex;align-items:center;gap:.5rem;padding:.6rem .7rem;border-top:1px solid var(--hair-2);background:rgba(243,241,234,.02);position:relative}
+.composer::before{content:"";position:absolute;left:.7rem;right:.7rem;top:-1px;height:1px;background:var(--irid);background-size:200%;opacity:0;transition:opacity .3s;animation:iridShift 8s linear infinite}
+.composer:focus-within::before{opacity:.7}
+.composer input{flex:1;min-width:0;background:transparent;border:0;color:var(--plat);font-family:"Plus Jakarta Sans";font-size:.86rem;padding:.4rem .2rem}
+.composer input::placeholder{color:var(--faint)}
+.composer input:focus{outline:none}
+.composer button{width:34px;height:34px;flex:0 0 auto;border-radius:9px;display:grid;place-items:center;color:#0B0C10;background:var(--plat);transition:transform .25s var(--ease),opacity .25s}
+.composer button:hover{transform:translateY(-1px)}
+.composer button svg{width:15px;height:15px}
+.composer .hint{position:absolute;left:50%;top:-26px;transform:translateX(-50%);font-family:"JetBrains Mono";font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);white-space:nowrap;pointer-events:none;opacity:.85;transition:opacity .4s}
+.composer.used .hint{opacity:0}
+
+/* device reflection */
+.reflection{position:absolute;left:8%;right:8%;top:100%;height:42%;z-index:2;
+  background:linear-gradient(180deg,rgba(183,166,255,.14),transparent 70%);filter:blur(10px);transform:scaleY(-1);opacity:.5;border-radius:24px}
+
+/* floating proof chip */
+.proof{position:absolute;z-index:4;display:inline-flex;align-items:center;gap:.5rem;padding:.55rem .75rem;border-radius:12px;
+  background:var(--glass);box-shadow:0 24px 50px -28px rgba(0,0,0,.8),inset 0 0 0 1px var(--hair);backdrop-filter:blur(14px);
+  font-size:.78rem;font-weight:600;will-change:transform}
+.proof .ic{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;color:#0B0C10;background:var(--irid);background-size:160%}
+.proof .ic svg{width:13px;height:13px}
+.proof small{display:block;font-family:"JetBrains Mono";font-size:.6rem;font-weight:400;color:var(--muted);letter-spacing:.04em}
+.proof.pa{top:8%;right:-6%;transform:translate3d(calc(var(--px)*-22px),calc(var(--py)*14px),60px);animation:pf 6.5s ease-in-out infinite}
+.proof.pb{bottom:10%;left:-7%;transform:translate3d(calc(var(--px)*20px),calc(var(--py)*-12px),50px);animation:pf 7.5s ease-in-out infinite .5s}
+@keyframes pf{0%,100%{margin-top:0}50%{margin-top:-8px}}
+
+/* ============================================================
+   CAPABILITY STRIP
+   ============================================================ */
+.below{position:relative;padding:clamp(4.5rem,10vh,9rem) 0;border-top:1px solid var(--hair-2)}
+.below .lead-line{font-family:"JetBrains Mono";font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-bottom:1.4rem;display:flex;align-items:center;gap:.7rem}
+.below .lead-line .ln{width:30px;height:1px;background:var(--irid);background-size:200%}
+.below h2{font-size:clamp(1.9rem,1rem+3.2vw,3.4rem);font-weight:500;max-width:20ch;letter-spacing:-.03em}
+.below h2 .serif{font-weight:400}
+.below .sub{color:var(--muted);max-width:46ch;margin-top:1.1rem;font-size:var(--fs-sub)}
+.caps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;margin-top:3rem;background:var(--hair-2);border:1px solid var(--hair-2);border-radius:var(--r);overflow:hidden}
+.capc{background:var(--bg);padding:1.8rem 1.6rem;transition:background .4s var(--ease)}
+.capc:hover{background:var(--bg-lift)}
+.capc .ix{font-family:"JetBrains Mono";font-size:.6rem;letter-spacing:.14em;color:var(--faint);margin-bottom:1.4rem}
+.capc .n{font-family:"Space Grotesk";font-weight:500;font-size:2.2rem;letter-spacing:-.03em}
+.capc .n .u{font-size:1.1rem;background:var(--irid);background-size:200%;-webkit-background-clip:text;background-clip:text;color:transparent}
+.capc .d{color:var(--muted);font-size:.9rem;margin-top:.4rem}
+.below-cta{margin-top:3rem;display:inline-flex}
+
+/* how it works — scroll choreography */
+.how{position:relative;padding:clamp(4.5rem,10vh,9rem) 0;border-top:1px solid var(--hair-2)}
+.how .lead-line{font-family:"JetBrains Mono";font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-bottom:1.4rem;display:flex;align-items:center;gap:.7rem}
+.how .lead-line .ln{width:30px;height:1px;background:var(--irid);background-size:200%}
+.how h2{font-size:clamp(1.9rem,1rem+3.2vw,3.4rem);font-weight:500;letter-spacing:-.03em;max-width:18ch}
+.how h2 .serif{font-weight:400}
+.steps{position:relative;margin-top:3.4rem;display:flex;flex-direction:column;gap:1.5rem;padding-left:64px;max-width:760px}
+.steps .rail{position:absolute;left:21px;top:10px;bottom:10px;width:2px;background:var(--hair-2);border-radius:2px;overflow:hidden}
+.steps .rail .fill{position:absolute;left:0;top:0;width:100%;height:0;background:var(--irid);background-size:100% 220%;box-shadow:0 0 14px rgba(183,166,255,.6);transition:height .5s var(--ease);animation:railShift 8s linear infinite}
+@keyframes railShift{to{background-position:0 220%}}
+.step{position:relative;opacity:.35;transform:translateY(14px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.step.on{opacity:1;transform:none}
+.step .dot{position:absolute;left:-64px;top:-2px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--bg-lift);box-shadow:inset 0 0 0 1px var(--hair);color:var(--muted);transition:color .45s,background .45s,box-shadow .45s}
+.step.on .dot{color:#0B0C10;background:var(--irid);background-size:160%;box-shadow:0 0 0 1px var(--hair),0 0 26px -4px rgba(183,166,255,.75)}
+.step .dot svg{width:20px;height:20px}
+.step .ix{font-family:"JetBrains Mono";font-size:.6rem;letter-spacing:.14em;color:var(--faint);margin-bottom:.25rem}
+.step .k{font-family:"Space Grotesk";font-weight:600;font-size:1.18rem;letter-spacing:-.01em}
+.step .v{color:var(--muted);font-size:.96rem;margin-top:.25rem;max-width:52ch;line-height:1.5}
+
+/* scroll-reveal utility */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+
+/* section heading shared */
+.sec{position:relative;padding:clamp(4.5rem,10vh,9rem) 0;border-top:1px solid var(--hair-2)}
+.sec .lead-line{font-family:"JetBrains Mono";font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-bottom:1.4rem;display:flex;align-items:center;gap:.7rem}
+.sec .lead-line .ln{width:30px;height:1px;background:var(--irid);background-size:200%}
+.sec h2{font-size:clamp(1.9rem,1rem+3.2vw,3.4rem);font-weight:500;letter-spacing:-.03em;max-width:20ch}
+.sec h2 .serif{font-weight:400}
+.sec .sub{color:var(--muted);max-width:48ch;margin-top:1.1rem;font-size:var(--fs-sub)}
+
+/* trust strip */
+.trust-strip{display:flex;flex-wrap:wrap;gap:1px;margin-top:2.6rem;background:var(--hair-2);border:1px solid var(--hair-2);border-radius:var(--r);overflow:hidden}
+.trust-strip .t{flex:1 1 180px;background:var(--bg);padding:1.4rem 1.5rem;display:flex;align-items:center;gap:.8rem}
+.trust-strip .t .ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:#0B0C10;background:var(--irid);background-size:160%;flex:0 0 auto}
+.trust-strip .t .ic svg{width:17px;height:17px}
+.trust-strip .t .k{display:block;font-family:"Space Grotesk";font-weight:600;font-size:.95rem}
+.trust-strip .t .v{display:block;font-size:.76rem;color:var(--muted)}
+
+/* pricing */
+.price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.2rem;margin-top:3rem}
+.tier{position:relative;background:linear-gradient(180deg,rgba(28,29,38,.5),rgba(16,17,23,.5));border-radius:var(--r);padding:2rem 1.8rem;
+  box-shadow:inset 0 0 0 1px var(--hair-2);transition:transform .4s var(--ease),box-shadow .4s var(--ease)}
+.tier:hover{transform:translateY(-6px);box-shadow:inset 0 0 0 1px var(--hair),0 40px 80px -40px rgba(0,0,0,.8)}
+.tier.feat{box-shadow:inset 0 0 0 1px transparent}
+.tier.feat::before{content:"";position:absolute;inset:0;border-radius:var(--r);padding:1px;background:var(--irid);background-size:200%;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:iridShift 8s linear infinite}
+.tier .badge{position:absolute;top:-11px;left:1.8rem;font-family:"JetBrains Mono";font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:#0B0C10;background:var(--irid);background-size:160%;padding:.28rem .6rem;border-radius:6px}
+.tier .nm{font-family:"Space Grotesk";font-weight:600;font-size:1.3rem}
+.tier .desc{color:var(--muted);font-size:.86rem;margin-top:.3rem;min-height:2.4em}
+.tier .price{margin:1.3rem 0;display:flex;align-items:baseline;gap:.4rem}
+.tier .price .big{font-family:"Space Grotesk";font-weight:600;font-size:2.4rem;letter-spacing:-.03em}
+.tier .price .per{font-size:.82rem;color:var(--muted)}
+.tier .setup{font-family:"JetBrains Mono";font-size:.66rem;color:var(--faint);margin-top:-.8rem;margin-bottom:1.3rem}
+.tier ul{list-style:none;display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.7rem}
+.tier li{display:flex;align-items:flex-start;gap:.55rem;font-size:.88rem;color:var(--plat-soft)}
+.tier li svg{width:15px;height:15px;flex:0 0 auto;margin-top:.18rem;color:#5BE5A0}
+.tier .btn{width:100%;justify-content:center}
+
+/* lead form */
+.contact-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(2rem,4vw,4rem);margin-top:2.6rem;align-items:start}
+.form-card{background:linear-gradient(180deg,rgba(28,29,38,.55),rgba(16,17,23,.6));border-radius:var(--r);padding:2rem;box-shadow:inset 0 0 0 1px var(--hair);position:relative;overflow:hidden}
+.form-card::before{content:"";position:absolute;inset:0;border-radius:var(--r);padding:1px;background:var(--irid);background-size:200%;opacity:.3;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.field{margin-bottom:1.1rem;position:relative}
+.field label{display:block;font-family:"JetBrains Mono";font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
+.field input,.field select{width:100%;background:rgba(11,12,16,.6);color:var(--plat);border:1px solid var(--hair);border-radius:11px;padding:.85rem 1rem;font-family:"Plus Jakarta Sans";font-size:.95rem;transition:border-color .25s,box-shadow .25s}
+.field input::placeholder{color:var(--faint)}
+.field input:focus,.field select:focus{outline:none;border-color:rgba(183,166,255,.5);box-shadow:0 0 0 3px rgba(183,166,255,.12)}
+.field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A8B99' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 1rem center;background-size:16px;padding-right:2.6rem}
+.field select option{background:#15161D;color:var(--plat)}
+.form-card .btn{width:100%;justify-content:center;margin-top:.4rem}
+.form-note{font-family:"JetBrains Mono";font-size:.62rem;color:var(--faint);text-align:center;margin-top:.9rem;letter-spacing:.04em}
+.form-success{display:none;text-align:center;padding:2.5rem 1rem}
+.form-success.show{display:block;animation:bin .5s var(--ease)}
+.form-success .ring{width:64px;height:64px;margin:0 auto 1.2rem;border-radius:50%;display:grid;place-items:center;background:var(--irid);background-size:160%;color:#0B0C10}
+.form-success .ring svg{width:30px;height:30px}
+.form-success h3{font-family:"Space Grotesk";font-weight:600;font-size:1.4rem;margin-bottom:.5rem}
+.form-success p{color:var(--muted)}
+.contact-aside .ca-item{display:flex;gap:.9rem;padding:1.2rem 0;border-bottom:1px solid var(--hair-2)}
+.contact-aside .ca-item:last-child{border-bottom:0}
+.contact-aside .ca-item .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto;color:var(--plat);box-shadow:inset 0 0 0 1px var(--hair)}
+.contact-aside .ca-item .ic svg{width:18px;height:18px}
+.contact-aside .ca-item .k{display:block;font-family:"Space Grotesk";font-weight:600}
+.contact-aside .ca-item .v{display:block;color:var(--muted);font-size:.9rem}
+.contact-aside .ca-item a{color:var(--plat-soft)}
+
+/* faq */
+.faq{max-width:780px;margin-top:2.6rem}
+.qa{border-bottom:1px solid var(--hair-2)}
+.qa button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:1rem;text-align:left;padding:1.3rem 0;font-family:"Space Grotesk";font-weight:500;font-size:1.08rem;color:var(--plat)}
+.qa button .pm{width:22px;height:22px;flex:0 0 auto;position:relative;transition:transform .35s var(--ease)}
+.qa button .pm::before,.qa button .pm::after{content:"";position:absolute;left:50%;top:50%;width:12px;height:1.5px;background:var(--plat-soft);transform:translate(-50%,-50%)}
+.qa button .pm::after{transform:translate(-50%,-50%) rotate(90deg);transition:opacity .35s}
+.qa.open button .pm{transform:rotate(90deg)}
+.qa.open button .pm::after{opacity:0}
+.qa .a{max-height:0;overflow:hidden;transition:max-height .4s var(--ease)}
+.qa .a p{color:var(--muted);padding:0 0 1.3rem;max-width:62ch;line-height:1.6}
+
+/* global living tech-mesh backdrop */
+#techCanvas{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.55}
+
+/* live system console (terminal log) */
+.console{margin-top:2.6rem;border-radius:14px;overflow:hidden;background:rgba(8,9,12,.72);box-shadow:inset 0 0 0 1px var(--hair);backdrop-filter:blur(8px);font-family:"JetBrains Mono"}
+.console-bar{display:flex;align-items:center;gap:.5rem;padding:.6rem .85rem;border-bottom:1px solid var(--hair-2);background:rgba(255,255,255,.02)}
+.console-bar .cdot{width:9px;height:9px;border-radius:50%;background:var(--hair);display:block}
+.console-bar .ctitle{margin-left:.4rem;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.console-bar .cstat{margin-left:auto;font-size:.62rem;color:#5BE5A0;display:flex;align-items:center;gap:.4rem}
+.console-bar .cstat i{width:6px;height:6px;border-radius:50%;background:#5BE5A0;box-shadow:0 0 7px #5BE5A0}
+.console-body{height:158px;overflow:hidden;padding:.75rem .95rem;font-size:.7rem;line-height:1.75;color:var(--muted);
+  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 18px);mask-image:linear-gradient(to bottom,transparent,#000 18px)}
+.console-body .ln{white-space:pre-wrap;opacity:0;animation:bin .3s var(--ease) forwards}
+.console-body .ln .t{color:var(--faint)}
+.console-body .ln .ok{color:#5BE5A0}
+.console-body .ln .m{color:#7FE0FF}
+.console-body .cur{display:inline-block;width:7px;height:1em;background:#5BE5A0;vertical-align:-2px;animation:cr .9s steps(1) infinite}
+
+/* technological simulation — live system schematic */
+.sim-stage{position:relative;margin-top:3.2rem;display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:clamp(1rem,4vw,3rem);align-items:center;min-height:360px}
+.sim-wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
+.sim-wires path.wire{fill:none;stroke:rgba(183,166,255,.16);stroke-width:1.3;stroke-dasharray:4 7;animation:beamflow 1s linear infinite}
+@keyframes beamflow{to{stroke-dashoffset:-11}}
+.sim-wires circle.pkt{filter:drop-shadow(0 0 7px rgba(183,166,255,.95))}
+.sim-col{display:flex;flex-direction:column;gap:1.1rem;position:relative;z-index:2}
+.sim-col.mid{align-items:center}
+.node{display:flex;align-items:center;gap:.7rem;padding:.72rem .9rem;border-radius:13px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--hair);backdrop-filter:blur(10px);transition:box-shadow .35s var(--ease),transform .35s var(--ease)}
+.node.pulse{box-shadow:inset 0 0 0 1px rgba(183,166,255,.65),0 0 30px -6px rgba(183,166,255,.7);transform:scale(1.035)}
+.node .ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#0B0C10;background:var(--irid);background-size:160%;flex:0 0 auto}
+.node .ic svg{width:16px;height:16px}
+.node .lbl{font-family:"Space Grotesk";font-weight:500;font-size:.9rem;white-space:nowrap}
+.node .mono{display:block;font-family:"JetBrains Mono";font-size:.56rem;letter-spacing:.06em;color:var(--muted);margin-top:1px}
+.node.core{flex-direction:column;text-align:center;padding:1.4rem 1.6rem;gap:.6rem}
+.node.core .orb-mini{width:58px;height:58px;border-radius:50%;position:relative;overflow:hidden;box-shadow:0 0 36px -6px rgba(183,166,255,.7),inset -8px -10px 22px rgba(0,0,0,.5),inset 6px 7px 16px rgba(255,255,255,.18)}
+.node.core .orb-mini::before{content:"";position:absolute;inset:-30%;background:conic-gradient(from 0deg,#B7A6FF,#7FE0FF,#9DFFD8,#FFE6A0,#F4A8FF,#7FE0FF,#B7A6FF);filter:blur(2px);animation:orbSpin 12s linear infinite}
+.node.core .lbl{font-size:1rem}
+.sim-cap{display:flex;justify-content:center;gap:1.4rem;margin-top:1.8rem;font-family:"JetBrains Mono";font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);flex-wrap:wrap}
+.sim-cap .g{color:#5BE5A0}
+@media (max-width:760px){
+  .sim-stage{grid-template-columns:1fr;gap:.7rem}
+  .sim-col.mid{order:-1}
+  .sim-wires{display:none}
+  .node{justify-content:center}
+}
+
+/* final cta band */
+.finale{position:relative;text-align:center;padding:clamp(5rem,12vh,10rem) 0;border-top:1px solid var(--hair-2);overflow:hidden}
+.finale .glowband{position:absolute;inset:0;z-index:0;background:radial-gradient(50% 90% at 50% 120%,rgba(183,166,255,.35),transparent 70%);pointer-events:none}
+.finale .inner{position:relative;z-index:1}
+.finale h2{font-size:clamp(2.2rem,1rem+4vw,4.4rem);font-weight:500;letter-spacing:-.035em;margin-inline:auto;max-width:16ch}
+.finale .sub{color:var(--muted);margin:1.2rem auto 2.2rem;max-width:42ch;font-size:var(--fs-sub)}
+
+/* sticky CTA */
+.sticky{position:fixed;left:50%;bottom:18px;z-index:45;transform:translateX(-50%) translateY(160%);
+  display:flex;align-items:center;gap:1rem;background:rgba(17,18,24,.82);box-shadow:0 30px 70px -30px rgba(0,0,0,.9),inset 0 0 0 1px var(--hair);
+  backdrop-filter:blur(16px);border-radius:999px;padding:.5rem .5rem .5rem 1.2rem;transition:transform .55s var(--ease);max-width:calc(100vw - 24px)}
+.sticky.show{transform:translateX(-50%) translateY(0)}
+.sticky .t{font-size:.86rem;font-weight:600}.sticky .t small{display:block;color:var(--muted);font-weight:400;font-size:.72rem;font-family:"JetBrains Mono"}
+@media (max-width:560px){ .sticky .t small{display:none} }
+
+.foot{padding:2.4rem 0;border-top:1px solid var(--hair-2);display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+  font-family:"JetBrains Mono";font-size:.68rem;letter-spacing:.08em;color:var(--faint)}
+.foot a{color:var(--plat-soft)}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:940px){
+  .hero-grid{grid-template-columns:1fr;gap:3.4rem}
+  .stage{order:2;min-height:470px}
+  .subline{max-width:42ch}
+  .monolith{transform:none;animation:none}
+  .proof.pa{right:0}.proof.pb{left:0}
+}
+@media (max-width:520px){ .proof.pa{display:none}; .cta-row .btn{flex:1;justify-content:center} }
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  h1.headline .l > span{transform:none}
+  .monolith,.proof{transform:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="preload" aria-hidden="true"><span class="mk"><svg viewBox="0 0 24 24" fill="none"><path d="M5 18V6l14 12V6" stroke="#F3F1EA" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+<div class="backdrop" aria-hidden="true"></div>
+<div class="haze" aria-hidden="true"></div>
+<div class="gridlines" aria-hidden="true"></div>
+<svg class="grain" aria-hidden="true"><filter id="gf"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#gf)"/></svg>
+<canvas id="techCanvas" aria-hidden="true"></canvas>
+
+<!-- TOP TICKER -->
+<div class="ticker" aria-hidden="true">
+  <span><span class="d" style="display:inline-block;vertical-align:middle;margin-right:6px"></span><span class="g">System live</span></span>
+  <span class="opt">Answering · 24/7</span>
+  <span class="opt">Avg first reply <span class="g">~2s</span></span>
+  <span class="opt">Built in the USA</span>
+</div>
+
+<!-- NAV -->
+<nav class="nav" id="nav" aria-label="Primary">
+  <a class="brand" href="#" aria-label="Novixel home">
+    <span class="logo"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 18V6l14 12V6" stroke="#F3F1EA" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    Novixel<span class="dot">.ai</span>
+  </a>
+  <div class="nav-links">
+    <a href="#services">Services</a>
+    <a href="#pricing">Pricing</a>
+    <a class="contact" href="#contact">Contact</a>
+    <a class="btn btn-plat nav-cta" href="https://calendly.com/hello-novixelai" target="_blank" rel="noopener">Book a Call</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div class="copy">
+      <span class="eyebrow"><span class="ln"></span>AI Receptionist · Always on</span>
+      <h1 class="headline">
+        <span class="l"><span>Never miss</span></span>
+        <span class="l"><span>another <span class="serif irid-text">lead.</span></span></span>
+        <span class="l"><span>Booked in seconds.</span></span>
+      </h1>
+      <p class="subline"><b>Novixel</b> is the AI receptionist that answers, qualifies, and books every lead in seconds — 24/7, with the poise of a flawless front desk that never sleeps.</p>
+      <div class="cta-row">
+        <a class="btn btn-plat btn-lg" href="https://calendly.com/hello-novixelai" target="_blank" rel="noopener">Book your free setup call
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="btn btn-wire btn-lg" href="#demo" id="seeLive">See it in action</a>
+      </div>
+      <div class="spec">
+        <div class="item"><div class="n">~2<span class="u">s</span></div><div class="k">First reply</div></div>
+        <div class="item"><div class="n">24/7</div><div class="k">Always on</div></div>
+        <div class="item"><div class="n">100<span class="u">%</span></div><div class="k">Leads answered</div></div>
+        <div class="item"><div class="n">0</div><div class="k">Robotic replies</div></div>
+      </div>
+    </div>
+
+    <!-- MONOLITH -->
+    <div class="stage" id="demo">
+      <div class="halo" aria-hidden="true"></div>
+      <div class="iris-orb" aria-hidden="true"><span class="sheen"></span><span class="shade"></span><span class="gloss"></span><span class="spec"></span></div>
+      <span class="corner tl mono">N° 001 — RECEPTIONIST</span>
+      <span class="corner br mono">LIVE · BOOKING</span>
+
+      <div class="proof pa" aria-hidden="true">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" fill="currentColor"/></svg></span>
+        <span>Replied in 4s<small>new lead · 11:03 PM</small></span>
+      </div>
+      <div class="proof pb" aria-hidden="true">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span>Booked · Tue 9:00<small>added to calendar</small></span>
+      </div>
+
+      <div class="monolith">
+        <div class="device">
+          <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="u">novixel.ai/live</span><span class="live"><i></i>Live</span></div>
+          <div class="app-head">
+            <span class="ava">N<span class="on"></span></span>
+            <span><span class="nm" style="display:block">Novi · Receptionist</span><span class="st">Online · replies in ~2s</span></span>
+          </div>
+          <div class="chat-log" id="chatLog" role="log" aria-live="polite" aria-label="AI receptionist booking a lead"></div>
+          <form class="composer" id="composer" autocomplete="off">
+            <span class="hint">↓ Try it — type a message to Novi</span>
+            <input id="composerInput" type="text" placeholder="Ask Novi anything…" aria-label="Type a message to the AI receptionist" maxlength="160" />
+            <button type="submit" aria-label="Send message"><svg viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </form>
+        </div>
+        <div class="reflection" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- CAPABILITY STRIP -->
+<section class="below" id="services">
+  <div class="wrap">
+    <div class="lead-line"><span class="ln"></span>Capability, not claims</div>
+    <h2>An AI that answers, qualifies, and books — <span class="serif irid-text">before</span> your competitor even sees the lead.</h2>
+    <p class="sub">Here's exactly what the system does the moment a lead arrives — by call, form, DM, or chat.</p>
+    <div class="caps">
+      <div class="capc"><div class="ix">01 / SPEED</div><div class="n">~2<span class="u">s</span></div><div class="d">to first reply — day or night</div></div>
+      <div class="capc"><div class="ix">02 / UPTIME</div><div class="n">24/7</div><div class="d">never sleeps, never misses</div></div>
+      <div class="capc"><div class="ix">03 / COVERAGE</div><div class="n">100<span class="u">%</span></div><div class="d">of leads answered, none ignored</div></div>
+      <div class="capc"><div class="ix">04 / VOICE</div><div class="n">0</div><div class="d">robotic replies — trained in your brand voice</div></div>
+    </div>
+    <a class="btn btn-plat below-cta btn-lg" href="https://calendly.com/hello-novixelai" target="_blank" rel="noopener">Book your free setup call</a>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="wrap">
+    <div class="lead-line"><span class="ln"></span>How it works</div>
+    <h2>From first message to <span class="serif irid-text">booked</span> — in under a minute.</h2>
+    <div class="steps">
+      <div class="rail" aria-hidden="true"><span class="fill"></span></div>
+
+      <div class="step">
+        <span class="dot"><svg viewBox="0 0 24 24" fill="none"><path d="M4 5h16v11H9l-4 4V5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
+        <div class="ix">01 / INTAKE</div>
+        <div class="k">A lead reaches out</div>
+        <div class="v">Call, text, web form, or DM — Novixel catches every channel the moment it comes in. Nothing falls through.</div>
+      </div>
+
+      <div class="step">
+        <span class="dot"><svg viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" fill="currentColor"/></svg></span>
+        <div class="ix">02 / RESPONSE</div>
+        <div class="k">Novi replies in seconds</div>
+        <div class="v">In your brand voice, day or night. No lead waits for business hours — and no competitor answers first.</div>
+      </div>
+
+      <div class="step">
+        <span class="dot"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="ix">03 / QUALIFY</div>
+        <div class="k">It qualifies &amp; handles questions</div>
+        <div class="v">Reads intent and answers the real questions — pricing, availability, urgency — so only genuine buyers reach you.</div>
+      </div>
+
+      <div class="step">
+        <span class="dot"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <div class="ix">04 / BOOK</div>
+        <div class="k">Books straight to your calendar</div>
+        <div class="v">Novi locks the appointment into your calendar and texts the lead a confirmation — the deal is already moving.</div>
+      </div>
+
+      <div class="step">
+        <span class="dot"><svg viewBox="0 0 24 24" fill="none"><path d="M6 8a6 6 0 1112 0c0 7 3 9 3 9H3s3-2 3-9z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 21a2 2 0 004 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <div class="ix">05 / HANDOFF</div>
+        <div class="k">You're notified — fully briefed</div>
+        <div class="v">You get the booking and the entire conversation, logged. A human on your team can step in at any moment.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECHNOLOGICAL SIMULATION — live system schematic -->
+<section class="sec sim reveal" id="system">
+  <div class="wrap">
+    <div class="lead-line"><span class="ln"></span>Live system</div>
+    <h2>Watch the machine <span class="serif irid-text">work</span>.</h2>
+    <p class="sub">Every lead — from any channel — flows through Novi in real time: caught, understood, qualified, and booked. Nothing waits, nothing drops.</p>
+
+    <div class="sim-stage" id="simStage">
+      <svg class="sim-wires" id="simWires" aria-hidden="true"></svg>
+
+      <div class="sim-col left">
+        <div class="node ch" data-node="ch"><span class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M5 4h4l2 5-3 2a12 12 0 005 5l2-3 5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span><span><span class="lbl">Phone call</span><span class="mono">voice → text</span></span></div>
+        <div class="node ch" data-node="ch"><span class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 5h16v11H9l-4 4V5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span><span><span class="lbl">SMS / text</span><span class="mono">inbound</span></span></div>
+        <div class="node ch" data-node="ch"><span class="ic"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M7 9h10M7 13h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span><span class="lbl">Web form</span><span class="mono">site capture</span></span></div>
+        <div class="node ch" data-node="ch"><span class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21a9 9 0 10-9-9 9 9 0 002 5.6L4 21l3.4-1a9 9 0 004.6 1z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span><span><span class="lbl">DM / chat</span><span class="mono">social</span></span></div>
+      </div>
+
+      <div class="sim-col mid">
+        <div class="node core" data-node="core"><span class="orb-mini"></span><span class="lbl">Novi · AI core</span><span class="mono" id="coreStatus">listening…</span></div>
+      </div>
+
+      <div class="sim-col right">
+        <div class="node out" data-node="out"><span class="ic"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span><span class="lbl">Calendar · booked</span><span class="mono">appointment set</span></span></div>
+        <div class="node out" data-node="out"><span class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><span class="lbl">SMS confirmation</span><span class="mono">sent to lead</span></span></div>
+        <div class="node out" data-node="out"><span class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M6 8a6 6 0 1112 0c0 7 3 9 3 9H3s3-2 3-9z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span><span><span class="lbl">You're notified</span><span class="mono">full transcript</span></span></div>
+      </div>
+    </div>
+    <div class="sim-cap"><span>Status: <span class="g">operational</span></span><span>Channels: <span class="g">4 live</span></span><span>Avg handle <span class="g">~2s</span></span><span>Processed <span class="g" id="thru">0</span></span></div>
+
+    <div class="console" aria-hidden="true">
+      <div class="console-bar"><span class="cdot"></span><span class="cdot"></span><span class="cdot"></span><span class="ctitle">novixel · system log — live</span><span class="cstat"><i></i>streaming</span></div>
+      <div class="console-body" id="consoleBody"></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="sec reveal" id="pricing">
+  <div class="wrap">
+    <div class="lead-line"><span class="ln"></span>Pricing</div>
+    <h2>One receptionist. <span class="serif irid-text">Every</span> plan pays for itself in saved leads.</h2>
+    <p class="sub">Simple setup, month-to-month. Start where you are — scale when you're ready.</p>
+    <div class="price-grid">
+      <div class="tier">
+        <div class="nm">Launch</div>
+        <div class="desc">For the business that just needs to stop missing leads.</div>
+        <div class="price"><span class="big">$197</span><span class="per">/ month</span></div>
+        <div class="setup">+ $747 one-time setup</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>AI web chat &amp; form capture</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>24/7 instant answering</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Books to your calendar</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Trained in your brand voice</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Email notifications</li>
+        </ul>
+        <a class="btn btn-wire" href="https://calendly.com/hello-novixelai" target="_blank" rel="noopener">Start with Launch</a>
+      </div>
+
+      <div class="tier feat">
+        <span class="badge">Most popular</span>
+        <div class="nm">Convert</div>
+        <div class="desc">For the business ready to answer every call and close more.</div>
+        <div class="price"><span class="big">$397</span><span class="per">/ month</span></div>
+        <div class="setup">+ $1,497 one-time setup</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Everything in Launch</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>AI phone answering (voice)</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>SMS follow-up &amp; reminders</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Lead qualification rules</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Calendar + CRM integrations</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Priority onboarding</li>
+        </ul>
+        <a class="btn btn-plat" href="https://calendly.com/hello-novixelai" target="_blank" rel="noopener">Get Convert</a>
+      </div>
+
+      <div class="tier">
+        <div class="nm">Dominate</div>
+        <div class="desc">For multi-location teams that want to own their market.</div>
+        <div class="price"><span class="big">$697</span><span class="per">/ month</span></div>
+        <div class="setup">+ $2,997 one-time setup</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Everything in Convert</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Multi-location / multi-team</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Custom workflows &amp; routing</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>A/B-tested scripts</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Dedicated success manager</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Advanced reporting</li>
+        </ul>
+        <a class="btn btn-wire" href="https://calendly.com/hello-novixelai" target="_blank" rel="noopener">Talk to us</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="sec reveal" id="faq">
+  <div class="wrap">
+    <div class="lead-line"><span class="ln"></span>Questions</div>
+    <h2>The things every owner asks <span class="serif irid-text">first</span>.</h2>
+    <div class="faq">
+      <div class="qa"><button aria-expanded="false">Will it sound like a robot?<span class="pm" aria-hidden="true"></span></button><div class="a"><p>No. Novi is trained on your business and brand voice, so replies feel natural and on-message. Most leads can't tell — and a human on your team can step in at any moment.</p></div></div>
+      <div class="qa"><button aria-expanded="false">What if it can't answer something?<span class="pm" aria-hidden="true"></span></button><div class="a"><p>Novi handles the everyday 90% — pricing ranges, availability, qualifying questions. Anything unusual, it captures the details, sets expectations, and hands off to you with the full context attached.</p></div></div>
+      <div class="qa"><button aria-expanded="false">How fast can we go live?<span class="pm" aria-hidden="true"></span></button><div class="a"><p>Most setups go live within days. We configure your channels, calendar, scripts and brand voice, test it together, then switch it on — no engineering on your side.</p></div></div>
+      <div class="qa"><button aria-expanded="false">Which channels does it cover?<span class="pm" aria-hidden="true"></span></button><div class="a"><p>Phone calls, SMS, web chat, web forms, and social DMs — every place a lead might reach you, answered from one system.</p></div></div>
+      <div class="qa"><button aria-expanded="false">Is my data safe?<span class="pm" aria-hidden="true"></span></button><div class="a"><p>Conversations are encrypted and never sold. You own your data, see every conversation, and can export or delete it anytime.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT / LEAD FORM -->
+<section class="sec reveal" id="contact">
+  <div class="wrap">
+    <div class="lead-line"><span class="ln"></span>Get started</div>
+    <h2>See Novi answer <span class="serif irid-text">your</span> leads.</h2>
+    <p class="sub">Tell us about your business and we'll set up a live demo on your real channels.</p>
+    <div class="trust-strip">
+      <div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><span class="k">Built in the USA</span><span class="v">support that gets your market</span></span></div>
+      <div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span><span class="k">Live in days</span><span class="v">not weeks of engineering</span></span></div>
+      <div class="t"><span class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><span class="k">No long contracts</span><span class="v">month-to-month, cancel anytime</span></span></div>
+    </div>
+
+    <div class="contact-grid">
+      <div class="form-card">
+        <form id="leadForm" novalidate>
+          <div class="field"><label for="f-name">Full name</label><input id="f-name" name="full_name" type="text" placeholder="Jordan Rivera" required /></div>
+          <div class="field"><label for="f-email">Business email</label><input id="f-email" name="business_email" type="email" placeholder="you@yourbusiness.com" required /></div>
+          <div class="field"><label for="f-type">Business type</label>
+            <select id="f-type" name="business_type" required>
+              <option value="" disabled selected>Select your industry…</option>
+              <option>Roofing / Contractor</option><option>Dental / Medical</option><option>Law firm</option><option>Med-spa / Salon</option><option>Home services (HVAC, plumbing…)</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label for="f-vol">Monthly lead volume</label>
+            <select id="f-vol" name="monthly_lead_volume" required>
+              <option value="" disabled selected>Roughly how many?</option>
+              <option>Under 50</option><option>50–200</option><option>200–500</option><option>500+</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-plat">Get my live demo</button>
+          <div class="form-note">No spam. We'll be in touch within 2 hours.</div>
+        </form>
+        <div class="form-success" id="formSuccess">
+          <div class="ring"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h3>You're on the list.</h3>
+          <p>We'll be in touch within 2 hours to set up your live demo. Want it sooner? Book a call below.</p>
+        </div>
+      </div>
+
+      <div class="contact-aside">
+        <div class="ca-item"><span class="ic"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span><span class="k">Prefer to talk now?</span><span class="v"><a href="https://calendly.com/hello-novixelai" target="_blank" rel="noopener">Book a 15-min call →</a></span></span></div>
+        <div class="ca-item"><span class="ic"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><span class="k">Email us</span><span class="v"><a href="mailto:hello@novixel.ai">hello@novixel.ai</a></span></span></div>
+        <div class="ca-item"><span class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" fill="currentColor"/></svg></span><span><span class="k">What happens next</span><span class="v">A quick call, then we build &amp; test Novi on your channels — live in days.</span></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="finale reveal">
+  <div class="glowband" aria-hidden="true"></div>
+  <div class="wrap inner">
+    <h2>Your competitor's receptionist <span class="serif irid-text">is asleep</span>.</h2>
+    <p class="sub">Novi isn't. Book a 15-minute setup call and watch it answer your leads — live.</p>
+    <a class="btn btn-plat btn-lg" href="https://calendly.com/hello-novixelai" target="_blank" rel="noopener">Book your free setup call
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+  </div>
+</section>
+
+<footer class="below" style="padding-bottom:0">
+  <div class="wrap foot">
+    <span>AI that works while you don't. · <a href="mailto:hello@novixel.ai">hello@novixel.ai</a></span>
+    <span>NOVIXEL.AI — © 2026 · UNITED STATES</span>
+  </div>
+</footer>
+
+<!-- sticky CTA -->
+<div class="sticky" id="sticky">
+  <span class="t">Every passing minute is a lead.<small>See it answer yours in 15 min.</small></span>
+  <a class="btn btn-plat" href="https://calendly.com/hello-novixelai" target="_blank" rel="noopener">Book a Call</a>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---- hero orb reacts to a closed booking (shared across chat + sim) ---- */
+  const orb=document.querySelector(".iris-orb");
+  function flareOrb(){ if(!orb||reduce)return; orb.classList.remove("flare"); void orb.offsetWidth; orb.classList.add("flare"); }
+
+  /* ---- custom iridescent cursor ring ---- */
+  (function cursor(){
+    const ring=document.getElementById("cursorRing");
+    if(!ring || matchMedia("(hover:none)").matches || matchMedia("(max-width:940px)").matches){ if(ring)ring.style.display="none"; return; }
+    let tx=innerWidth/2,ty=innerHeight/2,rx=tx,ry=ty,raf=false;
+    addEventListener("pointermove",e=>{tx=e.clientX;ty=e.clientY;if(!raf){raf=true;requestAnimationFrame(loop);}},{passive:true});
+    function loop(){ rx+=(tx-rx)*.22; ry+=(ty-ry)*.22; ring.style.left=rx+"px"; ring.style.top=ry+"px";
+      if(Math.abs(tx-rx)>.4||Math.abs(ty-ry)>.4)requestAnimationFrame(loop); else raf=false; }
+    const hot='a,button,input,select,.tier,.qa button,.node,.btn';
+    addEventListener("pointerover",e=>{ if(e.target.closest(hot)) ring.classList.add("hot"); });
+    addEventListener("pointerout",e=>{ if(e.target.closest(hot) && !(e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest(hot))) ring.classList.remove("hot"); });
+    addEventListener("pointerdown",()=>ring.classList.add("down"));
+    addEventListener("pointerup",()=>ring.classList.remove("down"));
+  })();
+
+  /* ---- live chat engine ---- */
+  const chatLog=document.getElementById("chatLog");
+  const CONVOS=[
+    [["lead","Roof's leaking after the storm — can someone come out?"],
+     ["ai","Sorry you're dealing with that! Is it actively dripping inside right now?"],
+     ["lead","Yeah, into the kitchen."],
+     ["ai","Understood — that's urgent. I have tomorrow 9:00 AM or Thursday 2:00 PM for an emergency inspection. Which works?"],
+     ["lead","9 tomorrow."],
+     ["ai","Done — Tuesday 9:00 AM confirmed. I'll text you the inspector's name and ETA. Hang tight!"]],
+    [["lead","How much for a full re-roof?"],
+     ["ai","Great question — it depends on size and material. Fastest path is a free 20-min on-site quote. What's your zip?"],
+     ["lead","33101."],
+     ["ai","Perfect, we cover that area. I can lock Thursday 2:00 PM — no obligation, exact price in writing. Want it?"],
+     ["lead","Yes please."],
+     ["ai","Booked — Thursday 2:00 PM. You'll get a confirmation text shortly."]]
+  ];
+  let tok=0;
+  const stamp=()=>{const d=new Date();let h=d.getHours(),m=d.getMinutes();const ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+(m<10?"0":"")+m+" "+ap;};
+  const sleep=(ms,t)=>new Promise(r=>setTimeout(()=>r(t===tok),ms));
+  function add(k){const b=document.createElement("div");b.className="bubble "+k;chatLog.appendChild(b);trim();return b;}
+  function trim(){while(chatLog.children.length>7)chatLog.removeChild(chatLog.firstChild);}
+  function dots(){const t=document.createElement("div");t.className="typing";t.innerHTML="<i></i><i></i><i></i>";chatLog.appendChild(t);return t;}
+  async function type(b,txt,t){b.textContent="";const c=document.createElement("span");c.className="caret";b.appendChild(c);
+    for(let i=0;i<txt.length;i++){if(t!==tok)return false;c.insertAdjacentText("beforebegin",txt[i]);let d=26+Math.random()*32;if(/[.,!?]/.test(txt[i]))d+=150;await sleep(d,t);if(t!==tok)return false;}
+    c.remove();const ts=document.createElement("span");ts.className="ts";ts.textContent=stamp();b.appendChild(ts);return true;}
+  async function run(){const t=++tok;chatLog.innerHTML="";const convo=CONVOS[Math.floor(Math.random()*CONVOS.length)];
+    for(let i=0;i<convo.length;i++){if(t!==tok)return;const [w,x]=convo[i];
+      if(w==="ai"){const d=dots();if(!(await sleep(600+Math.random()*420,t))){d.remove();return;}d.remove();if(t!==tok)return;if(!(await type(add("ai"),x,t)))return;}
+      else{if(!(await sleep(440+Math.random()*340,t)))return;if(t!==tok)return;if(!(await type(add("lead"),x,t)))return;}
+      chatLog.scrollTop=chatLog.scrollHeight;}
+    if(t!==tok)return;const chip=document.createElement("div");chip.className="booked-chip";
+    chip.innerHTML='<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> BOOKED &amp; CONFIRMED';
+    chatLog.appendChild(chip);trim();flareOrb();if(!(await sleep(4200,t)))return;run();}
+  function staticChat(){chatLog.innerHTML="";CONVOS[0].forEach(([w,x])=>{const b=document.createElement("div");b.className="bubble "+w;b.textContent=x;
+    const ts=document.createElement("span");ts.className="ts";ts.textContent=stamp();b.appendChild(ts);chatLog.appendChild(b);});
+    const chip=document.createElement("div");chip.className="booked-chip";chip.innerHTML='<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> BOOKED &amp; CONFIRMED';chatLog.appendChild(chip);}
+  reduce?staticChat():run();
+
+  /* ---- interactive composer: the visitor can talk to Novi ---- */
+  const composer=document.getElementById("composer"), cInput=document.getElementById("composerInput");
+  function novReply(text){
+    const t=text.toLowerCase();
+    if(/price|cost|how much|pricing|\$|fee/.test(t)) return "Pricing depends on your setup, so the fairest way is a quick tailored call. Want me to book you a free 15-minute setup call?";
+    if(/book|appointment|schedule|demo|meeting|set ?up|sign/.test(t)) return "Love that. I can get you on the calendar — tap “Book a Call” above, or tell me a day that works and I'll lock it in.";
+    if(/hour|open|night|weekend|24|holiday|late/.test(t)) return "Novixel runs 24/7 — your AI answers nights, weekends and holidays, so a lead never hits voicemail again.";
+    if(/human|real|robot|\bbot\b|fake/.test(t)) return "I'm Novi, Novixel's AI — trained in your brand voice so leads feel cared for. A human on your team can jump in anytime.";
+    if(/roof|dent|law|spa|hvac|plumb|clinic|salon|contractor/.test(t)) return "We tailor Novixel to your exact trade. Want to see it answering leads for your business? I can book a quick setup call.";
+    if(/^(hi|hey|hello|yo|sup)\b/.test(t)) return "Hey! I'm Novi, your AI receptionist. Ask me anything — or I can book you a free setup call to see this on your business.";
+    return "Great question! Novixel answers, qualifies and books your leads in seconds, 24/7. Want to see it on your business? I can set up a free 15-minute call.";
+  }
+  async function sendUser(text){
+    const t=++tok;                          // supersede the ambient loop / prior reply
+    composer.classList.add("used");
+    const b=add("lead"); b.textContent=text;
+    const ts=document.createElement("span"); ts.className="ts"; ts.textContent=stamp(); b.appendChild(ts);
+    chatLog.scrollTop=chatLog.scrollHeight;
+    const d=dots(); chatLog.scrollTop=chatLog.scrollHeight;
+    if(!(await sleep(640+Math.random()*460,t))){d.remove();return;} d.remove();
+    if(t!==tok) return;
+    await type(add("ai"), novReply(text), t);
+    chatLog.scrollTop=chatLog.scrollHeight;
+  }
+  if(composer){ composer.addEventListener("submit",e=>{e.preventDefault();const v=cInput.value.trim();if(!v)return;cInput.value="";sendUser(v);}); }
+
+  /* ---- magnetic CTAs ---- */
+  if(!matchMedia("(max-width:940px)").matches && !reduce){
+    document.querySelectorAll(".btn-lg").forEach(btn=>{
+      btn.addEventListener("pointermove",e=>{const r=btn.getBoundingClientRect();btn.style.transform="translate("+((e.clientX-r.left-r.width/2)*.16)+"px,"+((e.clientY-r.top-r.height/2)*.28)+"px)";});
+      btn.addEventListener("pointerleave",()=>{btn.style.transform="";});
+    });
+  }
+
+  /* ---- how-it-works scroll choreography ---- */
+  const steps=[...document.querySelectorAll(".step")], fill=document.querySelector(".steps .fill");
+  if(reduce){ steps.forEach(s=>s.classList.add("on")); if(fill) fill.style.height="100%"; }
+  else if(steps.length){
+    const sio=new IntersectionObserver(es=>es.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add("on");
+      const i=steps.indexOf(en.target); if(fill && i>=0) fill.style.height=Math.round((i+1)/steps.length*100)+"%"; } }),{threshold:.55});
+    steps.forEach(s=>sio.observe(s));
+  }
+
+  /* ---- pointer parallax ---- */
+  let qx=0,qy=0,cx=0,cy=0,q=false;
+  addEventListener("pointermove",e=>{if(matchMedia("(max-width:940px)").matches)return;
+    qx=(e.clientX/innerWidth-.5)*2;qy=(e.clientY/innerHeight-.5)*2;if(!q){q=true;requestAnimationFrame(ap);}},{passive:true});
+  function ap(){cx+=(qx-cx)*.07;cy+=(qy-cy)*.07;document.documentElement.style.setProperty("--px",cx.toFixed(3));document.documentElement.style.setProperty("--py",cy.toFixed(3));
+    if(Math.abs(qx-cx)>.001||Math.abs(qy-cy)>.001)requestAnimationFrame(ap);else q=false;}
+
+  /* ---- nav + sticky + anchors ---- */
+  const nav=document.getElementById("nav"),sticky=document.getElementById("sticky");
+  addEventListener("scroll",()=>{nav.classList.toggle("scrolled",scrollY>20);sticky.classList.toggle("show",scrollY>innerHeight*.55);},{passive:true});
+  setTimeout(()=>{if(!reduce)sticky.classList.add("show");},14000);
+  document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener("click",e=>{const id=a.getAttribute("href");if(id.length>1){const t=document.querySelector(id);if(t){e.preventDefault();t.scrollIntoView({behavior:reduce?"auto":"smooth"});}}}));
+
+  /* ---- reveal caps ---- */
+  const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.style.transition="opacity .7s var(--ease), transform .7s var(--ease)";en.target.style.opacity="1";en.target.style.transform="none";io.unobserve(en.target);}}),{threshold:.2});
+  document.querySelectorAll(".capc").forEach((c,i)=>{if(!reduce){c.style.opacity="0";c.style.transform="translateY(22px)";c.style.transitionDelay=(i*70)+"ms";}io.observe(c);});
+  /* ---- global scroll reveals ---- */
+  const rev=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.classList.add("in");rev.unobserve(en.target);}}),{threshold:.12});
+  document.querySelectorAll(".reveal").forEach(el=>rev.observe(el));
+
+  /* ---- technological simulation: live system schematic ---- */
+  const simStage=document.getElementById("simStage"), simWires=document.getElementById("simWires"), coreStatus=document.getElementById("coreStatus");
+  if(simStage && !reduce){
+    const chans=[...simStage.querySelectorAll('.sim-col.left .node')];
+    const core=simStage.querySelector('.node.core');
+    const outs=[...simStage.querySelectorAll('.sim-col.right .node')];
+    const NS="http://www.w3.org/2000/svg";
+    let wiresIn=[],wiresOut=[];
+    function edge(el,side){const s=simStage.getBoundingClientRect(),r=el.getBoundingClientRect();return {x:side==="r"?(r.right-s.left):(r.left-s.left),y:r.top-s.top+r.height/2};}
+    function curve(a,b){const mx=(a.x+b.x)/2;return `M ${a.x} ${a.y} C ${mx} ${a.y} ${mx} ${b.y} ${b.x} ${b.y}`;}
+    function buildWires(){
+      simWires.innerHTML="";wiresIn=[];wiresOut=[];
+      chans.forEach(ch=>{const p=document.createElementNS(NS,"path");p.setAttribute("d",curve(edge(ch,"r"),edge(core,"l")));p.setAttribute("class","wire");simWires.appendChild(p);wiresIn.push(p);});
+      outs.forEach(o=>{const p=document.createElementNS(NS,"path");p.setAttribute("d",curve(edge(core,"r"),edge(o,"l")));p.setAttribute("class","wire");simWires.appendChild(p);wiresOut.push(p);});
+    }
+    buildWires();
+    try{ new ResizeObserver(buildWires).observe(simStage); }catch(e){}
+    addEventListener("resize",buildWires);
+    function pulse(el){el.classList.add("pulse");setTimeout(()=>el.classList.remove("pulse"),440);}
+    function packet(path,dur,color,done){
+      if(!path)return done&&done();
+      const len=path.getTotalLength();const c=document.createElementNS(NS,"circle");
+      c.setAttribute("r","3.4");c.setAttribute("class","pkt");c.setAttribute("fill",color);simWires.appendChild(c);
+      const t0=performance.now();
+      (function step(t){const k=Math.min(1,(t-t0)/dur);const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;const pt=path.getPointAtLength(e*len);
+        c.setAttribute("cx",pt.x);c.setAttribute("cy",pt.y);if(k<1)requestAnimationFrame(step);else{c.remove();done&&done();}})(t0);
+    }
+    const STATUS=["qualifying…","reading intent…","checking calendar…","booking…","confirming…","logging…"];let si=0;
+    function tick(){
+      const ci=Math.floor(Math.random()*chans.length);pulse(chans[ci]);
+      packet(wiresIn[ci],720+Math.random()*320,"#7FE0FF",()=>{
+        pulse(core);if(coreStatus)coreStatus.textContent=STATUS[si++%STATUS.length];
+        const te=document.getElementById("thru"); if(te) te.textContent=(+te.textContent+1);
+        const oi=Math.floor(Math.random()*outs.length);
+        packet(wiresOut[oi],720+Math.random()*320,"#B7A6FF",()=>{pulse(outs[oi]);flareOrb();});
+      });
+    }
+    let simTimer=null;
+    new IntersectionObserver(es=>es.forEach(en=>{
+      if(en.isIntersecting){ if(!simTimer){buildWires();tick();simTimer=setInterval(tick,1250);} }
+      else{ clearInterval(simTimer);simTimer=null; }
+    }),{threshold:.2}).observe(simStage);
+  }
+
+  /* ---- lead form → Make webhook ---- */
+  const lf=document.getElementById("leadForm");
+  if(lf){ lf.addEventListener("submit",async e=>{
+    e.preventDefault();
+    if(!lf.checkValidity()){ lf.reportValidity(); return; }
+    const btn=lf.querySelector('button[type=submit]'); btn.disabled=true; btn.textContent="Sending…";
+    const data=Object.fromEntries(new FormData(lf).entries());
+    data.source="novixel.ai"; data.page=location.href;
+    try{ await fetch("https://hook.us2.make.com/ua4bnw3x6m50fguwgq5q6z3h2fndwhx4",{method:"POST",mode:"no-cors",body:JSON.stringify(data)}); }catch(err){}
+    lf.style.display="none"; const s=document.getElementById("formSuccess"); if(s)s.classList.add("show");
+  }); }
+
+  /* ---- faq accordion ---- */
+  document.querySelectorAll(".qa button").forEach(b=>b.addEventListener("click",()=>{
+    const qa=b.closest(".qa"), a=qa.querySelector(".a"), open=qa.classList.toggle("open");
+    b.setAttribute("aria-expanded",open?"true":"false");
+    a.style.maxHeight=open?a.scrollHeight+"px":"0";
+  }));
+
+  /* ---- global living tech-mesh backdrop ---- */
+  (function techMesh(){
+    const cv=document.getElementById("techCanvas"); if(!cv||reduce){if(cv)cv.style.display="none";return;}
+    const ctx=cv.getContext("2d"); const DPR=Math.min(devicePixelRatio||1,2);
+    let W,H,nodes=[],pulses=[],last=0;
+    function resize(){ W=cv.width=innerWidth*DPR; H=cv.height=innerHeight*DPR; cv.style.width=innerWidth+"px"; cv.style.height=innerHeight+"px";
+      const n=Math.round(Math.min(26,innerWidth/72)); nodes=[]; for(let i=0;i<n;i++)nodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.12*DPR,vy:(Math.random()-.5)*.12*DPR}); }
+    resize(); addEventListener("resize",resize);
+    const TH=150*DPR;
+    function frame(t){
+      if(document.hidden){ return requestAnimationFrame(frame); }
+      ctx.clearRect(0,0,W,H);
+      for(const n of nodes){ n.x+=n.vx; n.y+=n.vy; if(n.x<0||n.x>W)n.vx*=-1; if(n.y<0||n.y>H)n.vy*=-1; }
+      for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){ const a=nodes[i],b=nodes[j],dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy);
+        if(d<TH){ ctx.strokeStyle="rgba(160,154,205,"+((1-d/TH)*.10).toFixed(3)+")"; ctx.lineWidth=DPR; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); } }
+      for(const n of nodes){ ctx.fillStyle="rgba(183,166,255,.3)"; ctx.beginPath(); ctx.arc(n.x,n.y,1.1*DPR,0,7); ctx.fill(); }
+      if(t-last>900){ last=t; const a=nodes[(Math.random()*nodes.length)|0],b=nodes[(Math.random()*nodes.length)|0]; if(a!==b)pulses.push({a,b,p:0}); }
+      for(let i=pulses.length-1;i>=0;i--){ const pl=pulses[i]; pl.p+=.02; if(pl.p>=1){pulses.splice(i,1);continue;}
+        const x=pl.a.x+(pl.b.x-pl.a.x)*pl.p,y=pl.a.y+(pl.b.y-pl.a.y)*pl.p; ctx.fillStyle="rgba(127,224,255,"+(Math.sin(pl.p*Math.PI)*.8).toFixed(3)+")"; ctx.beginPath(); ctx.arc(x,y,1.8*DPR,0,7); ctx.fill(); }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+
+  /* ---- live system console (terminal log) ---- */
+  (function sysConsole(){
+    const body=document.getElementById("consoleBody"); if(!body||reduce)return;
+    const LINES=[
+      ['POST /lead/inbound','200  11ms',''],['channel=sms  intent=qualify(high)','✓','ok'],
+      ['nlp.parse() → book_request','conf 0.94',''],['calendar.findSlot(biz_hours)','Tue 09:00','m'],
+      ['draft.reply(voice=brand)','queued',''],['sms.send(confirmation)','✓','ok'],
+      ['book(Tue 09:00)','confirmed ✓','ok'],['webhook.notify(owner)','200',''],
+      ['transcript.persist()','ok',''],['GET /availability','200  8ms','']
+    ];
+    const ts=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())+'.'+String(d.getMilliseconds()).padStart(3,'0');};
+    let i=0,timer=null;
+    function emit(){ const [a,b,c]=LINES[i++%LINES.length]; const ln=document.createElement('div'); ln.className='ln';
+      ln.innerHTML='<span class="t">'+ts()+'</span>  '+a+'  <span class="'+(c||'')+'">'+b+'</span>'+(i%4===0?'<span class="cur"></span>':'');
+      body.appendChild(ln); while(body.children.length>9)body.removeChild(body.firstChild); body.scrollTop=body.scrollHeight; }
+    new IntersectionObserver(es=>es.forEach(en=>{
+      if(en.isIntersecting){ if(!timer){emit();timer=setInterval(emit,680+Math.random()*240);} }
+      else{ clearInterval(timer);timer=null; }
+    }),{threshold:.15}).observe(body);
+  })();
+})();
+</script>
+</body>
+</html>
