@@ -296,7 +296,7 @@ function fmtRest(sec) {
    ============================================================ */
 function render() {
   const app = el('app');
-  const showNav = S.profile && ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile'].includes(route.name);
+  const showNav = S.profile && ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy'].includes(route.name);
   let html = '';
   switch (route.name) {
     case 'onboard': html = ScreenOnboard(); break;
@@ -309,6 +309,7 @@ function render() {
     case 'nutrition': html = ScreenNutrition(); break;
     case 'family': html = ScreenFamily(); break;
     case 'profile': html = ScreenProfile(); break;
+    case 'privacy': html = ScreenPrivacy(); break;
     default: html = ScreenHome();
   }
   app.innerHTML = html + (showNav ? Nav() : '');
@@ -340,8 +341,9 @@ function ScreenOnboard() {
       <div style="font-size:66px">🏋️‍♂️</div>
       <div class="brand" style="margin:14px 0 6px">KI<b>N</b></div>
       <h1 class="h-xl">האימון של המשפחה<br>מתחיל כאן</h1>
-      <p class="muted" style="margin:14px 0 26px">אימונים מותאמים אישית, מעקב אמיתי, ותחרות ידידותית — כולם ביחד.</p>
+      <p class="muted" style="margin:14px 0 20px">אימונים מותאמים אישית, מעקב אמיתי, ותחרות ידידותית — כולם ביחד.</p>
       <button class="btn" data-next>יאללה, בואו נתחיל</button>
+      <p class="muted" style="font-size:12px;margin-top:16px">🔒 המידע שלך נשמר במכשירך בלבד. אין מעקב, אין פרסומות.</p>
     </div>`,
     // 1 — name
     `<div class="screen">
@@ -961,7 +963,7 @@ function ScreenNutrition() {
     ${today.length ? `<div class="section-title">מה אכלת היום</div><div class="card">
       ${today.map((f, i) => `<div class="ex-item"><div class="ex-emoji">•</div><div class="grow"><div class="ex-name">${esc(f.name)}</div><div class="ex-meta">${f.kcal} קל׳</div></div><button class="badge" data-del-food="${i}">מחק</button></div>`).join('')}
     </div>` : ''}
-    <p class="muted center" style="font-size:11.5px;margin-top:14px;line-height:1.5">היעדים מחושבים לפי נוסחת Mifflin-St Jeor ורמת הפעילות שלך.<br>מידע כללי בלבד — לא ייעוץ תזונתי/רפואי. להתאמה אישית פנה לאיש מקצוע.</p>
+    <p class="muted center" style="font-size:11.5px;margin-top:14px;line-height:1.6">יעדים לפי נוסחת Mifflin-St Jeor · ערכי מזון לפי ${FOOD_SOURCE}.<br>מידע כללי בלבד — לא ייעוץ תזונתי/רפואי. להתאמה אישית פנה לאיש מקצוע.</p>
   </div>`;
 }
 
@@ -1033,7 +1035,46 @@ function ScreenProfile() {
     </div>
 
     <div class="spacer"></div>
+    <button class="btn ghost" data-nav="privacy">🔒 פרטיות ואבטחת מידע</button>
+    <div class="spacer"></div>
     <button class="btn ghost" data-reset style="color:var(--danger);border-color:var(--danger)">אפס הכל</button>
+  </div>`;
+}
+
+/* ============================================================
+   PRIVACY
+   ============================================================ */
+function ScreenPrivacy() {
+  return `<div class="screen">
+    <button class="back" data-nav="profile">›  חזרה</button>
+    <h2 class="h-lg" style="margin-bottom:6px">פרטיות ואבטחת מידע 🔒</h2>
+    <p class="muted" style="margin:0 0 16px">שקיפות מלאה — איך המידע שלך מטופל.</p>
+
+    <div class="card">
+      <div class="ex-name" style="margin-bottom:4px">📱 המידע נשמר אצלך בלבד</div>
+      <p class="muted" style="font-size:13.5px">כל הנתונים — פרופיל, אימונים, משקל, תזונה ומים — נשמרים <b style="color:var(--text)">מקומית במכשיר שלך</b>. הם לא נשלחים לשום שרת ולא נצפים על ידינו.</p>
+    </div>
+    <div class="card">
+      <div class="ex-name" style="margin-bottom:4px">🚫 אין מעקב ואין פרסומות</div>
+      <p class="muted" style="font-size:13.5px">איננו אוספים, מוכרים או משתפים מידע. אין קוקיז של צד שלישי ואין כלי אנליטיקה.</p>
+    </div>
+    <div class="card">
+      <div class="ex-name" style="margin-bottom:4px">🌐 בקשות רשת</div>
+      <p class="muted" style="font-size:13.5px">היחידות שמתבצעות הן להורדת תמונות וסרטוני הדגמה של תרגילים (מ-GitHub, נחלת הכלל). <b style="color:var(--text)">שום מידע אישי לא נשלח</b> בבקשות אלה.</p>
+    </div>
+    <div class="card">
+      <div class="ex-name" style="margin-bottom:4px">❤️ נתוני בריאות</div>
+      <p class="muted" style="font-size:13.5px">מידע בריאותי נחשב רגיש. הוא נשאר על המכשיר ובאחריותך — מומלץ לנעול את המכשיר בקוד.</p>
+    </div>
+    <div class="card">
+      <div class="ex-name" style="margin-bottom:8px">⚖️ הזכויות שלך</div>
+      <p class="muted" style="font-size:13.5px;margin:0 0 12px">בהתאם לעקרונות GDPR וחוק הגנת הפרטיות: גישה, ניוד ומחיקה של המידע שלך — בכל רגע.</p>
+      <div class="row2">
+        <button class="btn sm ghost" data-export>⬇ ייצוא המידע</button>
+        <button class="btn sm ghost" data-reset style="color:var(--danger);border-color:var(--danger)">🗑 מחיקת הכל</button>
+      </div>
+    </div>
+    <p class="muted center" style="font-size:11.5px;margin-top:6px;line-height:1.6">מקורות נתונים: ערכי תזונה — ${FOOD_SOURCE}; חישוב קלוריות — Mifflin-St Jeor; הדגמות — free-exercise-db (נחלת הכלל).<br>האפליקציה מספקת מידע כללי בלבד ואינה תחליף לייעוץ רפואי.</p>
   </div>`;
 }
 
