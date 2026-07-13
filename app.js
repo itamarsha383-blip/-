@@ -14,7 +14,10 @@ const DEFAULT_STATE = {
   streak: 0,
   lastWorkout: null,
   onboardStep: 0,
-  draft: {}                    // onboarding in progress
+  draft: {},                   // onboarding in progress
+  exState: {},                 // { exId: {adjust, easy, hard, best} } — adaptive engine
+  badges: [],                  // unlocked achievement ids
+  reactions: {}                // { memberName: count } — family kudos (local demo)
 };
 
 let S = load();
@@ -112,8 +115,36 @@ function demoSVG(pattern) {
 
 // Coach-style nutrition targets live in data.js (nutritionPlan).
 function macroTargets(p) { return nutritionPlan(p); }
-// Today's session rotates through the weekly split (progressive, not repetitive).
-function todaysSession() { return buildSession(S.profile, S.workoutsLog.length); }
+// Today's session rotates through the weekly split (progressive, not repetitive),
+// with the adaptive engine (exState) feeding rep targets back in.
+function todaysSession() { return buildSession(S.profile, S.workoutsLog.length, S.exState); }
+
+// ---------- achievements ----------
+const BADGES = [
+  { id: 'first', emoji: '🌱', name: 'הצעד הראשון', desc: 'השלמת אימון ראשון', test: () => S.workoutsLog.length >= 1 },
+  { id: 'w5', emoji: '💪', name: 'נכנסים לכושר', desc: '5 אימונים', test: () => S.workoutsLog.length >= 5 },
+  { id: 'w10', emoji: '🏆', name: 'מכור/ה', desc: '10 אימונים', test: () => S.workoutsLog.length >= 10 },
+  { id: 's3', emoji: '🔥', name: 'רצף 3', desc: '3 ימים ברצף', test: () => S.streak >= 3 },
+  { id: 's7', emoji: '⚡', name: 'שבוע מושלם', desc: 'רצף של 7 ימים', test: () => S.streak >= 7 },
+  { id: 'level', emoji: '📈', name: 'מתקדמים', desc: 'עלית עומס בתרגיל', test: () => Object.values(S.exState).some((x) => (x.adjust || 0) >= 2) },
+  { id: 'log', emoji: '⚖️', name: 'עוקב/ת', desc: 'רשמת 3 שקילות', test: () => S.weights.length >= 3 },
+  { id: 'eat', emoji: '🥗', name: 'תזונה בשליטה', desc: 'רשמת יום אכילה מלא', test: () => Object.values(S.nutrition).some((d) => d.length >= 3) }
+];
+function checkBadges() {
+  const newly = [];
+  for (const b of BADGES) {
+    if (!S.badges.includes(b.id) && b.test()) { S.badges.push(b.id); newly.push(b); }
+  }
+  if (newly.length) { save(); newly.forEach((b, i) => setTimeout(() => toast(`${b.emoji} הישג נפתח: ${b.name}!`), 400 + i * 1600)); }
+  return newly;
+}
+
+// Is the streak at risk? (trained the day before yesterday but not yesterday/today)
+function streakAtRisk() {
+  if (!S.streak || S.lastWorkout === todayStr()) return false;
+  const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+  return S.lastWorkout !== y ? false : true; // trained yesterday, not yet today → keep it alive today
+}
 function fmtRest(sec) {
   if (sec < 120) return `${sec} שנ׳`;
   const m = Math.floor(sec / 60), s = sec % 60;
@@ -230,7 +261,20 @@ function ScreenOnboard() {
       <div class="spacer"></div>
       <button class="btn" data-next-goal>המשך</button>
     </div>`,
-    // 5 — equipment
+    // 5 — training days per week
+    `<div class="screen">
+      <button class="back" data-prev>›  חזרה</button>
+      <h2 class="h-lg">כמה ימים בשבוע?</h2>
+      <p class="muted" style="margin:6px 0 20px">זה קובע את מבנה התוכנית — בדיוק כמו שמאמן היה שואל.</p>
+      <div class="chips" style="flex-direction:column">
+        ${[3, 4, 5].map((n) => `<button class="chip ${d.days === n ? 'sel' : ''}" data-days="${n}" style="flex:1 1 100%">
+          <div class="t">${n} ימים בשבוע</div>
+          <div class="s">${n === 3 ? 'גוף מלא — מומלץ להתחלה' : n === 4 ? 'עליון / תחתון' : 'דחיפה / משיכה / רגליים'}</div></button>`).join('')}
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" data-next-days>המשך</button>
+    </div>`,
+    // 6 — equipment
     `<div class="screen">
       <button class="back" data-prev>›  חזרה</button>
       <h2 class="h-lg">מה יש לך בבית?</h2>
@@ -261,6 +305,8 @@ function ScreenHome() {
       <div class="avatar" data-nav="profile">${esc(initials(p.name))}</div>
     </div>
 
+    ${streakAtRisk() ? `<div class="nudge"><span class="ne">🔥</span><div class="grow"><b>הרצף שלך בסכנה!</b><div class="muted" style="font-size:13px">אימון קצר היום ישמור על ${S.streak} הימים שצברת.</div></div><button class="btn sm" data-start-workout>10 דק׳</button></div>` : ''}
+
     <div class="hero">
       <span class="pill accent">🔥 רצף ${S.streak} ${S.streak === 1 ? 'יום' : 'ימים'}</span>
       <h1 class="h-xl" style="margin:14px 0 4px">${greet()}, ${esc(p.name)}</h1>
@@ -269,10 +315,11 @@ function ScreenHome() {
       <button class="btn" data-start-workout>התחל אימון היום ›</button>
     </div>
 
-    <div class="stats">
+    <div class="between" style="margin:2px 2px 8px"><span class="section-title" style="margin:0">הנתונים שלך</span><button class="react-btn" data-nav="progress">התקדמות והישגים ›</button></div>
+    <div class="stats" data-nav="progress" style="cursor:pointer">
       <div class="stat"><div class="num accent">${S.workoutsLog.length}</div><div class="lab">אימונים סה״כ</div></div>
       <div class="stat"><div class="num">${lastW}<span style="font-size:13px"> ק״ג</span></div><div class="lab">משקל נוכחי</div></div>
-      <div class="stat"><div class="num">${eatenToday}</div><div class="lab">/ ${mt.kcal} קל׳</div></div>
+      <div class="stat"><div class="num">${S.badges.length}</div><div class="lab">הישגים</div></div>
     </div>
 
     <div class="section-title">האימון שנבנה עבורך · ${sess.splitLabel}</div>
@@ -296,6 +343,19 @@ function ScreenHome() {
   </div>`;
 }
 function greet() { const h = new Date().getHours(); return h < 12 ? 'בוקר טוב' : h < 18 ? 'צהריים טובים' : 'ערב טוב'; }
+function weekStrip() {
+  const names = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+  const trainMap = { 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 4, 5] };
+  const days = S.profile.days || chooseSplit(S.profile).days || 3;
+  const train = trainMap[days] || trainMap[3];
+  const today = new Date().getDay();
+  const doneDows = new Set(S.workoutsLog.filter((w) => (Date.now() - new Date(w.date)) / 864e5 < 7).map((w) => new Date(w.date).getDay()));
+  return `<div class="week">${names.map((nm, i) => {
+    const isTrain = train.includes(i), done = doneDows.has(i);
+    return `<div class="wday ${i === today ? 'today' : ''} ${isTrain ? 'train' : 'rest'} ${done ? 'done' : ''}">
+      <span class="wl">${nm}</span><span class="wd">${done ? '✓' : isTrain ? '💪' : '·'}</span></div>`;
+  }).join('')}</div>`;
+}
 function estMinutes(sess) {
   const warm = sess.warmup.length * 0.7;
   const cool = sess.cooldown.length * 0.7;
@@ -312,7 +372,8 @@ function ScreenWorkouts() {
   return `<div class="screen">
     <div class="between" style="margin-bottom:6px"><h2 class="h-lg">${sess.name}</h2><span class="pill">${GOALS.find(g=>g.id===p.goal)?.emoji||''} ${GOALS.find(g=>g.id===p.goal)?.label||''}</span></div>
     <p class="muted" style="margin:0 0 4px">${sess.splitLabel} · ${sess.days} אימונים בשבוע · כ־${estMinutes(sess)} דק׳</p>
-    <p class="muted" style="margin:0 0 16px;font-size:13px">📋 ${sess.goalStyle} · ${sess.rx.sets} סטים · מנוחה ${fmtRest(sess.rx.rest)} · ${sess.rx.rpe}</p>
+    <p class="muted" style="margin:0 0 14px;font-size:13px">📋 ${sess.goalStyle} · ${sess.rx.sets} סטים · מנוחה ${fmtRest(sess.rx.rest)} · ${sess.rx.rpe}</p>
+    ${weekStrip()}
 
     <div class="section-title">🔥 חימום (${sess.warmup.length} תרגילים)</div>
     <div class="card">
@@ -391,6 +452,22 @@ function ScreenActive() {
     </div>`;
   }
 
+  // ----- adaptive feedback (after an exercise's last set) -----
+  if (active.feedbackFor) {
+    const fe = active.feedbackFor;
+    return `<div class="screen aw-wrap">
+      <p class="muted" style="margin-top:9vh">איך היה <b style="color:var(--text)">${esc(fe.name)}</b>?</p>
+      <div class="demo" style="height:120px;margin-top:12px">${demoSVG(fe.pattern)}</div>
+      <h2 class="h-lg" style="margin:6px 0 4px">המשוב מכוון את האימון הבא 🎯</h2>
+      <p class="muted" style="margin-bottom:18px">כך האפליקציה לומדת בדיוק את הרמה שלך.</p>
+      <div class="chips">
+        <button class="chip" data-fb="easy"><div class="emoji">😎</div><div class="t">היה קל</div><div class="s">נעלה עומס</div></button>
+        <button class="chip" data-fb="right"><div class="emoji">💪</div><div class="t">בול</div><div class="s">נשמור קצב</div></button>
+        <button class="chip" data-fb="hard"><div class="emoji">🥵</div><div class="t">היה קשה</div><div class="s">נוריד מעט</div></button>
+      </div>
+    </div>`;
+  }
+
   // ----- MAIN phase -----
   const e = s.main[active.i];
   const totalSets = e.sets;
@@ -418,7 +495,7 @@ function ScreenActive() {
       ${Array.from({ length: totalSets }).map((_, i) =>
         `<div class="setdot ${i < active.set ? 'done' : i === active.set ? 'cur' : ''}">${i + 1}</div>`).join('')}
     </div>
-    <div class="h-xl" style="margin:6px 0">${e.reps}</div>
+    <div class="h-xl" style="margin:6px 0">${e.reps}${e.adjusted > 0 ? ' <span class="pill accent" style="font-size:12px;vertical-align:middle">⬆ הותאם אליך</span>' : e.adjusted < 0 ? ' <span class="pill" style="font-size:12px;vertical-align:middle">⬇ הותאם אליך</span>' : ''}</div>
     <p class="muted">סט ${active.set + 1}/${totalSets} · מנוחה ${fmtRest(e.rest)} · ${e.rpe}</p>
     <div class="spacer"></div>
     <button class="btn" data-complete-set>סיימתי את הסט ✓</button>
@@ -436,22 +513,38 @@ function coolNext() {
   if (active.ci >= active.sess.cooldown.length) return finishWorkout();
   render();
 }
-function completeSet() {
-  const e = active.sess.main[active.i];
-  active.set++;
-  const lastExercise = active.i >= active.sess.main.length - 1;
-  if (active.set >= e.sets) {
-    active.set = 0; active.i++;
-    if (active.i >= active.sess.main.length) { active.phase = 'cooldown'; return render(); }
-  }
-  // prescribed rest between sets
-  active.resting = true; active.restLeft = e.rest;
+function startRest(sec) {
+  active.resting = true; active.restLeft = sec;
   render();
   active.timer = setInterval(() => {
     active.restLeft--;
     if (active.restLeft <= 0) { clearInterval(active.timer); active.resting = false; render(); }
     else { const t = document.querySelector('.timer'); if (t) t.textContent = active.restLeft; }
   }, 1000);
+}
+function completeSet() {
+  const e = active.sess.main[active.i];
+  active.set++;
+  if (active.set >= e.sets) {
+    // exercise finished → ask how it felt (adaptive engine)
+    if (active.timer) clearInterval(active.timer);
+    active.resting = false;
+    active.feedbackFor = e;
+    return render();
+  }
+  startRest(e.rest);  // rest between sets
+}
+// Adaptive learning: the feedback nudges next session's load for THIS exercise.
+function applyFeedback(kind) {
+  const e = active.feedbackFor;
+  const st = (S.exState[e.id] ||= { adjust: 0, easy: 0, hard: 0 });
+  if (kind === 'easy') { st.easy = (st.easy || 0) + 1; st.adjust = Math.min(4, (st.adjust || 0) + 1); }
+  else if (kind === 'hard') { st.hard = (st.hard || 0) + 1; st.adjust = Math.max(-2, (st.adjust || 0) - 1); }
+  save();
+  active.feedbackFor = null;
+  active.set = 0; active.i++;
+  if (active.i >= active.sess.main.length) { active.phase = 'cooldown'; return render(); }
+  startRest(active.sess.main[active.i].rest);  // rest before next exercise
 }
 function finishWorkout() {
   if (active?.timer) clearInterval(active.timer);
@@ -460,6 +553,7 @@ function finishWorkout() {
   active = null;
   go('home');
   setTimeout(() => toast('כל הכבוד! אימון הושלם 🔥'), 250);
+  checkBadges();
 }
 
 /* ============================================================
@@ -536,6 +630,14 @@ function ScreenProgress() {
       <div class="stat"><div class="num accent">${S.streak}</div><div class="lab">רצף ימים</div></div>
       <div class="stat"><div class="num">${S.workoutsLog.length}</div><div class="lab">אימונים</div></div>
       <div class="stat"><div class="num">${S.weights.length}</div><div class="lab">שקילות</div></div>
+    </div>
+
+    <div class="section-title">הישגים · ${S.badges.length}/${BADGES.length}</div>
+    <div class="card">
+      <div class="badges">
+        ${BADGES.map((b) => { const got = S.badges.includes(b.id); return `<div class="badge-item ${got ? '' : 'locked'}">
+          <div class="be">${got ? b.emoji : '🔒'}</div><div class="bn">${esc(b.name)}</div><div class="bd">${esc(b.desc)}</div></div>`; }).join('')}
+      </div>
     </div>
 
     <div class="section-title">מעקב משקל</div>
@@ -632,8 +734,9 @@ function ScreenFamily() {
       ${ranked.map((m, i) => `<div class="lb-row ${m.you ? 'you' : ''}">
         <div class="lb-rank">${['🥇','🥈','🥉'][i] || i + 1}</div>
         <div class="avatar" style="width:34px;height:34px;font-size:14px">${esc(initials(m.name))}</div>
-        <div class="lb-name">${esc(m.name)}${m.you ? ' <span class="muted">(את/ה)</span>' : ''}</div>
-        <div class="lb-metric">🔥 ${m.streak} · ${m.workouts} אימונים</div>
+        <div class="grow"><div class="lb-name">${esc(m.name)}${m.you ? ' <span class="muted">(את/ה)</span>' : ''}</div>
+          <div class="lb-metric">🔥 ${m.streak} · ${m.workouts} אימונים${S.reactions[m.name] ? ` · ${S.reactions[m.name]} 🔥` : ''}</div></div>
+        ${m.you ? '' : `<button class="react-btn" data-react="${esc(m.name)}">🔥 עודד</button>`}
       </div>`).join('')}
     </div>
 
@@ -699,6 +802,8 @@ function bind() {
   const nl = document.querySelector('[data-next-level]'); if (nl) nl.onclick = () => { if (!d.level) return toast('בחר רמה'); S.onboardStep = 4; save(); render(); };
   document.querySelectorAll('[data-goal]').forEach((b) => b.onclick = () => { d.goal = b.dataset.goal; save(); render(); });
   const ng = document.querySelector('[data-next-goal]'); if (ng) ng.onclick = () => { if (!d.goal) return toast('בחר מטרה'); S.onboardStep = 5; save(); render(); };
+  document.querySelectorAll('[data-days]').forEach((b) => b.onclick = () => { d.days = +b.dataset.days; save(); render(); });
+  const nd = document.querySelector('[data-next-days]'); if (nd) nd.onclick = () => { if (!d.days) return toast('בחר תדירות'); S.onboardStep = 6; save(); render(); };
   document.querySelectorAll('[data-equip]').forEach((b) => b.onclick = () => { d.equip = b.dataset.equip; save(); render(); });
   const fin = document.querySelector('[data-finish]'); if (fin) fin.onclick = () => {
     if (!d.equip) return toast('בחר ציוד');
@@ -711,6 +816,7 @@ function bind() {
   const cs = document.querySelector('[data-complete-set]'); if (cs) cs.onclick = completeSet;
   const wn = document.querySelector('[data-warm-next]'); if (wn) wn.onclick = warmNext;
   const cn = document.querySelector('[data-cool-next]'); if (cn) cn.onclick = coolNext;
+  document.querySelectorAll('[data-fb]').forEach((b) => b.onclick = () => applyFeedback(b.dataset.fb));
   const sr = document.querySelector('[data-skip-rest]'); if (sr) sr.onclick = () => { if (active.timer) clearInterval(active.timer); active.resting = false; render(); };
   const qw = document.querySelector('[data-quit-workout]'); if (qw) qw.onclick = () => { if (active?.timer) clearInterval(active.timer); active = null; go('workouts'); };
 
@@ -720,7 +826,7 @@ function bind() {
   // ---- progress ----
   const aw = document.querySelector('[data-add-weight]'); if (aw) aw.onclick = () => {
     const v = +el('w-input').value; if (!v) return toast('הכנס משקל');
-    S.weights.push({ date: todayStr(), kg: v }); save(); render(); toast('נשמר ✓');
+    S.weights.push({ date: todayStr(), kg: v }); save(); render(); toast('נשמר ✓'); checkBadges();
   };
 
   // ---- nutrition ----
@@ -732,13 +838,16 @@ function bind() {
     const results = FOODS.filter((f) => f.name.includes(q));
     const f = results[+b.dataset.food]; if (!f) return;
     const t = todayStr(); (S.nutrition[t] ||= []).push({ name: f.name, kcal: f.kcal, p: f.p, c: f.c, f: f.f });
-    route.params.q = ''; save(); render(); toast(`${f.name} נוסף ✓`);
+    route.params.q = ''; save(); render(); toast(`${f.name} נוסף ✓`); checkBadges();
   });
   document.querySelectorAll('[data-del-food]').forEach((b) => b.onclick = () => {
     S.nutrition[todayStr()].splice(+b.dataset.delFood, 1); save(); render();
   });
 
   // ---- family ----
+  document.querySelectorAll('[data-react]').forEach((b) => b.onclick = () => {
+    const n = b.dataset.react; S.reactions[n] = (S.reactions[n] || 0) + 1; save(); render(); toast(`שלחת 🔥 ל${n}!`);
+  });
   const inv = document.querySelector('[data-invite]'); if (inv) inv.onclick = async () => {
     const url = location.href;
     if (navigator.share) { try { await navigator.share({ title: 'KIN', text: 'בוא נתאמן יחד ב-KIN 💪', url }); } catch {} }

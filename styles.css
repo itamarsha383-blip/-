@@ -190,6 +190,30 @@ h1,h2,h3 { margin: 0; line-height: 1.15; }
 .lb-name { font-weight: 700; flex: 1; }
 .lb-metric { font-size: 13px; color: var(--muted); }
 
+/* ---------- weekly calendar strip ---------- */
+.week { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; margin-bottom: 16px; }
+.wday { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 0; text-align: center; }
+.wday .wl { display: block; font-size: 11px; color: var(--muted); }
+.wday .wd { display: block; font-size: 16px; margin-top: 3px; }
+.wday.train { border-color: rgba(198,255,61,.25); }
+.wday.done { background: linear-gradient(180deg, rgba(198,255,61,.12), transparent); }
+.wday.done .wd { color: var(--accent); }
+.wday.today { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+/* ---------- badges ---------- */
+.badges { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+.badge-item { text-align: center; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 6px; }
+.badge-item.locked { opacity: .35; filter: grayscale(1); }
+.badge-item .be { font-size: 26px; }
+.badge-item .bn { font-size: 11px; font-weight: 700; margin-top: 4px; }
+.badge-item .bd { font-size: 10px; color: var(--muted); margin-top: 1px; }
+.react-btn { background: var(--card-2); border: 1px solid var(--line); color: var(--text); border-radius: 999px; font-family: inherit; font-size: 13px; padding: 6px 12px; cursor: pointer; }
+.react-btn:active { transform: scale(.95); }
+
+/* ---------- home nudge ---------- */
+.nudge { background: linear-gradient(160deg, #2a1f12, #1a1410); border: 1px solid #4a3a1a; border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
+.nudge .ne { font-size: 26px; }
+
 /* ---------- bottom nav ---------- */
 .nav {
   position: fixed; bottom: 0; inset-inline: 0; z-index: 50;

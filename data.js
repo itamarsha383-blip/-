@@ -337,9 +337,17 @@ function chooseSplit(profile) {
   return { key: 'fullbody', ...SPLITS.fullbody, days };
 }
 
+// Concrete rep target per goal (midpoint of the range) + level, before adaptation.
+const REP_BASE = { strength: 5, muscle: 10, fatloss: 13, mobility: 10 };
+function repTarget(goal, level, adjust) {
+  const base = (REP_BASE[goal] || 10) + (level - 1) * (goal === 'strength' ? 1 : 2);
+  return Math.max(3, base + (adjust || 0));
+}
+
 // --- Session builder (warm-up → main → cooldown) ----------------------
 // sessionOffset lets the plan rotate day-to-day (progressive, not repetitive).
-function buildSession(profile, sessionOffset = 0) {
+// adjustments: { exId: {adjust} } feeds the adaptive engine back into targets.
+function buildSession(profile, sessionOffset = 0, adjustments = {}) {
   const split = chooseSplit(profile);
   const tmpl = split.sessions[sessionOffset % split.sessions.length];
   const rx = prescription(profile.goal, profile.level);
@@ -365,10 +373,14 @@ function buildSession(profile, sessionOffset = 0) {
     const e = cands[0];
     used.add(e.id);
     const timed = e.timed;
+    const adj = adjustments[e.id]?.adjust || 0;
+    const target = repTarget(profile.goal, profile.level, adj);
     main.push({
       ...e,
       sets: rx.sets,
-      reps: timed ? (profile.level >= 2 ? '30–45 שנ׳' : '20–30 שנ׳') : rx.reps,
+      reps: timed ? (profile.level >= 2 ? '30–45 שנ׳' : '20–30 שנ׳') : `${target} חזרות`,
+      repsTarget: timed ? null : target,
+      adjusted: adj,
       rest: rx.rest,
       rpe: rx.rpe,
       timed
