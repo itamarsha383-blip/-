@@ -38,23 +38,16 @@ function toast(msg) {
 }
 function initials(name) { return (name || 'א').trim().slice(0, 1); }
 
-// Mifflin-St Jeor → daily calorie target
-function calorieTarget(p) {
-  const w = p.weight || 70, h = p.height || 170, a = p.age || 30;
-  let bmr = 10 * w + 6.25 * h - 5 * a + (p.gender === 'f' ? -161 : 5);
-  let tdee = bmr * 1.45; // moderately active
-  if (p.goal === 'fatloss') tdee -= 400;
-  if (p.goal === 'muscle') tdee += 250;
-  return Math.round(tdee);
+// Coach-style nutrition targets live in data.js (nutritionPlan).
+function macroTargets(p) { return nutritionPlan(p); }
+// Today's session rotates through the weekly split (progressive, not repetitive).
+function todaysSession() { return buildSession(S.profile, S.workoutsLog.length); }
+function fmtRest(sec) {
+  if (sec < 120) return `${sec} שנ׳`;
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return s ? `${m}:${String(s).padStart(2, '0')} דק׳` : `${m} דק׳`;
 }
-function macroTargets(p) {
-  const kcal = calorieTarget(p);
-  const w = p.weight || 70;
-  const protein = Math.round((p.goal === 'muscle' ? 2 : 1.8) * w);
-  const fat = Math.round((kcal * 0.25) / 9);
-  const carbs = Math.round((kcal - protein * 4 - fat * 9) / 4);
-  return { kcal, protein, carbs, fat };
-}
+
 function streakBump() {
   const t = todayStr();
   if (S.lastWorkout === t) return;
@@ -186,7 +179,7 @@ function ScreenOnboard() {
    ============================================================ */
 function ScreenHome() {
   const p = S.profile;
-  const w = buildWorkout(p);
+  const sess = todaysSession();
   const mt = macroTargets(p);
   const eatenToday = (S.nutrition[todayStr()] || []).reduce((a, f) => a + f.kcal, 0);
   const lastW = S.weights.length ? S.weights[S.weights.length - 1].kg : p.weight;
@@ -199,7 +192,7 @@ function ScreenHome() {
     <div class="hero">
       <span class="pill accent">🔥 רצף ${S.streak} ${S.streak === 1 ? 'יום' : 'ימים'}</span>
       <h1 class="h-xl" style="margin:14px 0 4px">${greet()}, ${esc(p.name)}</h1>
-      <p class="muted">מוכן לאימון של היום? ${w.length} תרגילים · כ־${estMinutes(w)} דק׳</p>
+      <p class="muted">היום: <b style="color:var(--text)">${sess.name}</b> · חימום + ${sess.main.length} תרגילים · כ־${estMinutes(sess)} דק׳</p>
       <div class="spacer"></div>
       <button class="btn" data-start-workout>התחל אימון היום ›</button>
     </div>
@@ -210,11 +203,11 @@ function ScreenHome() {
       <div class="stat"><div class="num">${eatenToday}</div><div class="lab">/ ${mt.kcal} קל׳</div></div>
     </div>
 
-    <div class="section-title">האימון שנבנה עבורך</div>
+    <div class="section-title">האימון שנבנה עבורך · ${sess.splitLabel}</div>
     <div class="card">
-      ${w.slice(0, 4).map((e) => `<div class="ex-item" data-ex="${e.id}">
+      ${sess.main.map((e) => `<div class="ex-item" data-ex="${e.id}">
         <div class="ex-emoji">${e.emoji}</div>
-        <div class="grow"><div class="ex-name">${e.name}</div><div class="ex-meta">${e.sets} סטים · ${e.reps}</div></div>
+        <div class="grow"><div class="ex-name">${e.name}</div><div class="ex-meta">${e.sets} × ${e.reps} · מנוחה ${fmtRest(e.rest)}</div></div>
         <span class="badge l${e.level}">${['','קל','בינוני','מתקדם'][e.level]}</span>
       </div>`).join('')}
     </div>
@@ -231,24 +224,51 @@ function ScreenHome() {
   </div>`;
 }
 function greet() { const h = new Date().getHours(); return h < 12 ? 'בוקר טוב' : h < 18 ? 'צהריים טובים' : 'ערב טוב'; }
-function estMinutes(w) { return Math.max(12, Math.round(w.reduce((a, e) => a + e.sets * 1.6, 0))); }
+function estMinutes(sess) {
+  const warm = sess.warmup.length * 0.7;
+  const cool = sess.cooldown.length * 0.7;
+  const work = sess.main.reduce((a, e) => a + e.sets * (0.6 + e.rest / 60), 0);
+  return Math.max(12, Math.round(warm + cool + work));
+}
 
 /* ============================================================
    WORKOUTS (today's plan preview → start)
    ============================================================ */
 function ScreenWorkouts() {
   const p = S.profile;
-  const w = buildWorkout(p);
+  const sess = todaysSession();
   return `<div class="screen">
-    <div class="between" style="margin-bottom:6px"><h2 class="h-lg">אימון היום</h2><span class="pill">${GOALS.find(g=>g.id===p.goal)?.emoji||''} ${GOALS.find(g=>g.id===p.goal)?.label||''}</span></div>
-    <p class="muted" style="margin:0 0 16px">${w.length} תרגילים · כ־${estMinutes(w)} דקות · מותאם לרמה ${['','מתחיל','בינוני','מתקדם'][p.level]}</p>
+    <div class="between" style="margin-bottom:6px"><h2 class="h-lg">${sess.name}</h2><span class="pill">${GOALS.find(g=>g.id===p.goal)?.emoji||''} ${GOALS.find(g=>g.id===p.goal)?.label||''}</span></div>
+    <p class="muted" style="margin:0 0 4px">${sess.splitLabel} · ${sess.days} אימונים בשבוע · כ־${estMinutes(sess)} דק׳</p>
+    <p class="muted" style="margin:0 0 16px;font-size:13px">📋 ${sess.goalStyle} · ${sess.rx.sets} סטים · מנוחה ${fmtRest(sess.rx.rest)} · ${sess.rx.rpe}</p>
+
+    <div class="section-title">🔥 חימום (${sess.warmup.length} תרגילים)</div>
     <div class="card">
-      ${w.map((e) => `<div class="ex-item" data-ex="${e.id}">
+      ${sess.warmup.map((wu) => `<div class="ex-item">
+        <div class="ex-emoji">${wu.emoji}</div>
+        <div class="grow"><div class="ex-name">${wu.name}</div><div class="ex-meta">${wu.sec} שנ׳ · ${wu.note}</div></div>
+      </div>`).join('')}
+    </div>
+
+    <div class="section-title">💪 האימון עצמו</div>
+    <div class="card">
+      ${sess.main.map((e) => `<div class="ex-item" data-ex="${e.id}">
         <div class="ex-emoji">${e.emoji}</div>
-        <div class="grow"><div class="ex-name">${e.name}</div><div class="ex-meta">${e.sets} סטים · ${e.reps} · ${e.muscles.slice(0,2).join(', ')}</div></div>
+        <div class="grow"><div class="ex-name">${e.name}</div>
+          <div class="ex-meta">${e.sets} × ${e.reps} · מנוחה ${fmtRest(e.rest)} · טמפו ${e.tempo}</div>
+          <div class="ex-meta" style="color:var(--muted)">${e.muscles.primary.join(', ')}</div></div>
         <span class="badge l${e.level}">›</span>
       </div>`).join('')}
     </div>
+
+    <div class="section-title">🧘 שחרור ומתיחות</div>
+    <div class="card">
+      ${sess.cooldown.map((cd) => `<div class="ex-item">
+        <div class="ex-emoji">${cd.emoji}</div>
+        <div class="grow"><div class="ex-name">${cd.name}</div><div class="ex-meta">${cd.sec} שנ׳ · ${cd.note}</div></div>
+      </div>`).join('')}
+    </div>
+
     <button class="btn" data-start-workout>התחל אימון 🔥</button>
     <div class="spacer"></div>
     <button class="btn ghost" data-nav="library">עיין בכל התרגילים</button>
@@ -259,16 +279,51 @@ function ScreenWorkouts() {
    ACTIVE WORKOUT
    ============================================================ */
 function startWorkout() {
-  const w = buildWorkout(S.profile);
-  active = { list: w, i: 0, set: 0, resting: false, restLeft: 0, timer: null };
+  const sess = todaysSession();
+  active = { sess, phase: 'warmup', wi: 0, ci: 0, i: 0, set: 0, resting: false, restLeft: 0, timer: null };
   go('active');
 }
 function ScreenActive() {
   if (!active) { go('workouts'); return ''; }
-  const e = active.list[active.i];
+  const s = active.sess;
+
+  // ----- WARM-UP phase -----
+  if (active.phase === 'warmup') {
+    const wu = s.warmup[active.wi];
+    const pct = Math.round((active.wi / s.warmup.length) * 100);
+    return `<div class="screen aw-wrap">
+      <div class="between"><button class="back" data-quit-workout>✕ יציאה</button><span class="pill">🔥 חימום ${active.wi + 1}/${s.warmup.length}</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="demo"><span class="fig">${wu.emoji}</span><span class="tag">הכנת הגוף לאימון</span></div>
+      <h2 class="h-lg">${esc(wu.name)}</h2>
+      <div class="h-xl" style="margin:10px 0 2px">${wu.sec} שנ׳</div>
+      <p class="muted">${esc(wu.note)}</p>
+      <div class="spacer"></div>
+      <button class="btn" data-warm-next>סיימתי ✓</button>
+    </div>`;
+  }
+
+  // ----- COOLDOWN phase -----
+  if (active.phase === 'cooldown') {
+    const cd = s.cooldown[active.ci];
+    const pct = Math.round((active.ci / s.cooldown.length) * 100);
+    return `<div class="screen aw-wrap">
+      <div class="between"><button class="back" data-quit-workout>✕ יציאה</button><span class="pill">🧘 שחרור ${active.ci + 1}/${s.cooldown.length}</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="demo"><span class="fig">${cd.emoji}</span><span class="tag">שחרור ומתיחה</span></div>
+      <h2 class="h-lg">${esc(cd.name)}</h2>
+      <div class="h-xl" style="margin:10px 0 2px">${cd.sec} שנ׳</div>
+      <p class="muted">${esc(cd.note)}</p>
+      <div class="spacer"></div>
+      <button class="btn" data-cool-next>סיימתי ✓</button>
+    </div>`;
+  }
+
+  // ----- MAIN phase -----
+  const e = s.main[active.i];
   const totalSets = e.sets;
-  const overallDone = active.list.slice(0, active.i).reduce((a, x) => a + x.sets, 0) + active.set;
-  const overallTotal = active.list.reduce((a, x) => a + x.sets, 0);
+  const overallDone = s.main.slice(0, active.i).reduce((a, x) => a + x.sets, 0) + active.set;
+  const overallTotal = s.main.reduce((a, x) => a + x.sets, 0);
   const pct = Math.round((overallDone / overallTotal) * 100);
 
   if (active.resting) {
@@ -276,38 +331,49 @@ function ScreenActive() {
       <p class="muted" style="margin-top:8vh">מנוחה</p>
       <div class="timer">${active.restLeft}</div>
       <p class="muted">הבא: ${esc(e.name)} · סט ${active.set + 1}/${totalSets}</p>
+      <p class="muted" style="font-size:13px;margin-top:6px">💡 ${esc(e.cues[0])}</p>
       <div class="spacer"></div>
       <button class="btn" data-skip-rest>דלג על המנוחה ›</button>
     </div>`;
   }
   return `<div class="screen aw-wrap">
-    <div class="between"><button class="back" data-quit-workout>✕ יציאה</button><span class="pill">${active.i + 1}/${active.list.length}</span></div>
+    <div class="between"><button class="back" data-quit-workout>✕ יציאה</button><span class="pill">💪 ${active.i + 1}/${s.main.length}</span></div>
     <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
-    <div class="demo"><span class="fig">${e.emoji}</span><span class="tag">הדגמה מונפשת · וידאו אמיתי בקרוב</span></div>
+    <div class="demo"><span class="fig">${e.emoji}</span><span class="tag">טמפו ${e.tempo} · הדגמה מונפשת</span></div>
     <h2 class="h-lg">${esc(e.name)}</h2>
-    <p class="muted" style="margin:6px 0 2px">${e.muscles.join(' · ')}</p>
+    <p class="muted" style="margin:6px 0 2px">${e.muscles.primary.join(' · ')}</p>
     <div class="setdots">
       ${Array.from({ length: totalSets }).map((_, i) =>
         `<div class="setdot ${i < active.set ? 'done' : i === active.set ? 'cur' : ''}">${i + 1}</div>`).join('')}
     </div>
     <div class="h-xl" style="margin:6px 0">${e.reps}</div>
-    <p class="muted">סט ${active.set + 1} מתוך ${totalSets}</p>
+    <p class="muted">סט ${active.set + 1}/${totalSets} · מנוחה ${fmtRest(e.rest)} · ${e.rpe}</p>
     <div class="spacer"></div>
     <button class="btn" data-complete-set>סיימתי את הסט ✓</button>
     <div class="spacer"></div>
-    <button class="btn ghost" data-ex="${e.id}">איך עושים? הוראות וטעויות</button>
+    <button class="btn ghost" data-ex="${e.id}">איך עושים? טכניקה וטעויות</button>
   </div>`;
 }
+function warmNext() {
+  active.wi++;
+  if (active.wi >= active.sess.warmup.length) { active.phase = 'main'; }
+  render();
+}
+function coolNext() {
+  active.ci++;
+  if (active.ci >= active.sess.cooldown.length) return finishWorkout();
+  render();
+}
 function completeSet() {
-  const e = active.list[active.i];
+  const e = active.sess.main[active.i];
   active.set++;
+  const lastExercise = active.i >= active.sess.main.length - 1;
   if (active.set >= e.sets) {
-    // move to next exercise
     active.set = 0; active.i++;
-    if (active.i >= active.list.length) return finishWorkout();
+    if (active.i >= active.sess.main.length) { active.phase = 'cooldown'; return render(); }
   }
-  // rest
-  active.resting = true; active.restLeft = 40;
+  // prescribed rest between sets
+  active.resting = true; active.restLeft = e.rest;
   render();
   active.timer = setInterval(() => {
     active.restLeft--;
@@ -317,7 +383,7 @@ function completeSet() {
 }
 function finishWorkout() {
   if (active?.timer) clearInterval(active.timer);
-  S.workoutsLog.push({ date: todayStr(), name: 'אימון יומי', exercises: active.list.map((e) => e.id) });
+  S.workoutsLog.push({ date: todayStr(), name: active.sess.name, exercises: active.sess.main.map((e) => e.id) });
   streakBump(); save();
   active = null;
   go('home');
@@ -328,9 +394,10 @@ function finishWorkout() {
    LIBRARY + EXERCISE DETAIL
    ============================================================ */
 function ScreenLibrary() {
-  const types = [['all','הכל'],['push','דחיפה'],['pull','משיכה'],['legs','רגליים'],['core','ליבה'],['cardio','קרדיו']];
+  const types = [['all','הכל'],['push','דחיפה'],['pull','משיכה'],['squat','רגליים'],['core','ליבה'],['cardio','קרדיו']];
+  const grp = { push: ['horiz_push','vert_push'], pull: ['horiz_pull','vert_pull'], squat: ['squat','hinge'], core: ['core'], cardio: ['cardio'] };
   const filter = route.params.filter || 'all';
-  const list = EXERCISES.filter((e) => filter === 'all' || e.type === filter);
+  const list = EXERCISES.filter((e) => filter === 'all' || (grp[filter] || []).includes(e.pattern));
   return `<div class="screen">
     <h2 class="h-lg" style="margin-bottom:12px">ספריית התרגילים</h2>
     <div class="chips" style="margin-bottom:14px">
@@ -339,7 +406,7 @@ function ScreenLibrary() {
     <div class="card">
       ${list.map((e) => `<div class="ex-item" data-ex="${e.id}">
         <div class="ex-emoji">${e.emoji}</div>
-        <div class="grow"><div class="ex-name">${e.name}</div><div class="ex-meta">${e.muscles.join(', ')}</div></div>
+        <div class="grow"><div class="ex-name">${e.name}</div><div class="ex-meta">${e.muscles.primary.join(', ')}</div></div>
         <span class="badge l${e.level}">${['','קל','בינוני','מתקדם'][e.level]}</span>
       </div>`).join('')}
     </div>
@@ -348,23 +415,40 @@ function ScreenLibrary() {
 function ScreenExercise(id) {
   const e = EXERCISES.find((x) => x.id === id);
   if (!e) { go('library'); return ''; }
+  const curLevel = S.profile?.level || 1;
   return `<div class="screen">
     <button class="back" data-back>›  חזרה</button>
-    <div class="demo"><span class="fig">${e.emoji}</span><span class="tag">הדגמה מונפשת · וידאו אמיתי בקרוב</span></div>
+    <div class="demo"><span class="fig">${e.emoji}</span><span class="tag">טמפו ${e.tempo} · וידאו אמיתי בקרוב</span></div>
     <h2 class="h-lg">${esc(e.name)}</h2>
-    <div class="flex" style="margin:8px 0 4px"><span class="badge l${e.level}">${['','מתחיל','בינוני','מתקדם'][e.level]}</span>
-      ${e.muscles.map((m) => `<span class="pill">${m}</span>`).join('')}</div>
+    <div class="flex" style="margin:8px 0 4px;flex-wrap:wrap"><span class="badge l${e.level}">${['','מתחיל','בינוני','מתקדם'][e.level]}</span>
+      ${e.muscles.primary.map((m) => `<span class="pill accent" style="font-size:11px">${m}</span>`).join('')}
+      ${e.muscles.secondary.map((m) => `<span class="pill" style="font-size:11px">${m}</span>`).join('')}</div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="between" style="padding:5px 0"><span class="muted">טמפו</span><span>${e.tempo} — ${esc(e.tempoNote)}</span></div>
+      <div class="between" style="padding:5px 0;border-top:1px solid var(--line)"><span class="muted">נשימה</span><span>${esc(e.breathing)}</span></div>
+    </div>
+
+    <div class="section-title">נקודות מפתח (Cues) 🎯</div>
+    <div class="card">${e.cues.map((c) => `<div class="flex" style="padding:5px 0"><span style="color:var(--accent)">✓</span><span>${esc(c)}</span></div>`).join('')}</div>
 
     <div class="section-title">איך מבצעים</div>
     <div class="card"><ol class="list-num">${e.steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol></div>
 
-    <div class="section-title">טעויות נפוצות ⚠️</div>
-    <div class="card">${e.mistakes.map((m) => `<div class="mistake">✕ <span>${esc(m)}</span></div>`).join('')}</div>
+    <div class="section-title">טעויות נפוצות ותיקונן ⚠️</div>
+    <div class="card">${e.mistakes.map((m) => `<div style="padding:8px 0;border-top:1px solid var(--line)">
+      <div class="mistake">✕ <span>${esc(m.err)}</span></div>
+      <div class="flex" style="color:var(--accent-2);font-size:13.5px;margin-top:2px"><span>➜</span><span>${esc(m.fix)}</span></div>
+    </div>`).join('')}</div>
 
-    <div class="section-title">התאמה אישית</div>
+    <div class="section-title">סולם התקדמות (Progressions) 📈</div>
     <div class="card">
-      <div class="between" style="padding:6px 0"><span class="muted">קל יותר</span><span>${esc(e.scaleDown)}</span></div>
-      <div class="between" style="padding:6px 0;border-top:1px solid var(--line)"><span class="muted">קשה יותר</span><span>${esc(e.scaleUp)}</span></div>
+      ${e.progressions.map((pr) => `<div class="ex-item" style="cursor:default">
+        <div class="ex-emoji" style="font-size:15px;background:${pr.level <= curLevel ? 'var(--card-2)' : 'transparent'}">${pr.level <= curLevel ? '✓' : '🔒'}</div>
+        <div class="grow"><div class="ex-name" style="font-size:14.5px">${esc(pr.name)}</div></div>
+        <span class="badge l${pr.level || 1}">${['בסיס','קל','בינוני','מתקדם'][pr.level] || 'מתקדם'}</span>
+      </div>`).join('')}
+      <p class="muted" style="font-size:12px;margin:8px 2px 0">💡 עלה שלב רק כשאתה שולט בטכניקה עם טווח מלא.</p>
     </div>
   </div>`;
 }
@@ -433,6 +517,7 @@ function ScreenNutrition() {
       <div style="margin-top:12px">
         ${bar(sum.p, mt.protein, 'p')}${bar(sum.c, mt.carbs, 'c')}${bar(sum.f, mt.fat, 'f')}
       </div>
+      <div class="between" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)"><span class="muted">💧 יעד מים</span><span>${mt.water} ליטר ביום</span></div>
     </div>
 
     <div class="section-title">הוסף מזון</div>
@@ -446,6 +531,7 @@ function ScreenNutrition() {
     ${today.length ? `<div class="section-title">מה אכלת היום</div><div class="card">
       ${today.map((f, i) => `<div class="ex-item"><div class="ex-emoji">•</div><div class="grow"><div class="ex-name">${esc(f.name)}</div><div class="ex-meta">${f.kcal} קל׳</div></div><button class="badge" data-del-food="${i}">מחק</button></div>`).join('')}
     </div>` : ''}
+    <p class="muted center" style="font-size:11.5px;margin-top:14px;line-height:1.5">היעדים מחושבים לפי נוסחת Mifflin-St Jeor ורמת הפעילות שלך.<br>מידע כללי בלבד — לא ייעוץ תזונתי/רפואי. להתאמה אישית פנה לאיש מקצוע.</p>
   </div>`;
 }
 
@@ -551,6 +637,8 @@ function bind() {
   // ---- workout ----
   document.querySelectorAll('[data-start-workout]').forEach((b) => b.onclick = startWorkout);
   const cs = document.querySelector('[data-complete-set]'); if (cs) cs.onclick = completeSet;
+  const wn = document.querySelector('[data-warm-next]'); if (wn) wn.onclick = warmNext;
+  const cn = document.querySelector('[data-cool-next]'); if (cn) cn.onclick = coolNext;
   const sr = document.querySelector('[data-skip-rest]'); if (sr) sr.onclick = () => { if (active.timer) clearInterval(active.timer); active.resting = false; render(); };
   const qw = document.querySelector('[data-quit-workout]'); if (qw) qw.onclick = () => { if (active?.timer) clearInterval(active.timer); active = null; go('workouts'); };
 
