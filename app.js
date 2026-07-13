@@ -296,7 +296,7 @@ function fmtRest(sec) {
    ============================================================ */
 function render() {
   const app = el('app');
-  const showNav = S.profile && ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy'].includes(route.name);
+  const showNav = S.profile && ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy', 'cloud'].includes(route.name);
   let html = '';
   switch (route.name) {
     case 'onboard': html = ScreenOnboard(); break;
@@ -310,6 +310,7 @@ function render() {
     case 'family': html = ScreenFamily(); break;
     case 'profile': html = ScreenProfile(); break;
     case 'privacy': html = ScreenPrivacy(); break;
+    case 'cloud': html = ScreenCloud(); break;
     default: html = ScreenHome();
   }
   app.innerHTML = html + (showNav ? Nav() : '');
@@ -729,6 +730,7 @@ function finishWorkout() {
   confetti(); tap(30);
   setTimeout(() => toast('כל הכבוד! אימון הושלם 🔥'), 250);
   checkBadges();
+  if (Cloud.enabled()) { Cloud.resetCache(); Cloud.syncSelf({ workouts: S.workoutsLog.length, streak: S.streak }).catch(() => {}); }
 }
 
 /* ============================================================
@@ -976,18 +978,54 @@ function familyRanked() {
   return list.sort((a, b) => b.streak - a.streak || b.workouts - a.workouts);
 }
 function ScreenFamily() {
+  return Cloud.enabled() ? familyCloud() : familyLocal();
+}
+// Real, shared family via the cloud.
+function familyCloud() {
+  const st = Cloud.status, mem = Cloud.members;
+  const me = Cloud.deviceId();
+  let body;
+  if (st === 'loading' && !mem) body = `<p class="muted center" style="padding:20px">טוען את המשפחה…</p>`;
+  else if (st === 'error') body = `<p class="muted center" style="padding:16px">😕 לא הצלחתי להתחבר.<br>${esc(Cloud.lastError)}</p><button class="btn ghost" data-cloud-refresh>נסה שוב</button>`;
+  else if (mem && mem.length) {
+    body = mem.map((m, i) => `<div class="lb-row ${m.device_id === me ? 'you' : ''}">
+        <div class="lb-rank">${['🥇','🥈','🥉'][i] || i + 1}</div>
+        <div class="avatar" style="width:34px;height:34px;font-size:14px">${esc(initials(m.name))}</div>
+        <div class="grow"><div class="lb-name">${esc(m.name)}${m.device_id === me ? ' <span class="muted">(את/ה)</span>' : ''}</div>
+          <div class="lb-metric">🔥 ${m.streak} · ${m.workouts} אימונים</div></div>
+      </div>`).join('');
+  } else body = `<p class="muted center" style="padding:16px">עדיין אין חברי משפחה. שתף את הקוד <b style="color:var(--text)">${esc(Cloud.familyCode())}</b> כדי שיצטרפו!</p>`;
+
+  return `<div class="screen">
+    <div class="between" style="margin-bottom:4px"><h2 class="h-lg">המשפחה 👨‍👩‍👧‍👦</h2><span class="pill accent">☁️ מחובר</span></div>
+    <p class="muted" style="margin:0 0 16px">משפחה: <b style="color:var(--text)">${esc(Cloud.familyCode())}</b> · חי מכל המכשירים.</p>
+
+    <div class="section-title">טבלת ליגה חיה</div>
+    <div class="card">${body}</div>
+
+    <button class="btn violet" data-share-code>שתף קוד משפחה 📲</button>
+    <div class="spacer"></div>
+    <div class="row2">
+      <button class="btn sm ghost" data-cloud-refresh>🔄 רענן</button>
+      <button class="btn sm ghost" data-nav="cloud">⚙️ הגדרות ענן</button>
+    </div>
+  </div>`;
+}
+// Local demo family + a prompt to connect the real thing.
+function familyLocal() {
   const ranked = familyRanked();
   return `<div class="screen">
     <h2 class="h-lg" style="margin-bottom:4px">המשפחה 👨‍👩‍👧‍👦</h2>
     <p class="muted" style="margin:0 0 16px">מי מוביל השבוע? הרצף הכי ארוך מנצח.</p>
 
     <div class="hero">
-      <div class="between"><span class="pill accent">🏆 אתגר השבוע</span><span class="muted">5 ימים</span></div>
-      <h3 class="h-lg" style="margin:12px 0 4px">4 אימונים השבוע</h3>
-      <p class="muted">מי שישלים — נכנס להגרלה המשפחתית 🎁</p>
+      <div class="between"><span class="pill accent">☁️ חדש</span></div>
+      <h3 class="h-lg" style="margin:12px 0 4px">חבר משפחה אמיתית</h3>
+      <p class="muted" style="margin-bottom:14px">שכל בן משפחה יתחבר מהטלפון שלו ותראו אחד את השני בזמן אמת.</p>
+      <button class="btn" data-nav="cloud">חבר את המשפחה בענן ›</button>
     </div>
 
-    <div class="section-title">טבלת ליגה</div>
+    <div class="section-title">טבלת ליגה (דוגמה)</div>
     <div class="card">
       ${ranked.map((m, i) => `<div class="lb-row ${m.you ? 'you' : ''}">
         <div class="lb-rank">${['🥇','🥈','🥉'][i] || i + 1}</div>
@@ -997,9 +1035,52 @@ function ScreenFamily() {
         ${m.you ? '' : `<button class="react-btn" data-react="${esc(m.name)}">🔥 עודד</button>`}
       </div>`).join('')}
     </div>
+    <p class="muted center" style="font-size:12px;margin-top:10px">הטבלה למעלה היא דמו — חבר את הענן כדי שתהיה אמיתית.</p>
+  </div>`;
+}
 
-    <button class="btn violet" data-invite>הזמן בן משפחה 📲</button>
-    <p class="muted center" style="font-size:12px;margin-top:10px">בגרסה הבאה: חשבונות אמיתיים, ריאקציות ועידוד הדדי.</p>
+/* ============================================================
+   CLOUD SETUP
+   ============================================================ */
+function ScreenCloud() {
+  const c = Cloud.cfg || {};
+  const connected = Cloud.enabled();
+  const sql = `create table if not exists members (
+  id uuid primary key default gen_random_uuid(),
+  device_id text not null,
+  family text not null,
+  name text not null,
+  workouts int default 0,
+  streak int default 0,
+  updated_at timestamptz default now(),
+  unique(device_id, family)
+);
+alter table members enable row level security;
+create policy "family rw" on members for all using (true) with check (true);`;
+  return `<div class="screen">
+    <button class="back" data-nav="family">›  חזרה</button>
+    <h2 class="h-lg" style="margin-bottom:6px">משפחה בענן ☁️</h2>
+    <p class="muted" style="margin:0 0 16px">${connected ? 'מחובר ✓ — המשפחה חיה.' : 'חיבור חד-פעמי. חינם, דרך Supabase.'}</p>
+
+    <div class="section-title">שלב 1 · צור טבלה ב-Supabase</div>
+    <div class="card">
+      <p class="muted" style="font-size:13px;margin:0 0 10px">ב-Supabase → SQL Editor → הדבק והרץ פעם אחת:</p>
+      <pre style="background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:12px;overflow:auto;font-size:11px;direction:ltr;text-align:left;white-space:pre;color:var(--text)">${esc(sql)}</pre>
+      <button class="btn sm ghost" data-copy-sql>העתק SQL</button>
+    </div>
+
+    <div class="section-title">שלב 2 · הדבק מפתחות</div>
+    <div class="card">
+      <div class="field"><label>Project URL</label><input class="input" id="c-url" placeholder="https://xxxx.supabase.co" value="${esc(c.url || '')}" style="direction:ltr;text-align:left"></div>
+      <div class="field"><label>anon public key</label><input class="input" id="c-key" placeholder="eyJhbGci..." value="${esc(c.key || '')}" style="direction:ltr;text-align:left"></div>
+      <div class="field"><label>שם התצוגה שלך</label><input class="input" id="c-name" placeholder="איתמר" value="${esc(c.name || S.profile?.name || '')}"></div>
+      <div class="field"><label>קוד משפחה (זהה לכולם)</label>
+        <div class="flex"><input class="input" id="c-family" placeholder="למשל SHARON1" value="${esc(c.family || '')}" style="direction:ltr;text-align:left"><button class="btn sm" data-gen-code>צור קוד</button></div>
+      </div>
+      <button class="btn" data-cloud-connect>${connected ? 'עדכן חיבור' : 'התחבר'} ☁️</button>
+      ${connected ? `<div class="spacer"></div><button class="btn ghost" data-cloud-disconnect style="color:var(--danger);border-color:var(--danger)">התנתק</button>` : ''}
+    </div>
+    <p class="muted center" style="font-size:11.5px;margin-top:6px;line-height:1.6">שתף את <b style="color:var(--text)">קוד המשפחה + ה-URL + ה-key</b> עם בני המשפחה — כולם מזינים אותם ומצטרפים. ה-anon key מיועד לצד-לקוח ובטוח לשיתוף בקבוצה.</p>
   </div>`;
 }
 
@@ -1193,6 +1274,41 @@ function bind() {
   };
 
   // ---- profile ----
+  // ---- cloud family ----
+  const gc = document.querySelector('[data-gen-code]'); if (gc) gc.onclick = () => {
+    const alpha = (S.profile?.name || '').replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 5);
+    const inp = el('c-family'); if (inp) inp.value = (alpha || 'FAM') + Math.floor(100 + Math.random() * 900);
+  };
+  const cpsql = document.querySelector('[data-copy-sql]'); if (cpsql) cpsql.onclick = async () => {
+    const pre = document.querySelector('pre'); try { await navigator.clipboard.writeText(pre.textContent); toast('ה-SQL הועתק ✓'); } catch { toast('בחר והעתק ידנית'); }
+  };
+  const cc = document.querySelector('[data-cloud-connect]'); if (cc) cc.onclick = async () => {
+    const url = el('c-url').value.trim(), key = el('c-key').value.trim(), name = el('c-name').value.trim(), family = el('c-family').value.trim().toUpperCase();
+    if (!url || !key || !name || !family) return toast('מלא את כל השדות');
+    toast('בודק חיבור…');
+    const res = await Cloud.test({ url, key });
+    if (!res.ok) return toast('שגיאה: ' + res.error);
+    Cloud.save({ url, key, name, family }); Cloud.resetCache();
+    await Cloud.refresh({ workouts: S.workoutsLog.length, streak: S.streak });
+    go('family'); setTimeout(() => toast('מחובר! המשפחה חיה ☁️'), 200);
+  };
+  const cd = document.querySelector('[data-cloud-disconnect]'); if (cd) cd.onclick = () => {
+    if (confirm('להתנתק מהמשפחה בענן? (המידע המקומי נשמר)')) { Cloud.clear(); go('family'); }
+  };
+  const cr = document.querySelector('[data-cloud-refresh]'); if (cr) cr.onclick = async () => {
+    Cloud.resetCache(); render(); await Cloud.refresh({ workouts: S.workoutsLog.length, streak: S.streak }); render();
+  };
+  const scode = document.querySelector('[data-share-code]'); if (scode) scode.onclick = async () => {
+    const c = Cloud.cfg;
+    const text = `הצטרף למשפחה שלנו ב-KIN! 💪\nקוד משפחה: ${c.family}\nURL: ${c.url}\nkey: ${c.key}`;
+    if (navigator.share) { try { await navigator.share({ title: 'KIN', text }); } catch {} }
+    else { try { await navigator.clipboard.writeText(text); toast('הפרטים הועתקו — שלח למשפחה 📲'); } catch { toast(text); } }
+  };
+  // auto-load the live leaderboard the first time the family screen opens
+  if (route.name === 'family' && Cloud.enabled() && Cloud.members === null && Cloud.status !== 'loading') {
+    Cloud.refresh({ workouts: S.workoutsLog.length, streak: S.streak }).then(() => { if (route.name === 'family') render(); });
+  }
+
   const ep = document.querySelector('[data-edit-profile]'); if (ep) ep.onclick = () => { S.draft = { ...S.profile }; S.onboardStep = 1; save(); go('onboard'); };
   const rs = document.querySelector('[data-reset]'); if (rs) rs.onclick = () => {
     if (confirm('לאפס את כל הנתונים ולהתחיל מחדש?')) { localStorage.removeItem(KEY); S = load(); go('onboard'); }
