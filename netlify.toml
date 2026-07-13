@@ -1,0 +1,22 @@
+# Netlify deploy config for KIN (static PWA, no build step)
+[build]
+  publish = "."
+  command = ""
+
+# Correct MIME + long cache for the generated demo clips
+[[headers]]
+  for = "/videos/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+# Never cache the service worker (so app updates roll out immediately)
+[[headers]]
+  for = "/service-worker.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# SPA-style fallback: unknown paths serve the app shell (real files still win)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
