@@ -1,0 +1,22 @@
+{
+  "name": "KIN — אימון משפחתי",
+  "short_name": "KIN",
+  "description": "אפליקציית הכושר של המשפחה — אימונים, מעקב ותזונה, ביחד.",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B0E11",
+  "theme_color": "#0B0E11",
+  "categories": ["health", "fitness", "lifestyle"],
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
