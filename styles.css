@@ -127,7 +127,20 @@ h1,h2,h3,.ex-name,.lb-name,.h-xl,.h-lg { unicode-bidi: plaintext; }
 }
 .demo .fig { animation: bob 1.6s ease-in-out infinite; }
 @keyframes bob { 0%,100% { transform: translateY(-8px) scale(1); } 50% { transform: translateY(10px) scale(1.06); } }
-.demo .tag { position: absolute; bottom: 10px; inset-inline-start: 12px; font-size: 11px; color: var(--muted); background: rgba(0,0,0,.35); padding: 4px 9px; border-radius: 999px; }
+.demo .tag { position: absolute; bottom: 10px; inset-inline-start: 12px; font-size: 11px; color: var(--muted); background: rgba(0,0,0,.45); padding: 4px 9px; border-radius: 999px; z-index: 3; }
+
+/* ---------- photo demonstrations (start ↔ end crossfade) ---------- */
+/* SVG/emoji fallback shows by default; photos revealed only once loaded. */
+.demo-photos { position: absolute; inset: 0; border-radius: 18px; overflow: hidden; }
+.demo-photos.loaded { background: #f3f4f6; }
+.demo-photos .pf { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 10px; display: none; }
+.demo-photos.loaded .pf { display: block; }
+.demo-photos .pf1 { opacity: 0; }
+.demo-photos.loaded .pf1 { animation: crossfade 2.4s ease-in-out infinite; }
+@keyframes crossfade { 0%, 28% { opacity: 0; } 50%, 72% { opacity: 1; } 100% { opacity: 0; } }
+.demo-photos .pf-fallback { position: absolute; inset: 0; display: grid; place-items: center; }
+.demo-photos.loaded .pf-fallback { display: none; }
+@media (prefers-reduced-motion: reduce) { .demo-photos.loaded .pf1 { animation: none; opacity: 1; } }
 
 /* ---------- animated exercise demonstrations (SVG) ---------- */
 .anim { width: 78%; height: 78%; }

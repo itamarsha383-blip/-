@@ -71,6 +71,22 @@ function beep(freq = 880, dur = 0.14) {
 }
 function cue() { beep(); try { navigator.vibrate && navigator.vibrate(180); } catch {} }
 
+// Demonstration media: real photo (start↔end crossfade) when available,
+// animated SVG / emoji fallback offline or if the image fails to load.
+function photoDemo(id, fallbackHTML, tag) {
+  const ph = PHOTOS[id];
+  // Fallback (SVG/emoji) is shown immediately; the real photo is revealed only
+  // once it has actually loaded — so a slow/offline CDN never leaves a blank box.
+  const inner = ph
+    ? `<div class="demo-photos">
+         <img class="pf pf0" src="${PHOTO_BASE}${encodeURI(ph[0])}" alt="" loading="lazy" onload="this.closest('.demo-photos').classList.add('loaded')">
+         <img class="pf pf1" src="${PHOTO_BASE}${encodeURI(ph[1])}" alt="" loading="lazy">
+         <div class="pf-fallback">${fallbackHTML}</div>
+       </div>`
+    : fallbackHTML;
+  return `<div class="demo">${inner}<span class="tag">${tag}</span></div>`;
+}
+
 // Animated SVG movement demonstrations, keyed by movement pattern.
 // Honest stand-in for filmed video: real motion, offline, no assets.
 function demoSVG(pattern) {
@@ -478,7 +494,7 @@ function ScreenActive() {
     return `<div class="screen aw-wrap">
       <div class="between"><button class="back" data-quit-workout>✕ יציאה</button><span class="pill">🔥 חימום ${active.wi + 1}/${s.warmup.length}</span></div>
       <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
-      <div class="demo"><span class="fig">${wu.emoji}</span><span class="tag">הכנת הגוף לאימון</span></div>
+      ${photoDemo(wu.id, `<span class="fig">${wu.emoji}</span>`, 'הכנת הגוף לאימון')}
       <h2 class="h-lg">${esc(wu.name)}</h2>
       <div class="h-xl" style="margin:10px 0 2px">${wu.sec} שנ׳</div>
       <p class="muted">${esc(wu.note)}</p>
@@ -494,7 +510,7 @@ function ScreenActive() {
     return `<div class="screen aw-wrap">
       <div class="between"><button class="back" data-quit-workout>✕ יציאה</button><span class="pill">🧘 שחרור ${active.ci + 1}/${s.cooldown.length}</span></div>
       <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
-      <div class="demo"><span class="fig">${cd.emoji}</span><span class="tag">שחרור ומתיחה</span></div>
+      ${photoDemo(cd.id, `<span class="fig">${cd.emoji}</span>`, 'שחרור ומתיחה')}
       <h2 class="h-lg">${esc(cd.name)}</h2>
       <div class="h-xl" style="margin:10px 0 2px">${cd.sec} שנ׳</div>
       <p class="muted">${esc(cd.note)}</p>
@@ -552,7 +568,7 @@ function ScreenActive() {
   return `<div class="screen aw-wrap">
     <div class="between"><button class="back" data-quit-workout>✕ יציאה</button><span class="pill">💪 ${active.i + 1}/${s.main.length}</span></div>
     <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
-    <div class="demo">${demoSVG(e.pattern)}<span class="tag">הדגמת תנועה · טמפו ${e.tempo}</span></div>
+    ${photoDemo(e.id, demoSVG(e.pattern), `הדגמת תנועה · טמפו ${e.tempo}`)}
     <h2 class="h-lg">${esc(e.name)}</h2>
     <p class="muted" style="margin:6px 0 2px">${e.muscles.primary.join(' · ')}</p>
     <div class="setdots">
@@ -662,7 +678,7 @@ function ScreenExercise(id) {
   const curLevel = S.profile?.level || 1;
   return `<div class="screen">
     <button class="back" data-back>›  חזרה</button>
-    <div class="demo">${demoSVG(e.pattern)}<span class="tag">הדגמת תנועה · טמפו ${e.tempo}</span></div>
+    ${photoDemo(e.id, demoSVG(e.pattern), `הדגמת תנועה · טמפו ${e.tempo}`)}
     <h2 class="h-lg">${esc(e.name)}</h2>
     <div class="flex" style="margin:8px 0 4px;flex-wrap:wrap"><span class="badge l${e.level}">${['','מתחיל','בינוני','מתקדם'][e.level]}</span>
       ${e.muscles.primary.map((m) => `<span class="pill accent" style="font-size:11px">${m}</span>`).join('')}

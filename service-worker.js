@@ -1,5 +1,5 @@
 // KIN service worker — enables installability + offline use.
-const CACHE = 'kin-v2';
+const CACHE = 'kin-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -41,6 +41,15 @@ self.addEventListener('fetch', (e) => {
       }).catch(() => caches.match(request).then((c) => c || caches.match('./index.html')))
     );
   } else {
-    e.respondWith(caches.match(request).then((cached) => cached || fetch(request)));
+    // static assets + remote demo images: cache-first, then fetch & cache for offline reuse
+    e.respondWith(
+      caches.match(request).then((cached) => cached || fetch(request).then((res) => {
+        if (res && (res.ok || res.type === 'opaque')) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(request, copy));
+        }
+        return res;
+      }).catch(() => cached))
+    );
   }
 });

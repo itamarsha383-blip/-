@@ -474,6 +474,36 @@ const FOODS = [
   { name: 'טופו', kcal: 76, p: 8, c: 1.9, f: 4.8, unit: '100 גרם' }
 ];
 
+// --- Professional demonstration photos --------------------------------
+// Source: free-exercise-db (yuhonas) — Public Domain (Unlicense).
+// Two frames per move (start ↔ end) → crossfaded into a motion demo.
+// Loaded lazily when online, cached by the service worker, SVG fallback offline.
+const PHOTO_BASE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
+const PHOTOS = {
+  pushup: ['Pushups/0.jpg', 'Pushups/1.jpg'],
+  pike: ['Hanging_Pike/0.jpg', 'Hanging_Pike/1.jpg'],
+  rows: ['Inverted_Row/0.jpg', 'Inverted_Row/1.jpg'],
+  pullup: ['Pullups/0.jpg', 'Pullups/1.jpg'],
+  squat: ['Bodyweight_Squat/0.jpg', 'Bodyweight_Squat/1.jpg'],
+  lunge: ['Bodyweight_Walking_Lunge/0.jpg', 'Bodyweight_Walking_Lunge/1.jpg'],
+  glutebridge: ['Butt_Lift_Bridge/0.jpg', 'Butt_Lift_Bridge/1.jpg'],
+  dip: ['Dips_-_Triceps_Version/0.jpg', 'Dips_-_Triceps_Version/1.jpg'],
+  plank: ['Plank/0.jpg', 'Plank/1.jpg'],
+  legraise: ['Flat_Bench_Lying_Leg_Raise/0.jpg', 'Flat_Bench_Lying_Leg_Raise/1.jpg'],
+  mountain: ['Mountain_Climbers/0.jpg', 'Mountain_Climbers/1.jpg'],
+  // warm-ups
+  arm_circles: ['Arm_Circles/0.jpg', 'Arm_Circles/1.jpg'],
+  jumping_jacks: ['Star_Jump/0.jpg', 'Star_Jump/1.jpg'],
+  cat_cow: ['Cat_Stretch/0.jpg', 'Cat_Stretch/1.jpg'],
+  bw_squats: ['Bodyweight_Squat/0.jpg', 'Bodyweight_Squat/1.jpg'],
+  // cooldown stretches
+  chest_stretch: ['Behind_Head_Chest_Stretch/0.jpg', 'Behind_Head_Chest_Stretch/1.jpg'],
+  hamstring: ['Hamstring_Stretch/0.jpg', 'Hamstring_Stretch/1.jpg'],
+  quad: ['Quad_Stretch/0.jpg', 'Quad_Stretch/1.jpg'],
+  child_pose: ['Childs_Pose/0.jpg', 'Childs_Pose/1.jpg'],
+  shoulder_stretch: ['Shoulder_Stretch/0.jpg', 'Shoulder_Stretch/1.jpg']
+};
+
 // Mock family for the leaderboard demo (real accounts in phase 2).
 const DEMO_FAMILY = [
   { name: 'אתה', workouts: 0, streak: 0, you: true },
