@@ -75,15 +75,24 @@ function cue() { beep(); try { navigator.vibrate && navigator.vibrate(180); } ca
 // animated SVG / emoji fallback offline or if the image fails to load.
 function photoDemo(id, fallbackHTML, tag) {
   const ph = PHOTOS[id];
-  // Fallback (SVG/emoji) is shown immediately; the real photo is revealed only
-  // once it has actually loaded — so a slow/offline CDN never leaves a blank box.
-  const inner = ph
-    ? `<div class="demo-photos">
+  let inner;
+  if (VIDEO_CLIPS.includes(id)) {
+    // Primary: bundled short demo clip (works offline, correct form). Falls back
+    // to photo/SVG if the video fails to load.
+    inner = `<div class="demo-media">
+         <video class="pf-video" src="./videos/${id}.webm" autoplay muted loop playsinline preload="auto"
+           onerror="this.closest('.demo-media').classList.add('novideo')"></video>
+         <div class="pf-fallback">${fallbackHTML}</div>
+       </div>`;
+  } else if (ph) {
+    inner = `<div class="demo-photos">
          <img class="pf pf0" src="${PHOTO_BASE}${encodeURI(ph[0])}" alt="" loading="lazy" onload="this.closest('.demo-photos').classList.add('loaded')">
          <img class="pf pf1" src="${PHOTO_BASE}${encodeURI(ph[1])}" alt="" loading="lazy">
          <div class="pf-fallback">${fallbackHTML}</div>
-       </div>`
-    : fallbackHTML;
+       </div>`;
+  } else {
+    inner = fallbackHTML;
+  }
   return `<div class="demo">${inner}<span class="tag">${tag}</span></div>`;
 }
 

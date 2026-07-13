@@ -509,6 +509,8 @@ const PHOTOS = {
   child_pose: ['Childs_Pose/0.jpg', 'Childs_Pose/1.jpg'],
   shoulder_stretch: ['Shoulder_Stretch/0.jpg', 'Shoulder_Stretch/1.jpg']
 };
+// Short generated demo clips bundled in ./videos/<id>.webm (offline, correct form).
+const VIDEO_CLIPS = Object.keys(PHOTOS);
 
 // Mock family for the leaderboard demo (real accounts in phase 2).
 const DEMO_FAMILY = [

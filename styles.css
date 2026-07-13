@@ -129,6 +129,14 @@ h1,h2,h3,.ex-name,.lb-name,.h-xl,.h-lg { unicode-bidi: plaintext; }
 @keyframes bob { 0%,100% { transform: translateY(-8px) scale(1); } 50% { transform: translateY(10px) scale(1.06); } }
 .demo .tag { position: absolute; bottom: 10px; inset-inline-start: 12px; font-size: 11px; color: var(--muted); background: rgba(0,0,0,.45); padding: 4px 9px; border-radius: 999px; z-index: 3; }
 
+/* ---------- generated demo video ---------- */
+.demo-media { position: absolute; inset: 0; border-radius: 18px; overflow: hidden; background: #f3f4f6; }
+.demo-media .pf-video { width: 100%; height: 100%; object-fit: contain; display: block; }
+.demo-media .pf-fallback { display: none; }
+.demo-media.novideo { background: var(--card-2); }
+.demo-media.novideo .pf-video { display: none; }
+.demo-media.novideo .pf-fallback { display: grid; place-items: center; position: absolute; inset: 0; }
+
 /* ---------- photo demonstrations (start ↔ end crossfade) ---------- */
 /* SVG/emoji fallback shows by default; photos revealed only once loaded. */
 .demo-photos { position: absolute; inset: 0; border-radius: 18px; overflow: hidden; }
