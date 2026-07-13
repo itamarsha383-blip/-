@@ -1,5 +1,5 @@
 // KIN service worker — enables installability + offline use.
-const CACHE = 'kin-v1';
+const CACHE = 'kin-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -7,7 +7,10 @@ const ASSETS = [
   './data.js',
   './app.js',
   './manifest.json',
-  './icon.svg'
+  './icon.svg',
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (e) => {
@@ -22,11 +25,22 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Cache-first for our own assets, network fallback for everything else.
+// Network-first for navigations + code/styles (so deploys show up immediately),
+// cache-first for other static assets (icons). Always fall back to cache offline.
 self.addEventListener('fetch', (e) => {
   const { request } = e;
   if (request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(request).then((cached) => cached || fetch(request).catch(() => cached))
-  );
+  const url = new URL(request.url);
+  const fresh = request.mode === 'navigate' || /\.(js|css|json|html)$/.test(url.pathname);
+  if (fresh) {
+    e.respondWith(
+      fetch(request).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(request, copy));
+        return res;
+      }).catch(() => caches.match(request).then((c) => c || caches.match('./index.html')))
+    );
+  } else {
+    e.respondWith(caches.match(request).then((cached) => cached || fetch(request)));
+  }
 });

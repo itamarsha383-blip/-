@@ -35,6 +35,8 @@ body {
 .hidden { display: none !important; }
 
 h1,h2,h3 { margin: 0; line-height: 1.15; }
+/* correct bidi for mixed Hebrew/Latin strings (e.g. "מתח (Pull-up)") */
+h1,h2,h3,.ex-name,.lb-name,.h-xl,.h-lg { unicode-bidi: plaintext; }
 .h-xl { font-size: 30px; font-weight: 800; letter-spacing: -.5px; }
 .h-lg { font-size: 22px; font-weight: 800; letter-spacing: -.3px; }
 .muted { color: var(--muted); }

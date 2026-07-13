@@ -4,6 +4,7 @@
    ============================================================ */
 
 const KEY = 'kin_state_v1';
+const SCHEMA_VERSION = 3;
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 const DEFAULT_STATE = {
@@ -17,18 +18,32 @@ const DEFAULT_STATE = {
   draft: {},                   // onboarding in progress
   exState: {},                 // { exId: {adjust, easy, hard, best} } — adaptive engine
   badges: [],                  // unlocked achievement ids
-  reactions: {}                // { memberName: count } — family kudos (local demo)
+  reactions: {},               // { memberName: count } — family kudos (local demo)
+  recentFoods: [],             // recently logged food names (fast re-log)
+  version: 3
 };
 
 let S = load();
 let route = { name: S.profile ? 'home' : 'onboard', params: {} };
 let active = null;             // active-workout runtime state
+// derived streak is recomputed from dates on boot (fixes stale/incorrect streaks)
+setTimeout(() => { if (typeof refreshStreak === 'function') { refreshStreak(); } }, 0);
 
 function load() {
-  try { return { ...structuredClone(DEFAULT_STATE), ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
-  catch { return structuredClone(DEFAULT_STATE); }
+  let raw;
+  try { raw = { ...structuredClone(DEFAULT_STATE), ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
+  catch { raw = structuredClone(DEFAULT_STATE); }
+  return migrate(raw);
 }
-function save() { localStorage.setItem(KEY, JSON.stringify(S)); }
+// Forward-compatible migration: fills missing fields so old saves never break.
+function migrate(s) {
+  s.exState ||= {}; s.badges ||= []; s.reactions ||= {}; s.recentFoods ||= [];
+  if (s.profile && s.profile.injuries === undefined) s.profile.injuries = [];
+  s.version = SCHEMA_VERSION;
+  return s;
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { console.warn('save failed', e); } }
+const clampNum = (v, lo, hi) => { const n = +v; return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : null; };
 function go(name, params = {}) { route = { name, params }; window.scrollTo(0, 0); render(); }
 
 // ---------- helpers ----------
@@ -40,6 +55,21 @@ function toast(msg) {
   setTimeout(() => t.remove(), 1800);
 }
 function initials(name) { return (name || 'א').trim().slice(0, 1); }
+
+// audio + haptic cue (end of rest / end of a timed hold)
+let _audio;
+function beep(freq = 880, dur = 0.14) {
+  try {
+    _audio = _audio || new (window.AudioContext || window.webkitAudioContext)();
+    const o = _audio.createOscillator(), g = _audio.createGain();
+    o.frequency.value = freq; o.type = 'sine'; o.connect(g); g.connect(_audio.destination);
+    g.gain.setValueAtTime(0.0001, _audio.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.2, _audio.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, _audio.currentTime + dur);
+    o.start(); o.stop(_audio.currentTime + dur);
+  } catch {}
+}
+function cue() { beep(); try { navigator.vibrate && navigator.vibrate(180); } catch {} }
 
 // Animated SVG movement demonstrations, keyed by movement pattern.
 // Honest stand-in for filmed video: real motion, offline, no assets.
@@ -139,24 +169,33 @@ function checkBadges() {
   return newly;
 }
 
-// Is the streak at risk? (trained the day before yesterday but not yesterday/today)
+// --- streak: derived from real workout dates, rest-day aware, 1-day grace ---
+const DAYMS = 864e5;
+const dayNum = (s) => Math.floor(new Date(s + 'T00:00:00').getTime() / DAYMS);
+// A gap of up to 2 days (i.e. one rest/skip day) keeps the chain alive.
+function computeStreak() {
+  const days = [...new Set(S.workoutsLog.map((w) => w.date))].sort(); // asc
+  if (!days.length) return 0;
+  const today = Math.floor(Date.now() / DAYMS);
+  const last = dayNum(days[days.length - 1]);
+  if (today - last > 2) return 0;              // chain broken (missed >1 full day)
+  let streak = 1;
+  for (let i = days.length - 1; i > 0; i--) {
+    if (dayNum(days[i]) - dayNum(days[i - 1]) <= 2) streak++; else break;
+  }
+  return streak;
+}
+// Recompute derived streak state (call on load + after every workout).
+function refreshStreak() { S.streak = computeStreak(); S.lastWorkout = S.workoutsLog.length ? S.workoutsLog[S.workoutsLog.length - 1].date : null; }
+// Alive chain, but not trained yet today → nudge before it breaks.
 function streakAtRisk() {
-  if (!S.streak || S.lastWorkout === todayStr()) return false;
-  const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
-  return S.lastWorkout !== y ? false : true; // trained yesterday, not yet today → keep it alive today
+  if (!S.workoutsLog.length || S.lastWorkout === todayStr()) return false;
+  return computeStreak() > 0;
 }
 function fmtRest(sec) {
   if (sec < 120) return `${sec} שנ׳`;
   const m = Math.floor(sec / 60), s = sec % 60;
   return s ? `${m}:${String(s).padStart(2, '0')} דק׳` : `${m} דק׳`;
-}
-
-function streakBump() {
-  const t = todayStr();
-  if (S.lastWorkout === t) return;
-  const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
-  S.streak = S.lastWorkout === y ? S.streak + 1 : 1;
-  S.lastWorkout = t;
 }
 
 /* ============================================================
@@ -274,7 +313,19 @@ function ScreenOnboard() {
       <div class="spacer"></div>
       <button class="btn" data-next-days>המשך</button>
     </div>`,
-    // 6 — equipment
+    // 6 — injuries / limitations
+    `<div class="screen">
+      <button class="back" data-prev>›  חזרה</button>
+      <h2 class="h-lg">יש מגבלות או כאבים?</h2>
+      <p class="muted" style="margin:6px 0 20px">נחליף אוטומטית תרגילים שעלולים להעמיס. אפשר לבחור כמה.</p>
+      <div class="chips">
+        ${INJURIES.map((inj) => `<button class="chip ${(d.injuries || ['none']).includes(inj.id) ? 'sel' : ''}" data-injury="${inj.id}">
+          <div class="emoji">${inj.emoji}</div><div class="t">${inj.label}</div></button>`).join('')}
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" data-next-injuries>המשך</button>
+    </div>`,
+    // 7 — equipment
     `<div class="screen">
       <button class="back" data-prev>›  חזרה</button>
       <h2 class="h-lg">מה יש לך בבית?</h2>
@@ -485,6 +536,19 @@ function ScreenActive() {
       <button class="btn" data-skip-rest>דלג על המנוחה ›</button>
     </div>`;
   }
+  // timed exercise → live countdown for the hold itself
+  if (active.working) {
+    return `<div class="screen aw-wrap">
+      <p class="muted" style="margin-top:8vh">${esc(e.name)} · סט ${active.set + 1}/${totalSets}</p>
+      <div class="timer" style="color:var(--accent)">${active.workLeft}</div>
+      <p class="muted">החזק! 💪 ${esc(e.cues[0])}</p>
+      <div class="spacer"></div>
+      <button class="btn ghost" data-stop-hold>עצור וסיים סט</button>
+    </div>`;
+  }
+  const adjBadge = e.graduated ? ' <span class="pill accent" style="font-size:12px;vertical-align:middle">🎉 עלית שלב!</span>'
+    : e.adjusted > 0 ? ' <span class="pill accent" style="font-size:12px;vertical-align:middle">⬆ הותאם אליך</span>'
+    : e.adjusted < 0 ? ' <span class="pill" style="font-size:12px;vertical-align:middle">⬇ הותאם אליך</span>' : '';
   return `<div class="screen aw-wrap">
     <div class="between"><button class="back" data-quit-workout>✕ יציאה</button><span class="pill">💪 ${active.i + 1}/${s.main.length}</span></div>
     <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
@@ -495,10 +559,12 @@ function ScreenActive() {
       ${Array.from({ length: totalSets }).map((_, i) =>
         `<div class="setdot ${i < active.set ? 'done' : i === active.set ? 'cur' : ''}">${i + 1}</div>`).join('')}
     </div>
-    <div class="h-xl" style="margin:6px 0">${e.reps}${e.adjusted > 0 ? ' <span class="pill accent" style="font-size:12px;vertical-align:middle">⬆ הותאם אליך</span>' : e.adjusted < 0 ? ' <span class="pill" style="font-size:12px;vertical-align:middle">⬇ הותאם אליך</span>' : ''}</div>
+    <div class="h-xl" style="margin:6px 0">${e.reps}${adjBadge}</div>
     <p class="muted">סט ${active.set + 1}/${totalSets} · מנוחה ${fmtRest(e.rest)} · ${e.rpe}</p>
     <div class="spacer"></div>
-    <button class="btn" data-complete-set>סיימתי את הסט ✓</button>
+    ${e.timed
+      ? `<button class="btn" data-start-hold>התחל טיימר (${e.holdSec} שנ׳) ▶</button>`
+      : `<button class="btn" data-complete-set>סיימתי את הסט ✓</button>`}
     <div class="spacer"></div>
     <button class="btn ghost" data-ex="${e.id}">איך עושים? טכניקה וטעויות</button>
   </div>`;
@@ -518,10 +584,22 @@ function startRest(sec) {
   render();
   active.timer = setInterval(() => {
     active.restLeft--;
-    if (active.restLeft <= 0) { clearInterval(active.timer); active.resting = false; render(); }
+    if (active.restLeft <= 0) { clearInterval(active.timer); active.resting = false; cue(); render(); }
     else { const t = document.querySelector('.timer'); if (t) t.textContent = active.restLeft; }
   }, 1000);
 }
+// timed hold (plank etc.): counts down the work interval, then auto-completes the set.
+function startHold() {
+  const e = active.sess.main[active.i];
+  active.working = true; active.workLeft = e.holdSec || 30;
+  render();
+  active.timer = setInterval(() => {
+    active.workLeft--;
+    if (active.workLeft <= 0) { clearInterval(active.timer); active.working = false; cue(); completeSet(); }
+    else { const t = document.querySelector('.timer'); if (t) t.textContent = active.workLeft; }
+  }, 1000);
+}
+function stopHold() { if (active.timer) clearInterval(active.timer); active.working = false; completeSet(); }
 function completeSet() {
   const e = active.sess.main[active.i];
   active.set++;
@@ -549,7 +627,7 @@ function applyFeedback(kind) {
 function finishWorkout() {
   if (active?.timer) clearInterval(active.timer);
   S.workoutsLog.push({ date: todayStr(), name: active.sess.name, exercises: active.sess.main.map((e) => e.id) });
-  streakBump(); save();
+  refreshStreak(); save();
   active = null;
   go('home');
   setTimeout(() => toast('כל הכבוד! אימון הושלם 🔥'), 250);
@@ -675,32 +753,57 @@ function weightChart(pts) {
 /* ============================================================
    NUTRITION
    ============================================================ */
+let pendingFood = null;   // food awaiting a quantity choice
+function addFood(f, qty) {
+  if (!f) return;
+  const q = qty > 0 ? qty : 1;
+  const label = q === 1 ? f.name : `${f.name} ×${q}`;
+  const t = todayStr();
+  (S.nutrition[t] ||= []).push({ name: label, kcal: Math.round(f.kcal * q), p: +(f.p * q).toFixed(1), c: +(f.c * q).toFixed(1), f: +(f.f * q).toFixed(1) });
+  S.recentFoods = [f.name, ...(S.recentFoods || []).filter((n) => n !== f.name)].slice(0, 8);
+  pendingFood = null; route.params.q = ''; save(); render(); toast(`${label} נוסף ✓`); checkBadges();
+}
 function ScreenNutrition() {
   const p = S.profile, mt = macroTargets(p);
   const today = S.nutrition[todayStr()] || [];
   const sum = today.reduce((a, f) => ({ kcal: a.kcal + f.kcal, p: a.p + f.p, c: a.c + f.c, f: a.f + f.f }), { kcal: 0, p: 0, c: 0, f: 0 });
   const q = (route.params.q || '').trim();
   const results = q ? FOODS.filter((f) => f.name.includes(q)).slice(0, 6) : [];
+  const over = sum.kcal > mt.kcal;
   const bar = (val, tgt, cls) => `<div class="macro"><div class="top"><span>${cls === 'p' ? 'חלבון' : cls === 'c' ? 'פחמימות' : 'שומן'}</span><span class="muted">${Math.round(val)} / ${tgt} ג׳</span></div><div class="mtrack"><div class="mfill ${cls}" style="width:${Math.min(100, (val / tgt) * 100)}%"></div></div></div>`;
+  const recent = (S.recentFoods || []).map((n) => FOODS.find((f) => f.name === n)).filter(Boolean).slice(0, 6);
   return `<div class="screen">
     <h2 class="h-lg" style="margin-bottom:12px">תזונה היום</h2>
     <div class="hero">
-      <div class="between"><span class="muted">קלוריות</span><span class="pill accent">יעד ${mt.kcal}</span></div>
+      <div class="between"><span class="muted">קלוריות</span><span class="pill ${over ? '' : 'accent'}" ${over ? 'style="background:var(--danger);color:#0B0E11;border-color:transparent"' : ''}>${over ? `חריגה ${Math.round(sum.kcal - mt.kcal)}` : `יעד ${mt.kcal}`}</span></div>
       <div class="h-xl" style="margin:8px 0 2px">${Math.round(sum.kcal)} <span style="font-size:16px" class="muted">/ ${mt.kcal} קל׳</span></div>
-      <div class="progress-track"><div class="progress-fill" style="width:${Math.min(100,(sum.kcal/mt.kcal)*100)}%"></div></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${Math.min(100,(sum.kcal/mt.kcal)*100)}%${over ? ';background:var(--danger)' : ''}"></div></div>
       <div style="margin-top:12px">
         ${bar(sum.p, mt.protein, 'p')}${bar(sum.c, mt.carbs, 'c')}${bar(sum.f, mt.fat, 'f')}
       </div>
       <div class="between" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)"><span class="muted">💧 יעד מים</span><span>${mt.water} ליטר ביום</span></div>
     </div>
 
+    ${pendingFood ? `<div class="section-title">כמה ${esc(pendingFood.name)}?</div>
+    <div class="card">
+      <p class="muted" style="font-size:13px;margin:0 0 10px">מנה בסיסית: ${esc(pendingFood.unit)} · ${pendingFood.kcal} קל׳</p>
+      <div class="chips" style="margin-bottom:12px">
+        ${[0.5, 1, 1.5, 2, 3].map((m) => `<button class="chip" data-qty="${m}" style="flex:0 0 auto;padding:10px 16px"><div class="t">×${m}</div></button>`).join('')}
+      </div>
+      <div class="flex">
+        <input class="input" id="qty-input" type="number" inputmode="decimal" step="0.1" placeholder="כמות מדויקת (למשל 1.5)">
+        <button class="btn sm" data-qty-add>הוסף</button>
+      </div>
+      <button class="btn sm ghost" data-qty-cancel style="margin-top:10px">ביטול</button>
+    </div>` : `
     <div class="section-title">הוסף מזון</div>
     <div class="card">
       <input class="input" id="food-q" placeholder="חפש מזון (עוף, אורז, בננה...)" value="${esc(q)}">
+      ${!q && recent.length ? `<div class="chips" style="margin-top:10px">${recent.map((f) => `<button class="chip" data-recent="${esc(f.name)}" style="flex:0 0 auto;padding:8px 14px"><div class="t">${esc(f.name)}</div></button>`).join('')}</div>` : ''}
       ${results.length ? results.map((f, i) => `<div class="ex-item" data-food="${i}">
         <div class="ex-emoji">🍽️</div><div class="grow"><div class="ex-name">${esc(f.name)}</div><div class="ex-meta">${f.kcal} קל׳ · ${f.p}ח/${f.c}פ/${f.f}ש · ${f.unit}</div></div><span class="badge">+</span></div>`).join('')
       : q ? `<p class="muted center" style="padding:8px">לא נמצא — נרחיב את המאגר עם API אמיתי בהמשך</p>` : ''}
-    </div>
+    </div>`}
 
     ${today.length ? `<div class="section-title">מה אכלת היום</div><div class="card">
       ${today.map((f, i) => `<div class="ex-item"><div class="ex-emoji">•</div><div class="grow"><div class="ex-name">${esc(f.name)}</div><div class="ex-meta">${f.kcal} קל׳</div></div><button class="badge" data-del-food="${i}">מחק</button></div>`).join('')}
@@ -760,10 +863,22 @@ function ScreenProfile() {
     <div class="card">
       <div class="between" style="padding:8px 0"><span class="muted">גיל</span><span>${p.age}</span></div>
       <div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span class="muted">משקל / גובה</span><span>${p.weight} ק״ג · ${p.height} ס״מ</span></div>
+      <div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span class="muted">תדירות</span><span>${p.days || '—'} ימים בשבוע</span></div>
       <div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span class="muted">ציוד</span><span>${EQUIP.find(e=>e.id===p.equip)?.label}</span></div>
+      ${p.injuries && p.injuries.length ? `<div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span class="muted">מגבלות</span><span>${p.injuries.map((i) => INJURIES.find((x) => x.id === i)?.label).join(', ')}</span></div>` : ''}
       <div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span class="muted">יעד קלורי יומי</span><span>${mt.kcal} קל׳</span></div>
     </div>
     <button class="btn ghost" data-edit-profile>ערוך פרופיל מחדש</button>
+
+    <div class="section-title">גיבוי ושחזור מידע</div>
+    <div class="card">
+      <p class="muted" style="font-size:13px;margin:2px 0 12px">המידע נשמר במכשיר. גבה אותו לקובץ כדי לא לאבד — ובקרוב: סנכרון ענן אוטומטי.</p>
+      <div class="row2">
+        <button class="btn sm ghost" data-export>⬇ גבה לקובץ</button>
+        <button class="btn sm ghost" data-import>⬆ שחזר מקובץ</button>
+      </div>
+    </div>
+
     <div class="spacer"></div>
     <button class="btn ghost" data-reset style="color:var(--danger);border-color:var(--danger)">אפס הכל</button>
   </div>`;
@@ -794,8 +909,10 @@ function bind() {
     d.gender = b.dataset.g; save(); render();
   });
   const sb = document.querySelector('[data-save-body]'); if (sb) sb.onclick = () => {
-    d.age = +el('f-age').value || null; d.weight = +el('f-weight').value || null; d.height = +el('f-height').value || null;
-    if (!d.age || !d.weight || !d.height || !d.gender) return toast('מלא גיל, מין, משקל וגובה');
+    d.age = clampNum(el('f-age').value, 10, 100);
+    d.weight = clampNum(el('f-weight').value, 20, 300);
+    d.height = clampNum(el('f-height').value, 100, 250);
+    if (!d.age || !d.weight || !d.height || !d.gender) return toast('מלא גיל, מין, משקל וגובה (ערכים סבירים)');
     S.onboardStep = 3; save(); render();
   };
   document.querySelectorAll('[data-level]').forEach((b) => b.onclick = () => { d.level = +b.dataset.level; save(); render(); });
@@ -804,6 +921,13 @@ function bind() {
   const ng = document.querySelector('[data-next-goal]'); if (ng) ng.onclick = () => { if (!d.goal) return toast('בחר מטרה'); S.onboardStep = 5; save(); render(); };
   document.querySelectorAll('[data-days]').forEach((b) => b.onclick = () => { d.days = +b.dataset.days; save(); render(); });
   const nd = document.querySelector('[data-next-days]'); if (nd) nd.onclick = () => { if (!d.days) return toast('בחר תדירות'); S.onboardStep = 6; save(); render(); };
+  document.querySelectorAll('[data-injury]').forEach((b) => b.onclick = () => {
+    const id = b.dataset.injury; let inj = d.injuries || [];
+    if (id === 'none') inj = ['none'];
+    else { inj = inj.filter((x) => x !== 'none'); inj = inj.includes(id) ? inj.filter((x) => x !== id) : [...inj, id]; if (!inj.length) inj = ['none']; }
+    d.injuries = inj; save(); render();
+  });
+  const nj = document.querySelector('[data-next-injuries]'); if (nj) nj.onclick = () => { d.injuries = (d.injuries || ['none']).filter((x) => x !== 'none'); S.onboardStep = 7; save(); render(); };
   document.querySelectorAll('[data-equip]').forEach((b) => b.onclick = () => { d.equip = b.dataset.equip; save(); render(); });
   const fin = document.querySelector('[data-finish]'); if (fin) fin.onclick = () => {
     if (!d.equip) return toast('בחר ציוד');
@@ -817,16 +941,24 @@ function bind() {
   const wn = document.querySelector('[data-warm-next]'); if (wn) wn.onclick = warmNext;
   const cn = document.querySelector('[data-cool-next]'); if (cn) cn.onclick = coolNext;
   document.querySelectorAll('[data-fb]').forEach((b) => b.onclick = () => applyFeedback(b.dataset.fb));
+  const sh = document.querySelector('[data-start-hold]'); if (sh) sh.onclick = startHold;
+  const st = document.querySelector('[data-stop-hold]'); if (st) st.onclick = stopHold;
   const sr = document.querySelector('[data-skip-rest]'); if (sr) sr.onclick = () => { if (active.timer) clearInterval(active.timer); active.resting = false; render(); };
-  const qw = document.querySelector('[data-quit-workout]'); if (qw) qw.onclick = () => { if (active?.timer) clearInterval(active.timer); active = null; go('workouts'); };
+  const qw = document.querySelector('[data-quit-workout]'); if (qw) qw.onclick = () => {
+    if (!confirm('לצאת מהאימון? ההתקדמות של האימון הנוכחי לא תישמר.')) return;
+    if (active?.timer) clearInterval(active.timer); active = null; go('workouts');
+  };
 
   // ---- library filter ----
   document.querySelectorAll('[data-filter]').forEach((b) => b.onclick = () => go('library', { filter: b.dataset.filter }));
 
   // ---- progress ----
   const aw = document.querySelector('[data-add-weight]'); if (aw) aw.onclick = () => {
-    const v = +el('w-input').value; if (!v) return toast('הכנס משקל');
-    S.weights.push({ date: todayStr(), kg: v }); save(); render(); toast('נשמר ✓'); checkBadges();
+    const v = clampNum(el('w-input').value, 20, 300); if (!v) return toast('הכנס משקל סביר');
+    // one weigh-in per day: replace today's if it exists
+    const t = todayStr(); const existing = S.weights.find((w) => w.date === t);
+    if (existing) existing.kg = v; else S.weights.push({ date: t, kg: v });
+    save(); render(); toast('נשמר ✓'); checkBadges();
   };
 
   // ---- nutrition ----
@@ -835,11 +967,15 @@ function bind() {
   }
   document.querySelectorAll('[data-food]').forEach((b) => b.onclick = () => {
     const q = (route.params.q || '').trim();
-    const results = FOODS.filter((f) => f.name.includes(q));
-    const f = results[+b.dataset.food]; if (!f) return;
-    const t = todayStr(); (S.nutrition[t] ||= []).push({ name: f.name, kcal: f.kcal, p: f.p, c: f.c, f: f.f });
-    route.params.q = ''; save(); render(); toast(`${f.name} נוסף ✓`); checkBadges();
+    const f = FOODS.filter((x) => x.name.includes(q))[+b.dataset.food];
+    if (f) { pendingFood = f; render(); }
   });
+  document.querySelectorAll('[data-recent]').forEach((b) => b.onclick = () => {
+    const f = FOODS.find((x) => x.name === b.dataset.recent); if (f) { pendingFood = f; render(); }
+  });
+  document.querySelectorAll('[data-qty]').forEach((b) => b.onclick = () => addFood(pendingFood, +b.dataset.qty));
+  const qa = document.querySelector('[data-qty-add]'); if (qa) qa.onclick = () => { const v = +el('qty-input').value; addFood(pendingFood, v > 0 ? v : 1); };
+  const qc = document.querySelector('[data-qty-cancel]'); if (qc) qc.onclick = () => { pendingFood = null; render(); };
   document.querySelectorAll('[data-del-food]').forEach((b) => b.onclick = () => {
     S.nutrition[todayStr()].splice(+b.dataset.delFood, 1); save(); render();
   });
@@ -858,6 +994,31 @@ function bind() {
   const ep = document.querySelector('[data-edit-profile]'); if (ep) ep.onclick = () => { S.draft = { ...S.profile }; S.onboardStep = 1; save(); go('onboard'); };
   const rs = document.querySelector('[data-reset]'); if (rs) rs.onclick = () => {
     if (confirm('לאפס את כל הנתונים ולהתחיל מחדש?')) { localStorage.removeItem(KEY); S = load(); go('onboard'); }
+  };
+  const ex = document.querySelector('[data-export]'); if (ex) ex.onclick = () => {
+    const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `kin-backup-${todayStr()}.json`; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast('גיבוי נוצר ✓');
+  };
+  const im = document.querySelector('[data-import]'); if (im) im.onclick = () => {
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'application/json,.json';
+    inp.onchange = () => {
+      const f = inp.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          const data = JSON.parse(r.result);
+          if (!data || typeof data !== 'object' || !('profile' in data)) throw new Error('bad');
+          S = migrate({ ...structuredClone(DEFAULT_STATE), ...data }); refreshStreak(); save();
+          go('home'); toast('המידע שוחזר ✓');
+        } catch { toast('קובץ לא תקין'); }
+      };
+      r.readAsText(f);
+    };
+    inp.click();
   };
 }
 

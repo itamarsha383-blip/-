@@ -254,12 +254,13 @@ const EXERCISES = [
 
 // --- Warm-up drills (dynamic, done before every session) --------------
 const WARMUPS = [
-  { id: 'arm_circles', name: 'סיבובי זרועות', emoji: '🔄', sec: 30, note: 'קדימה ואחורה, טווח מלא' },
-  { id: 'leg_swings', name: 'נדנודי רגליים', emoji: '🦵', sec: 30, note: '15 לכל רגל, מבוקר' },
-  { id: 'jumping_jacks', name: 'קפיצות פיסוק', emoji: '⭐', sec: 40, note: 'העלאת דופק' },
-  { id: 'bw_squats', name: 'סקוואט קל להתחממות', emoji: '🏋️', sec: 30, note: 'טווח נעים, בלי מאמץ' },
-  { id: 'cat_cow', name: 'חתול־פרה (גב)', emoji: '🐈', sec: 30, note: 'ניידות עמוד שדרה' },
-  { id: 'shoulder_taps', name: 'נגיעות כתף בפלאנק', emoji: '👋', sec: 30, note: 'ייצוב ליבה וכתף' }
+  { id: 'arm_circles', name: 'סיבובי זרועות', emoji: '🔄', sec: 30, note: 'קדימה ואחורה, טווח מלא', for: ['horiz_push', 'vert_push', 'horiz_pull', 'vert_pull'] },
+  { id: 'leg_swings', name: 'נדנודי רגליים', emoji: '🦵', sec: 30, note: '15 לכל רגל, מבוקר', for: ['squat', 'hinge'] },
+  { id: 'jumping_jacks', name: 'קפיצות פיסוק', emoji: '⭐', sec: 40, note: 'העלאת דופק', for: ['cardio'] },
+  { id: 'bw_squats', name: 'סקוואט קל להתחממות', emoji: '🏋️', sec: 30, note: 'טווח נעים, בלי מאמץ', for: ['squat', 'hinge'] },
+  { id: 'cat_cow', name: 'חתול־פרה (גב)', emoji: '🐈', sec: 30, note: 'ניידות עמוד שדרה', for: ['core', 'hinge'] },
+  { id: 'shoulder_taps', name: 'נגיעות כתף בפלאנק', emoji: '👋', sec: 30, note: 'ייצוב ליבה וכתף', for: ['horiz_push', 'vert_push', 'core'] },
+  { id: 'band_pull', name: 'משיכות פתיחת כתף', emoji: '➰', sec: 30, note: 'הפעלת גב עליון וכתף', for: ['horiz_pull', 'vert_pull'] }
 ];
 
 // --- Cooldown stretches (static, after every session) -----------------
@@ -288,6 +289,14 @@ const EQUIP = [
   { id: 'bar', label: 'מתקן מתח', emoji: '🏗️' },
   { id: 'bands', label: 'גומיות', emoji: '➰' },
   { id: 'weights', label: 'משקולות', emoji: '🏋️' }
+];
+// Limitations → exercises the engine will avoid & substitute automatically.
+const INJURIES = [
+  { id: 'none', label: 'אין מגבלות', emoji: '✅', avoid: [] },
+  { id: 'knee', label: 'ברך', emoji: '🦵', avoid: ['lunge', 'burpee'] },
+  { id: 'shoulder', label: 'כתף', emoji: '💪', avoid: ['dip', 'pike'] },
+  { id: 'back', label: 'גב תחתון', emoji: '🔙', avoid: ['legraise', 'burpee'] },
+  { id: 'wrist', label: 'שורש כף יד', emoji: '🤲', avoid: ['pushup', 'pike', 'mountain', 'burpee'] }
 ];
 
 // --- Prescription by goal (sets / reps / rest / RPE) -------------------
@@ -353,48 +362,66 @@ function buildSession(profile, sessionOffset = 0, adjustments = {}) {
   const rx = prescription(profile.goal, profile.level);
   const hasBar = profile.equip === 'bar' || profile.equip === 'weights';
 
-  const eligible = (pattern) => EXERCISES.filter((e) =>
-    e.pattern === pattern &&
-    e.level <= profile.level &&
-    (hasBar || (e.equip !== 'bar' && e.equip !== 'bars'))
+  // Exercises to avoid based on the user's injuries/limitations.
+  const avoid = new Set();
+  (profile.injuries || []).forEach((id) => (INJURIES.find((x) => x.id === id)?.avoid || []).forEach((x) => avoid.add(x)));
+
+  const okEquip = (e) => hasBar || (e.equip !== 'bar' && e.equip !== 'bars');
+  const eligible = (pattern, maxLevel) => EXERCISES.filter((e) =>
+    e.pattern === pattern && e.level <= maxLevel && okEquip(e) && !avoid.has(e.id)
   );
-  // fallback: if a pull pattern needs a bar the user lacks, swap to core/cardio
   const used = new Set();
   const main = [];
   for (const pat of tmpl.patterns) {
-    let cands = eligible(pat).filter((e) => !used.has(e.id));
+    let cands = eligible(pat, profile.level).filter((e) => !used.has(e.id));
     if (!cands.length) {
-      // substitute a bodyweight alternative so the session is never empty
-      cands = EXERCISES.filter((e) => e.level <= profile.level && e.equip === 'none' && !used.has(e.id));
+      // substitute a safe bodyweight alternative so the session is never empty
+      cands = EXERCISES.filter((e) => e.level <= profile.level && e.equip === 'none' && !avoid.has(e.id) && !used.has(e.id));
     }
     if (!cands.length) continue;
-    // prefer the hardest variation the user can handle (closest to their level)
-    cands.sort((a, b) => b.level - a.level);
-    const e = cands[0];
+    cands.sort((a, b) => b.level - a.level);   // hardest variation the user can handle
+    let e = cands[0];
+
+    // Progression graduation: mastered this move (adjust maxed) → step up a variation.
+    let graduated = false;
+    if ((adjustments[e.id]?.adjust || 0) >= 3) {
+      const harder = eligible(pat, profile.level + 1).find((x) => x.level === e.level + 1 && !used.has(x.id));
+      if (harder) { e = harder; graduated = true; }
+    }
     used.add(e.id);
+
     const timed = e.timed;
     const adj = adjustments[e.id]?.adjust || 0;
     const target = repTarget(profile.goal, profile.level, adj);
+    const baseSec = profile.level >= 2 ? 35 : 25;
+    const holdSec = Math.max(15, Math.min(75, baseSec + adj * 5));
     main.push({
       ...e,
       sets: rx.sets,
-      reps: timed ? (profile.level >= 2 ? '30–45 שנ׳' : '20–30 שנ׳') : `${target} חזרות`,
+      reps: timed ? `${holdSec} שנ׳` : `${target} חזרות`,
       repsTarget: timed ? null : target,
+      holdSec: timed ? holdSec : null,
       adjusted: adj,
+      graduated,
       rest: rx.rest,
       rpe: rx.rpe,
       timed
     });
   }
 
-  // Warm-up: 3 rotating drills; Cooldown: 3 rotating stretches.
+  // Warm-up: prioritise drills that prep the muscles THIS session will use.
+  const sessPatterns = new Set(main.map((e) => e.pattern));
+  const relevant = WARMUPS.filter((w) => (w.for || []).some((p) => sessPatterns.has(p)));
+  const general = WARMUPS.filter((w) => !relevant.includes(w));
+  const warmup = [...relevant, ...general].slice(0, 3);
+  // Cooldown: rotating stretches.
   const rot = (arr, n) => Array.from({ length: n }, (_, i) => arr[(sessionOffset + i) % arr.length]);
   return {
     name: tmpl.name,
     splitLabel: split.label,
     days: split.days,
     goalStyle: GOALS.find((g) => g.id === profile.goal)?.style || '',
-    warmup: rot(WARMUPS, 3),
+    warmup,
     main,
     cooldown: rot(COOLDOWNS, 3),
     rx
