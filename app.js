@@ -20,6 +20,7 @@ const DEFAULT_STATE = {
   badges: [],                  // unlocked achievement ids
   reactions: {},               // { memberName: count } — family kudos (local demo)
   recentFoods: [],             // recently logged food names (fast re-log)
+  water: {},                   // { 'YYYY-MM-DD': ml }
   version: 3
 };
 
@@ -37,7 +38,7 @@ function load() {
 }
 // Forward-compatible migration: fills missing fields so old saves never break.
 function migrate(s) {
-  s.exState ||= {}; s.badges ||= []; s.reactions ||= {}; s.recentFoods ||= [];
+  s.exState ||= {}; s.badges ||= []; s.reactions ||= {}; s.recentFoods ||= []; s.water ||= {};
   if (s.profile && s.profile.injuries === undefined) s.profile.injuries = [];
   s.version = SCHEMA_VERSION;
   return s;
@@ -748,6 +749,8 @@ function ScreenProgress() {
       <div class="stat"><div class="num">${S.weights.length}</div><div class="lab">שקילות</div></div>
     </div>
 
+    ${weeklyInsights()}
+
     <div class="section-title">הישגים · ${S.badges.length}/${BADGES.length}</div>
     <div class="card">
       <div class="badges">
@@ -772,6 +775,38 @@ function ScreenProgress() {
       ).join('') : `<p class="muted center" style="padding:10px">עוד לא הושלמו אימונים — האימון הראשון מחכה לך 💪</p>`}
     </div>
   </div>`;
+}
+// Smart weekly summary — turns raw logs into a coach-style readout.
+function weeklyInsights() {
+  const now = Date.now();
+  const within = (d, days) => (now - new Date(d).getTime()) / 864e5 < days;
+  const wkWorkouts = S.workoutsLog.filter((w) => within(w.date, 7));
+  const wkExercises = wkWorkouts.reduce((a, w) => a + w.exercises.length, 0);
+  const mins = wkWorkouts.length * 22;
+  const target = S.profile.days || 3;
+  const progressed = Object.values(S.exState).filter((x) => (x.adjust || 0) >= 1).length;
+  // weight trend over the last 30 days
+  const recentW = S.weights.filter((w) => within(w.date, 30));
+  let wDelta = null;
+  if (recentW.length >= 2) wDelta = +(recentW[recentW.length - 1].kg - recentW[0].kg).toFixed(1);
+
+  const headline = wkWorkouts.length >= target ? '🔥 שבוע מנצח — עמדת ביעד!'
+    : wkWorkouts.length > 0 ? `💪 ${wkWorkouts.length}/${target} אימונים השבוע — ממשיכים!`
+    : '👋 בוא נתחיל את השבוע — אימון אחד זה הכל';
+
+  const chips = [
+    { n: wkWorkouts.length, l: 'אימונים השבוע', a: true },
+    { n: mins, l: 'דקות אימון' },
+    { n: progressed, l: 'תרגילים שהתקדמו' }
+  ];
+  return `<div class="section-title">סיכום שבועי 🧠</div>
+    <div class="hero">
+      <h3 class="h-lg" style="margin-bottom:12px">${headline}</h3>
+      <div class="stats" style="margin-bottom:0">
+        ${chips.map((c) => `<div class="stat" style="background:rgba(255,255,255,.03)"><div class="num ${c.a ? 'accent' : ''}">${c.n}</div><div class="lab">${c.l}</div></div>`).join('')}
+      </div>
+      ${wDelta !== null ? `<div class="between" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)"><span class="muted">מגמת משקל (30 יום)</span><span>${wDelta > 0 ? '▲' : wDelta < 0 ? '▼' : '■'} ${Math.abs(wDelta)} ק״ג</span></div>` : ''}
+    </div>`;
 }
 function weightChart(pts) {
   const W = 320, H = 130, pad = 10;
@@ -819,7 +854,23 @@ function ScreenNutrition() {
       <div style="margin-top:12px">
         ${bar(sum.p, mt.protein, 'p')}${bar(sum.c, mt.carbs, 'c')}${bar(sum.f, mt.fat, 'f')}
       </div>
-      <div class="between" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)"><span class="muted">💧 יעד מים</span><span>${mt.water} ליטר ביום</span></div>
+    </div>
+
+    <div class="section-title">💧 מים</div>
+    <div class="card">
+      ${(() => {
+        const targetMl = Math.round(mt.water * 1000);
+        const ml = S.water[todayStr()] || 0;
+        const cups = Math.round(ml / 250);
+        const pct = Math.min(100, (ml / targetMl) * 100);
+        return `<div class="between"><span class="h-lg">${(ml / 1000).toFixed(2)} <span style="font-size:14px" class="muted">/ ${mt.water} ליטר</span></span><span class="pill ${ml >= targetMl ? 'accent' : ''}">${cups} כוסות</span></div>
+        <div class="mtrack" style="height:12px;margin:12px 0"><div class="mfill" style="width:${pct}%;background:linear-gradient(90deg,#4aa8ff,#7cd4ff)"></div></div>
+        <div class="chips">
+          <button class="chip" data-water="250" style="flex:1;padding:12px"><div class="t">＋ כוס</div><div class="s">250 מ״ל</div></button>
+          <button class="chip" data-water="500" style="flex:1;padding:12px"><div class="t">＋ בקבוק</div><div class="s">500 מ״ל</div></button>
+          <button class="chip" data-water="-250" style="flex:0 0 auto;padding:12px"><div class="t">－</div></button>
+        </div>`;
+      })()}
     </div>
 
     ${pendingFood ? `<div class="section-title">כמה ${esc(pendingFood.name)}?</div>
@@ -1018,6 +1069,10 @@ function bind() {
   document.querySelectorAll('[data-qty]').forEach((b) => b.onclick = () => addFood(pendingFood, +b.dataset.qty));
   const qa = document.querySelector('[data-qty-add]'); if (qa) qa.onclick = () => { const v = +el('qty-input').value; addFood(pendingFood, v > 0 ? v : 1); };
   const qc = document.querySelector('[data-qty-cancel]'); if (qc) qc.onclick = () => { pendingFood = null; render(); };
+  document.querySelectorAll('[data-water]').forEach((b) => b.onclick = () => {
+    const t = todayStr(); const next = (S.water[t] || 0) + (+b.dataset.water);
+    S.water[t] = Math.max(0, next); save(); render(); checkBadges();
+  });
   document.querySelectorAll('[data-del-food]').forEach((b) => b.onclick = () => {
     S.nutrition[todayStr()].splice(+b.dataset.delFood, 1); save(); render();
   });
