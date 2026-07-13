@@ -79,9 +79,14 @@ function photoDemo(id, fallbackHTML, tag) {
   if (VIDEO_CLIPS.includes(id)) {
     // Primary: bundled short demo clip (works offline, correct form). Falls back
     // to photo/SVG if the video fails to load.
+    // <source> order = priority: drop an AI-generated ./videos/<id>.mp4 in and it
+    // automatically replaces the generated .webm clip — no code change needed.
     inner = `<div class="demo-media">
-         <video class="pf-video" src="./videos/${id}.webm" autoplay muted loop playsinline preload="auto"
-           onerror="this.closest('.demo-media').classList.add('novideo')"></video>
+         <video class="pf-video" autoplay muted loop playsinline preload="auto"
+           onerror="this.closest('.demo-media').classList.add('novideo')">
+           <source src="./videos/${id}.mp4" type="video/mp4">
+           <source src="./videos/${id}.webm" type="video/webm">
+         </video>
          <div class="pf-fallback">${fallbackHTML}</div>
        </div>`;
   } else if (ph) {

@@ -509,8 +509,13 @@ const PHOTOS = {
   child_pose: ['Childs_Pose/0.jpg', 'Childs_Pose/1.jpg'],
   shoulder_stretch: ['Shoulder_Stretch/0.jpg', 'Shoulder_Stretch/1.jpg']
 };
-// Short generated demo clips bundled in ./videos/<id>.webm (offline, correct form).
-const VIDEO_CLIPS = Object.keys(PHOTOS);
+// Every exercise/warm-up/stretch is a video slot. Ids in PHOTOS ship with a
+// bundled .webm placeholder; any id also plays ./videos/<id>.mp4 if you add one.
+const VIDEO_CLIPS = [
+  ...EXERCISES.map((e) => e.id),
+  ...WARMUPS.map((w) => w.id),
+  ...COOLDOWNS.map((c) => c.id)
+];
 
 // Mock family for the leaderboard demo (real accounts in phase 2).
 const DEMO_FAMILY = [
