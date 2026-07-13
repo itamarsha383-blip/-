@@ -38,6 +38,78 @@ function toast(msg) {
 }
 function initials(name) { return (name || 'א').trim().slice(0, 1); }
 
+// Animated SVG movement demonstrations, keyed by movement pattern.
+// Honest stand-in for filmed video: real motion, offline, no assets.
+function demoSVG(pattern) {
+  const type = {
+    horiz_push: 'push', vert_push: 'push',
+    horiz_pull: 'pull', vert_pull: 'pull',
+    squat: 'squat', hinge: 'hinge', core: 'core', cardio: 'cardio'
+  }[pattern] || 'core';
+  const S = {
+    push: `<svg class="anim push" viewBox="0 0 200 150">
+      <line class="ground" x1="20" y1="128" x2="180" y2="128"/>
+      <g class="body">
+        <circle class="head" cx="152" cy="78" r="12"/>
+        <line x1="142" y1="86" x2="62" y2="96"/>
+        <line x1="62" y1="96" x2="38" y2="120"/>
+      </g>
+      <line x1="140" y1="86" x2="140" y2="126"/>
+    </svg>`,
+    pull: `<svg class="anim pull" viewBox="0 0 200 150">
+      <line class="ground" x1="34" y1="26" x2="166" y2="26"/>
+      <g class="body">
+        <line x1="82" y1="30" x2="88" y2="72"/>
+        <line x1="118" y1="30" x2="112" y2="72"/>
+        <circle class="head" cx="100" cy="82" r="12"/>
+        <line x1="100" y1="94" x2="100" y2="120"/>
+        <line x1="100" y1="120" x2="86" y2="140"/>
+        <line x1="100" y1="120" x2="114" y2="140"/>
+      </g>
+    </svg>`,
+    squat: `<svg class="anim squat" viewBox="0 0 200 150">
+      <line class="ground" x1="30" y1="140" x2="170" y2="140"/>
+      <g class="body">
+        <circle class="head" cx="100" cy="34" r="12"/>
+        <line x1="100" y1="46" x2="100" y2="86"/>
+        <line x1="78" y1="66" x2="122" y2="66"/>
+        <line x1="100" y1="86" x2="80" y2="140"/>
+        <line x1="100" y1="86" x2="120" y2="140"/>
+      </g>
+    </svg>`,
+    hinge: `<svg class="anim hinge" viewBox="0 0 200 150">
+      <line class="ground" x1="20" y1="130" x2="180" y2="130"/>
+      <circle class="head" cx="158" cy="118" r="10"/>
+      <polygon class="bridge lift" points="55,130 150,130 105,86"/>
+      <line x1="55" y1="130" x2="45" y2="130"/>
+    </svg>`,
+    core: `<svg class="anim core" viewBox="0 0 200 150">
+      <line class="ground" x1="20" y1="122" x2="180" y2="122"/>
+      <g class="body">
+        <circle class="head" cx="158" cy="86" r="11"/>
+        <line x1="148" y1="92" x2="58" y2="100"/>
+        <line x1="58" y1="100" x2="38" y2="122"/>
+        <line x1="150" y1="92" x2="150" y2="122"/>
+        <line x1="150" y1="122" x2="128" y2="122"/>
+      </g>
+    </svg>`,
+    cardio: `<svg class="anim cardio" viewBox="0 0 200 150">
+      <line class="ground" x1="30" y1="140" x2="170" y2="140"/>
+      <g class="body">
+        <circle class="head" cx="100" cy="36" r="12"/>
+        <line x1="100" y1="48" x2="100" y2="92"/>
+        <line x1="100" y1="60" x2="128" y2="74"/>
+        <line x1="100" y1="60" x2="74" y2="70"/>
+        <line x1="100" y1="92" x2="86" y2="120"/>
+        <line x1="100" y1="92" x2="116" y2="118"/>
+      </g>
+      <circle class="head footA" cx="86" cy="128" r="6"/>
+      <circle class="head footB" cx="116" cy="126" r="6"/>
+    </svg>`
+  };
+  return S[type];
+}
+
 // Coach-style nutrition targets live in data.js (nutritionPlan).
 function macroTargets(p) { return nutritionPlan(p); }
 // Today's session rotates through the weekly split (progressive, not repetitive).
@@ -339,7 +411,7 @@ function ScreenActive() {
   return `<div class="screen aw-wrap">
     <div class="between"><button class="back" data-quit-workout>✕ יציאה</button><span class="pill">💪 ${active.i + 1}/${s.main.length}</span></div>
     <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
-    <div class="demo"><span class="fig">${e.emoji}</span><span class="tag">טמפו ${e.tempo} · הדגמה מונפשת</span></div>
+    <div class="demo">${demoSVG(e.pattern)}<span class="tag">הדגמת תנועה · טמפו ${e.tempo}</span></div>
     <h2 class="h-lg">${esc(e.name)}</h2>
     <p class="muted" style="margin:6px 0 2px">${e.muscles.primary.join(' · ')}</p>
     <div class="setdots">
@@ -418,7 +490,7 @@ function ScreenExercise(id) {
   const curLevel = S.profile?.level || 1;
   return `<div class="screen">
     <button class="back" data-back>›  חזרה</button>
-    <div class="demo"><span class="fig">${e.emoji}</span><span class="tag">טמפו ${e.tempo} · וידאו אמיתי בקרוב</span></div>
+    <div class="demo">${demoSVG(e.pattern)}<span class="tag">הדגמת תנועה · טמפו ${e.tempo}</span></div>
     <h2 class="h-lg">${esc(e.name)}</h2>
     <div class="flex" style="margin:8px 0 4px;flex-wrap:wrap"><span class="badge l${e.level}">${['','מתחיל','בינוני','מתקדם'][e.level]}</span>
       ${e.muscles.primary.map((m) => `<span class="pill accent" style="font-size:11px">${m}</span>`).join('')}
