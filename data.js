@@ -478,6 +478,12 @@ const FOODS = [
 // Source: free-exercise-db (yuhonas) — Public Domain (Unlicense).
 // Two frames per move (start ↔ end) → crossfaded into a motion demo.
 // Loaded lazily when online, cached by the service worker, SVG fallback offline.
+// Real video: drop a YouTube video-id here per exercise and it embeds inline.
+// Until then, each exercise offers a curated "watch demonstration" search that
+// always returns real, correct-form professional videos (free, no dead links).
+const VIDEOS = {
+  // pushup: 'IODxDxX7oi4',  ← example: add verified, embeddable ids here
+};
 const PHOTO_BASE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
 const PHOTOS = {
   pushup: ['Pushups/0.jpg', 'Pushups/1.jpg'],

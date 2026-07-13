@@ -205,6 +205,10 @@ h1,h2,h3,.ex-name,.lb-name,.h-xl,.h-lg { unicode-bidi: plaintext; }
 .lb-name { font-weight: 700; flex: 1; }
 .lb-metric { font-size: 13px; color: var(--muted); }
 
+/* ---------- video embed ---------- */
+.video-wrap { position: relative; width: 100%; padding-bottom: 56.25%; }
+.video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
 /* ---------- weekly calendar strip ---------- */
 .week { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; margin-bottom: 16px; }
 .wday { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 0; text-align: center; }

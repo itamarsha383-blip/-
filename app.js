@@ -689,6 +689,14 @@ function ScreenExercise(id) {
       <div class="between" style="padding:5px 0;border-top:1px solid var(--line)"><span class="muted">נשימה</span><span>${esc(e.breathing)}</span></div>
     </div>
 
+    <div class="section-title">סרטון הדרכה 🎬</div>
+    ${VIDEOS[e.id]
+      ? `<div class="card" style="padding:0;overflow:hidden"><div class="video-wrap"><iframe src="https://www.youtube-nocookie.com/embed/${VIDEOS[e.id]}?rel=0" title="${esc(e.name)}" allow="encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div></div>`
+      : `<div class="card">
+          <p class="muted" style="font-size:13px;margin:0 0 10px">סרטוני הדגמה מקצועיים עם טכניקה נכונה — נפתחים ב-YouTube.</p>
+          <button class="btn" data-yt="${esc(e.name)}">▶ צפה בסרטון הדגמה</button>
+        </div>`}
+
     <div class="section-title">נקודות מפתח (Cues) 🎯</div>
     <div class="card">${e.cues.map((c) => `<div class="flex" style="padding:5px 0"><span style="color:var(--accent)">✓</span><span>${esc(c)}</span></div>`).join('')}</div>
 
@@ -908,6 +916,10 @@ function bind() {
   document.querySelectorAll('[data-nav]').forEach((b) => b.onclick = () => go(b.dataset.nav));
   document.querySelectorAll('[data-ex]').forEach((b) => b.onclick = (ev) => { ev.stopPropagation(); go('exercise', { id: b.dataset.ex }); });
   const back = document.querySelector('[data-back]'); if (back) back.onclick = () => history.back ? go('library') : go('library');
+  document.querySelectorAll('[data-yt]').forEach((b) => b.onclick = () => {
+    const url = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(b.dataset.yt + ' exercise proper form tutorial');
+    window.open(url, '_blank', 'noopener');
+  });
 
   // ---- onboarding ----
   const d = S.draft;
