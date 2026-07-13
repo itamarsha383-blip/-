@@ -71,6 +71,68 @@ function beep(freq = 880, dur = 0.14) {
   } catch {}
 }
 function cue() { beep(); try { navigator.vibrate && navigator.vibrate(180); } catch {} }
+function tap(ms = 8) { try { navigator.vibrate && navigator.vibrate(ms); } catch {} }
+
+// Celebratory confetti burst (workout complete, PR, badge).
+function confetti() {
+  try {
+    const cv = document.createElement('canvas'); cv.id = 'confetti';
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const W = window.innerWidth, H = window.innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+    document.body.appendChild(cv);
+    const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+    const colors = ['#C6FF3D', '#7CFF6B', '#8B7CFF', '#FFD24A', '#FF7C6B', '#4aa8ff'];
+    const parts = Array.from({ length: 130 }, (_, i) => ({
+      x: W / 2 + (Math.random() * 2 - 1) * 40, y: H * 0.34,
+      vx: (Math.random() * 2 - 1) * 7, vy: Math.random() * -9 - 3, g: 0.3,
+      s: Math.random() * 6 + 4, c: colors[i % colors.length], rot: Math.random() * 6, vr: (Math.random() * 2 - 1) * 0.35
+    }));
+    const start = performance.now();
+    const tick = (t) => {
+      const el = t - start;
+      ctx.clearRect(0, 0, W, H);
+      parts.forEach((p) => {
+        p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.globalAlpha = Math.max(0, 1 - el / 1700); ctx.fillStyle = p.c;
+        ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6); ctx.restore();
+      });
+      if (el < 1700) requestAnimationFrame(tick); else cv.remove();
+    };
+    requestAnimationFrame(tick);
+  } catch {}
+}
+
+// Apple-Fitness-style activity rings: Move (workout) · Fuel (calories) · Water.
+function activityRings() {
+  const p = S.profile, mt = macroTargets(p);
+  const size = 132, c = size / 2, sw = 11;
+  const trained = S.lastWorkout === todayStr() ? 1 : 0;
+  const kcal = (S.nutrition[todayStr()] || []).reduce((a, f) => a + f.kcal, 0);
+  const water = S.water[todayStr()] || 0;
+  const rings = [
+    { r: 52, color: '#C6FF3D', pct: trained },
+    { r: 36, color: '#FFA23D', pct: Math.min(1, mt.kcal ? kcal / mt.kcal : 0) },
+    { r: 20, color: '#4AA8FF', pct: Math.min(1, water / (mt.water * 1000)) }
+  ];
+  const arcs = rings.map((rg) => {
+    const C = 2 * Math.PI * rg.r, off = C * (1 - rg.pct);
+    return `<circle class="track" cx="${c}" cy="${c}" r="${rg.r}" stroke="${rg.color}" stroke-width="${sw}"/>
+      <circle class="ring" cx="${c}" cy="${c}" r="${rg.r}" stroke="${rg.color}" stroke-width="${sw}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/>`;
+  }).join('');
+  return `<div class="rings-wrap">
+    <svg class="rings" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      ${arcs}
+      <text x="${c}" y="${c + 6}" text-anchor="middle" class="rings-center" fill="#EDF1F5">🔥${S.streak}</text>
+    </svg>
+    <div class="ring-legend">
+      <div class="rl"><span class="dot" style="background:#C6FF3D"></span>אימון<span class="rv">${trained ? 'הושלם ✓' : 'ממתין'}</span></div>
+      <div class="rl"><span class="dot" style="background:#FFA23D"></span>תזונה<span class="rv">${Math.round(kcal)}/${mt.kcal}</span></div>
+      <div class="rl"><span class="dot" style="background:#4AA8FF"></span>מים<span class="rv">${(water / 1000).toFixed(1)}/${mt.water}ל׳</span></div>
+    </div>
+  </div>`;
+}
 
 // Demonstration media: real photo (start↔end crossfade) when available,
 // animated SVG / emoji fallback offline or if the image fails to load.
@@ -196,7 +258,7 @@ function checkBadges() {
   for (const b of BADGES) {
     if (!S.badges.includes(b.id) && b.test()) { S.badges.push(b.id); newly.push(b); }
   }
-  if (newly.length) { save(); newly.forEach((b, i) => setTimeout(() => toast(`${b.emoji} הישג נפתח: ${b.name}!`), 400 + i * 1600)); }
+  if (newly.length) { save(); confetti(); newly.forEach((b, i) => setTimeout(() => toast(`${b.emoji} הישג נפתח: ${b.name}!`), 400 + i * 1600)); }
   return newly;
 }
 
@@ -390,11 +452,11 @@ function ScreenHome() {
     ${streakAtRisk() ? `<div class="nudge"><span class="ne">🔥</span><div class="grow"><b>הרצף שלך בסכנה!</b><div class="muted" style="font-size:13px">אימון קצר היום ישמור על ${S.streak} הימים שצברת.</div></div><button class="btn sm" data-start-workout>10 דק׳</button></div>` : ''}
 
     <div class="hero">
-      <span class="pill accent">🔥 רצף ${S.streak} ${S.streak === 1 ? 'יום' : 'ימים'}</span>
-      <h1 class="h-xl" style="margin:14px 0 4px">${greet()}, ${esc(p.name)}</h1>
-      <p class="muted">היום: <b style="color:var(--text)">${sess.name}</b> · חימום + ${sess.main.length} תרגילים · כ־${estMinutes(sess)} דק׳</p>
+      <h1 class="h-xl" style="margin-bottom:2px">${greet()}, ${esc(p.name)}</h1>
+      <p class="muted" style="margin-bottom:16px">היום: <b style="color:var(--text)">${sess.name}</b> · ${sess.main.length} תרגילים · כ־${estMinutes(sess)} דק׳</p>
+      ${activityRings()}
       <div class="spacer"></div>
-      <button class="btn" data-start-workout>התחל אימון היום ›</button>
+      <button class="btn" data-start-workout>${S.lastWorkout === todayStr() ? 'אימון נוסף' : 'התחל אימון היום'} ›</button>
     </div>
 
     <div class="between" style="margin:2px 2px 8px"><span class="section-title" style="margin:0">הנתונים שלך</span><button class="react-btn" data-nav="progress">התקדמות והישגים ›</button></div>
@@ -632,6 +694,7 @@ function startHold() {
 }
 function stopHold() { if (active.timer) clearInterval(active.timer); active.working = false; completeSet(); }
 function completeSet() {
+  tap(12);
   const e = active.sess.main[active.i];
   active.set++;
   if (active.set >= e.sets) {
@@ -661,6 +724,7 @@ function finishWorkout() {
   refreshStreak(); save();
   active = null;
   go('home');
+  confetti(); tap(30);
   setTimeout(() => toast('כל הכבוד! אימון הושלם 🔥'), 250);
   checkBadges();
 }
@@ -978,7 +1042,7 @@ function ScreenProfile() {
    ============================================================ */
 function bind() {
   // nav + generic navigation
-  document.querySelectorAll('[data-nav]').forEach((b) => b.onclick = () => go(b.dataset.nav));
+  document.querySelectorAll('[data-nav]').forEach((b) => b.onclick = () => { tap(); go(b.dataset.nav); });
   document.querySelectorAll('[data-ex]').forEach((b) => b.onclick = (ev) => { ev.stopPropagation(); go('exercise', { id: b.dataset.ex }); });
   const back = document.querySelector('[data-back]'); if (back) back.onclick = () => history.back ? go('library') : go('library');
   document.querySelectorAll('[data-yt]').forEach((b) => b.onclick = () => {

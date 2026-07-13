@@ -30,9 +30,35 @@ body {
 #app { max-width: 520px; margin: 0 auto; min-height: 100%; position: relative; }
 
 /* ---------- screens ---------- */
-.screen { padding: 20px 18px calc(96px + var(--safe-b)); animation: fade .28s ease; }
-@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.screen { padding: 20px 18px calc(96px + var(--safe-b)); animation: screen-in .34s cubic-bezier(.22,.9,.3,1); }
+@keyframes screen-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .hidden { display: none !important; }
+/* staggered reveal of cards/sections for a premium feel */
+.screen > .card, .screen > .hero, .screen > .stats, .screen > .section-title, .screen > .week, .screen > .nudge {
+  animation: rise .4s cubic-bezier(.22,.9,.3,1) both;
+}
+.screen > *:nth-child(2) { animation-delay: .03s; }
+.screen > *:nth-child(3) { animation-delay: .06s; }
+.screen > *:nth-child(4) { animation-delay: .09s; }
+.screen > *:nth-child(5) { animation-delay: .12s; }
+.screen > *:nth-child(6) { animation-delay: .15s; }
+.screen > *:nth-child(n+7) { animation-delay: .18s; }
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .screen, .screen > * { animation: none !important; } }
+
+/* confetti overlay */
+#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 200; }
+
+/* ---------- activity rings (Apple-Fitness style) ---------- */
+.rings-wrap { display: flex; align-items: center; gap: 18px; }
+.rings { flex: none; }
+.rings .track { fill: none; opacity: .18; }
+.rings .ring { fill: none; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 1s cubic-bezier(.22,.9,.3,1); }
+.rings-center { font-size: 15px; font-weight: 800; }
+.ring-legend { display: grid; gap: 8px; }
+.ring-legend .rl { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.ring-legend .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.ring-legend .rv { color: var(--muted); margin-inline-start: auto; font-variant-numeric: tabular-nums; }
 
 h1,h2,h3 { margin: 0; line-height: 1.15; }
 /* correct bidi for mixed Hebrew/Latin strings (e.g. "מתח (Pull-up)") */
