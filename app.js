@@ -487,6 +487,8 @@ function ScreenHome() {
       <button class="btn" data-start-workout>${S.lastWorkout === todayStr() ? 'אימון נוסף' : 'התחל אימון היום'} ›</button>
     </div>
 
+    <div class="card" style="text-align:center;font-style:italic;color:var(--text)"><span style="color:var(--accent);font-size:18px">❝</span> ${esc(quoteOfDay())} <span style="color:var(--accent);font-size:18px">❞</span></div>
+
     <div class="between" style="margin:2px 2px 8px"><span class="section-title" style="margin:0">הנתונים שלך</span><button class="react-btn" data-nav="progress">התקדמות והישגים ›</button></div>
     <div class="stats" data-nav="progress" style="cursor:pointer">
       <div class="stat"><div class="num accent">${S.workoutsLog.length}</div><div class="lab">אימונים סה״כ</div></div>
@@ -515,6 +517,8 @@ function ScreenHome() {
   </div>`;
 }
 function greet() { const h = new Date().getHours(); return h < 12 ? 'בוקר טוב' : h < 18 ? 'צהריים טובים' : 'ערב טוב'; }
+function quoteOfDay() { return QUOTES[Math.floor(Date.now() / 864e5) % QUOTES.length]; }
+function randomQuote() { return QUOTES[Math.floor(Math.random() * QUOTES.length)]; }
 function weekStrip() {
   const names = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
   const trainMap = { 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 4, 5] };
@@ -652,7 +656,7 @@ function ScreenActive() {
       <p class="muted" style="margin-top:8vh">מנוחה</p>
       <div class="timer">${active.restLeft}</div>
       <p class="muted">הבא: ${esc(e.name)} · סט ${active.set + 1}/${totalSets}</p>
-      <p class="muted" style="font-size:13px;margin-top:6px">💡 ${esc(e.cues[0])}</p>
+      <p style="font-size:14px;margin-top:10px;font-style:italic;color:var(--accent)">${esc(active.restQuote || quoteOfDay())}</p>
       <div class="spacer"></div>
       <button class="btn" data-skip-rest>דלג על המנוחה ›</button>
     </div>`;
@@ -709,7 +713,7 @@ function coolNext() {
   render();
 }
 function startRest(sec) {
-  active.resting = true; active.restLeft = sec;
+  active.resting = true; active.restLeft = sec; active.restQuote = randomQuote();
   render();
   active.timer = setInterval(() => {
     active.restLeft--;
