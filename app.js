@@ -242,6 +242,11 @@ function demoSVG(pattern) {
 
 // Coach-style nutrition targets live in data.js (nutritionPlan).
 function macroTargets(p) { return nutritionPlan(p); }
+
+// weight units (stored internally in kg; displayed in the user's unit)
+function wUnit() { return S.profile && S.profile.units === 'lb' ? 'lb' : 'ק״ג'; }
+function toDisp(kg) { return S.profile && S.profile.units === 'lb' ? +(kg / 0.453592).toFixed(1) : +(+kg).toFixed(1); }
+function fromDisp(v) { return S.profile && S.profile.units === 'lb' ? v * 0.453592 : v; }
 // Every 4th week is a lighter deload week for recovery (real coaching practice).
 function isDeload() {
   if (!S.startDate) return false;
@@ -314,7 +319,7 @@ function fmtRest(sec) {
    ============================================================ */
 function render() {
   const app = el('app');
-  const showNav = S.profile && ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy', 'cloud'].includes(route.name);
+  const showNav = S.profile && ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy', 'cloud', 'settings'].includes(route.name);
   let html = '';
   switch (route.name) {
     case 'onboard': html = ScreenOnboard(); break;
@@ -329,6 +334,7 @@ function render() {
     case 'profile': html = ScreenProfile(); break;
     case 'privacy': html = ScreenPrivacy(); break;
     case 'cloud': html = ScreenCloud(); break;
+    case 'settings': html = ScreenSettings(); break;
     default: html = ScreenHome();
   }
   app.innerHTML = html + (showNav ? Nav() : '');
@@ -484,7 +490,7 @@ function ScreenHome() {
     <div class="between" style="margin:2px 2px 8px"><span class="section-title" style="margin:0">הנתונים שלך</span><button class="react-btn" data-nav="progress">התקדמות והישגים ›</button></div>
     <div class="stats" data-nav="progress" style="cursor:pointer">
       <div class="stat"><div class="num accent">${S.workoutsLog.length}</div><div class="lab">אימונים סה״כ</div></div>
-      <div class="stat"><div class="num">${lastW}<span style="font-size:13px"> ק״ג</span></div><div class="lab">משקל נוכחי</div></div>
+      <div class="stat"><div class="num">${toDisp(lastW)}<span style="font-size:13px"> ${wUnit()}</span></div><div class="lab">משקל נוכחי</div></div>
       <div class="stat"><div class="num">${S.badges.length}</div><div class="lab">הישגים</div></div>
     </div>
 
@@ -882,7 +888,7 @@ function ScreenProgress() {
     <div class="card">
       ${pts.length >= 2 ? weightChart(pts) : `<p class="muted center" style="padding:10px">הוסף שקילה כדי לראות גרף התקדמות</p>`}
       <div class="flex" style="margin-top:12px">
-        <input class="input" id="w-input" type="number" inputmode="decimal" placeholder="משקל היום (ק״ג)">
+        <input class="input" id="w-input" type="number" inputmode="decimal" placeholder="משקל היום (${wUnit()})">
         <button class="btn sm" data-add-weight>הוסף</button>
       </div>
     </div>
@@ -952,7 +958,7 @@ function weightChart(pts) {
     <polyline points="${poly}"/>
     ${pts.map((p, i) => `<circle class="dot" cx="${x(i).toFixed(1)}" cy="${y(p.kg).toFixed(1)}" r="3.5"/>`).join('')}
   </svg>
-  <div class="between muted" style="font-size:12px"><span>${pts[0].kg} ק״ג</span><span>עכשיו: ${pts[pts.length-1].kg} ק״ג</span></div>`;
+  <div class="between muted" style="font-size:12px"><span>${toDisp(pts[0].kg)} ${wUnit()}</span><span>עכשיו: ${toDisp(pts[pts.length-1].kg)} ${wUnit()}</span></div>`;
 }
 
 /* ============================================================
@@ -1170,13 +1176,15 @@ function ScreenProfile() {
     </div>
     <div class="card">
       <div class="between" style="padding:8px 0"><span class="muted">גיל</span><span>${p.age}</span></div>
-      <div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span class="muted">משקל / גובה</span><span>${p.weight} ק״ג · ${p.height} ס״מ</span></div>
+      <div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span class="muted">משקל / גובה</span><span>${toDisp(p.weight)} ${wUnit()} · ${p.height} ס״מ</span></div>
       <div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span class="muted">תדירות</span><span>${p.days || '—'} ימים בשבוע</span></div>
       <div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span class="muted">ציוד</span><span>${EQUIP.find(e=>e.id===p.equip)?.label}</span></div>
       ${p.injuries && p.injuries.length ? `<div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span class="muted">מגבלות</span><span>${p.injuries.map((i) => INJURIES.find((x) => x.id === i)?.label).join(', ')}</span></div>` : ''}
       <div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span class="muted">יעד קלורי יומי</span><span>${mt.kcal} קל׳</span></div>
     </div>
-    <button class="btn ghost" data-edit-profile>ערוך פרופיל מחדש</button>
+    <button class="btn ghost" data-nav="settings">⚙️ הגדרות (מטרה, תדירות, יחידות)</button>
+    <div class="spacer"></div>
+    <button class="btn ghost" data-edit-profile>ערוך פרטים אישיים</button>
 
     <div class="section-title">גיבוי ושחזור מידע</div>
     <div class="card">
@@ -1191,6 +1199,46 @@ function ScreenProfile() {
     <button class="btn ghost" data-nav="privacy">🔒 פרטיות ואבטחת מידע</button>
     <div class="spacer"></div>
     <button class="btn ghost" data-reset style="color:var(--danger);border-color:var(--danger)">אפס הכל</button>
+  </div>`;
+}
+
+/* ============================================================
+   SETTINGS (quick-edit plan without redoing onboarding)
+   ============================================================ */
+function ScreenSettings() {
+  const p = S.profile;
+  return `<div class="screen">
+    <button class="back" data-nav="profile">›  חזרה</button>
+    <h2 class="h-lg" style="margin-bottom:16px">הגדרות ⚙️</h2>
+
+    <div class="section-title">מטרה</div>
+    <div class="chips">
+      ${GOALS.map((g) => `<button class="chip ${p.goal === g.id ? 'sel' : ''}" data-set-goal="${g.id}"><div class="emoji">${g.emoji}</div><div class="t">${g.label}</div></button>`).join('')}
+    </div>
+
+    <div class="section-title">ימים בשבוע</div>
+    <div class="chips">
+      ${[3, 4, 5].map((n) => `<button class="chip ${p.days === n ? 'sel' : ''}" data-set-days="${n}" style="flex:1"><div class="t">${n} ימים</div></button>`).join('')}
+    </div>
+
+    <div class="section-title">רמה</div>
+    <div class="chips">
+      ${LEVELS.map((l) => `<button class="chip ${p.level === l.id ? 'sel' : ''}" data-set-level="${l.id}" style="flex:1"><div class="t">${l.label}</div></button>`).join('')}
+    </div>
+
+    <div class="section-title">מגבלות / פציעות</div>
+    <div class="chips">
+      ${INJURIES.map((inj) => `<button class="chip ${(p.injuries && p.injuries.length ? p.injuries : ['none']).includes(inj.id) ? 'sel' : ''}" data-set-injury="${inj.id}"><div class="emoji">${inj.emoji}</div><div class="t">${inj.label}</div></button>`).join('')}
+    </div>
+
+    <div class="section-title">יחידות משקל</div>
+    <div class="chips">
+      <button class="chip ${p.units !== 'lb' ? 'sel' : ''}" data-set-units="kg" style="flex:1"><div class="t">קילוגרם (ק״ג)</div></button>
+      <button class="chip ${p.units === 'lb' ? 'sel' : ''}" data-set-units="lb" style="flex:1"><div class="t">פאונד (lb)</div></button>
+    </div>
+
+    <div class="spacer"></div>
+    <p class="muted center" style="font-size:12px">השינויים נשמרים מיד ומעדכנים את התוכנית שלך.</p>
   </div>`;
 }
 
@@ -1308,7 +1356,7 @@ function bind() {
 
   // ---- progress ----
   const aw = document.querySelector('[data-add-weight]'); if (aw) aw.onclick = () => {
-    const v = clampNum(el('w-input').value, 20, 300); if (!v) return toast('הכנס משקל סביר');
+    const raw = +el('w-input').value; const v = clampNum(fromDisp(raw), 20, 300); if (!v) return toast('הכנס משקל סביר');
     // one weigh-in per day: replace today's if it exists
     const t = todayStr(); const existing = S.weights.find((w) => w.date === t);
     if (existing) existing.kg = v; else S.weights.push({ date: t, kg: v });
@@ -1383,6 +1431,18 @@ function bind() {
   if (route.name === 'family' && Cloud.enabled() && Cloud.members === null && Cloud.status !== 'loading') {
     Cloud.refresh({ workouts: S.workoutsLog.length, streak: S.streak }).then(() => { if (route.name === 'family') render(); });
   }
+
+  // ---- settings (live plan edits) ----
+  document.querySelectorAll('[data-set-goal]').forEach((b) => b.onclick = () => { S.profile.goal = b.dataset.setGoal; save(); render(); toast('המטרה עודכנה ✓'); });
+  document.querySelectorAll('[data-set-days]').forEach((b) => b.onclick = () => { S.profile.days = +b.dataset.setDays; save(); render(); toast('התדירות עודכנה ✓'); });
+  document.querySelectorAll('[data-set-level]').forEach((b) => b.onclick = () => { S.profile.level = +b.dataset.setLevel; save(); render(); toast('הרמה עודכנה ✓'); });
+  document.querySelectorAll('[data-set-units]').forEach((b) => b.onclick = () => { S.profile.units = b.dataset.setUnits; save(); render(); });
+  document.querySelectorAll('[data-set-injury]').forEach((b) => b.onclick = () => {
+    const id = b.dataset.setInjury; let inj = (S.profile.injuries && S.profile.injuries.length) ? S.profile.injuries : ['none'];
+    if (id === 'none') inj = [];
+    else { inj = inj.filter((x) => x !== 'none' && x !== id).concat(inj.includes(id) ? [] : [id]); }
+    S.profile.injuries = inj; save(); render();
+  });
 
   const ep = document.querySelector('[data-edit-profile]'); if (ep) ep.onclick = () => { S.draft = { ...S.profile }; S.onboardStep = 1; save(); go('onboard'); };
   const rs = document.querySelector('[data-reset]'); if (rs) rs.onclick = () => {
