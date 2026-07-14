@@ -24,6 +24,7 @@ const DEFAULT_STATE = {
   prs: {},                     // { exId: {best, date} } — personal records (max reps)
   repHistory: {},              // { exId: [{date, reps}] } — for strength trend
   startDate: null,             // first day (for deload cycle)
+  goals: [],                   // personal goals: {type:'weight'|'reps', ...}
   version: 4
 };
 
@@ -42,7 +43,7 @@ function load() {
 // Forward-compatible migration: fills missing fields so old saves never break.
 function migrate(s) {
   s.exState ||= {}; s.badges ||= []; s.reactions ||= {}; s.recentFoods ||= []; s.water ||= {};
-  s.prs ||= {}; s.repHistory ||= {}; if (s.startDate === undefined) s.startDate = null;
+  s.prs ||= {}; s.repHistory ||= {}; if (s.startDate === undefined) s.startDate = null; s.goals ||= [];
   if (s.profile && s.profile.injuries === undefined) s.profile.injuries = [];
   s.version = SCHEMA_VERSION;
   return s;
@@ -319,7 +320,7 @@ function fmtRest(sec) {
    ============================================================ */
 function render() {
   const app = el('app');
-  const showNav = S.profile && ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy', 'cloud', 'settings'].includes(route.name);
+  const showNav = S.profile && ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy', 'cloud', 'settings', 'goals'].includes(route.name);
   let html = '';
   switch (route.name) {
     case 'onboard': html = ScreenOnboard(); break;
@@ -335,6 +336,7 @@ function render() {
     case 'privacy': html = ScreenPrivacy(); break;
     case 'cloud': html = ScreenCloud(); break;
     case 'settings': html = ScreenSettings(); break;
+    case 'goals': html = ScreenGoals(); break;
     default: html = ScreenHome();
   }
   app.innerHTML = html + (showNav ? Nav() : '');
@@ -488,6 +490,11 @@ function ScreenHome() {
     </div>
 
     <div class="card" style="text-align:center;font-style:italic;color:var(--text)"><span style="color:var(--accent);font-size:18px">❝</span> ${esc(quoteOfDay())} <span style="color:var(--accent);font-size:18px">❞</span></div>
+
+    <div class="between" style="margin:2px 2px 8px"><span class="section-title" style="margin:0">היעדים שלי 🎯</span><button class="react-btn" data-nav="goals">${S.goals.length ? 'ערוך ›' : 'הגדר יעד ›'}</button></div>
+    <div class="card" data-nav="goals" style="cursor:pointer">
+      ${S.goals.length ? S.goals.slice(0, 2).map((g) => { const gp = goalProgress(g); return `<div style="padding:6px 0"><div class="between" style="margin-bottom:5px;font-size:13px"><span>${gp.title}</span><span class="muted">${Math.round(gp.pct)}%</span></div><div class="mtrack"><div class="mfill p" style="width:${gp.pct}%"></div></div></div>`; }).join('') : `<p class="muted center" style="padding:6px;font-size:13px">הגדר יעד ותראה את ההתקדמות אליו כאן 🎯</p>`}
+    </div>
 
     <div class="between" style="margin:2px 2px 8px"><span class="section-title" style="margin:0">הנתונים שלך</span><button class="react-btn" data-nav="progress">התקדמות והישגים ›</button></div>
     <div class="stats" data-nav="progress" style="cursor:pointer">
@@ -1270,6 +1277,46 @@ function ScreenProfile() {
 }
 
 /* ============================================================
+   GOALS
+   ============================================================ */
+function goalProgress(g) {
+  if (g.type === 'weight') {
+    const cur = S.weights.length ? S.weights[S.weights.length - 1].kg : S.profile.weight;
+    const denom = (g.start - g.target) || 1;
+    const pct = Math.max(0, Math.min(100, ((g.start - cur) / denom) * 100));
+    return { pct, label: `${toDisp(cur)} → ${toDisp(g.target)} ${wUnit()}`, title: '⚖️ משקל יעד' };
+  }
+  const best = S.prs[g.exId]?.best || 0;
+  const ex = EXERCISES.find((e) => e.id === g.exId);
+  return { pct: Math.max(0, Math.min(100, (best / g.target) * 100)), label: `${best}/${g.target} חזרות`, title: '💪 ' + (ex ? ex.name : '') };
+}
+function goalRow(g, i) {
+  const gp = goalProgress(g); const done = gp.pct >= 100;
+  return `<div style="padding:11px 2px;border-top:${i ? '1px solid var(--line)' : 'none'}">
+    <div class="between" style="margin-bottom:7px"><span class="ex-name">${gp.title}${done ? ' 🎉' : ''}</span><button class="badge" data-del-goal="${i}">מחק</button></div>
+    <div class="mtrack"><div class="mfill ${done ? '' : 'p'}" style="width:${gp.pct}%${done ? ';background:var(--accent)' : ''}"></div></div>
+    <div class="muted" style="font-size:12px;margin-top:5px">${gp.label} · ${Math.round(gp.pct)}%${done ? ' · הושלם!' : ''}</div>
+  </div>`;
+}
+function ScreenGoals() {
+  return `<div class="screen">
+    <button class="back" data-nav="home">›  חזרה</button>
+    <h2 class="h-lg" style="margin-bottom:12px">היעדים שלי 🎯</h2>
+
+    ${S.goals.length ? `<div class="section-title">יעדים פעילים</div><div class="card">${S.goals.map((g, i) => goalRow(g, i)).join('')}</div>` : `<p class="muted center" style="padding:10px">עדיין אין יעדים — הגדר אחד למטה 👇</p>`}
+
+    <div class="section-title">יעד משקל</div>
+    <div class="card"><div class="flex"><input class="input" id="g-weight" type="number" inputmode="decimal" placeholder="משקל יעד (${wUnit()})"><button class="btn sm" data-add-weight-goal>הוסף</button></div></div>
+
+    <div class="section-title">יעד חזרות בתרגיל</div>
+    <div class="card">
+      <div class="field"><select class="select" id="g-ex">${EXERCISES.filter((e) => !e.timed).map((e) => `<option value="${e.id}">${e.name}</option>`).join('')}</select></div>
+      <div class="flex"><input class="input" id="g-reps" type="number" inputmode="numeric" placeholder="יעד (למשל 20)"><button class="btn sm" data-add-reps-goal>הוסף</button></div>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
    SETTINGS (quick-edit plan without redoing onboarding)
    ============================================================ */
 function ScreenSettings() {
@@ -1505,6 +1552,19 @@ function bind() {
   if (route.name === 'family' && Cloud.enabled() && Cloud.members === null && Cloud.status !== 'loading') {
     Cloud.refresh({ workouts: S.workoutsLog.length, streak: S.streak }).then(() => { if (route.name === 'family') render(); });
   }
+
+  // ---- goals ----
+  const awg = document.querySelector('[data-add-weight-goal]'); if (awg) awg.onclick = () => {
+    const t = clampNum(fromDisp(+el('g-weight').value), 20, 300); if (!t) return toast('הכנס משקל יעד סביר');
+    const cur = S.weights.length ? S.weights[S.weights.length - 1].kg : S.profile.weight;
+    S.goals.push({ type: 'weight', target: t, start: cur }); save(); render(); toast('יעד נוסף 🎯');
+  };
+  const arg = document.querySelector('[data-add-reps-goal]'); if (arg) arg.onclick = () => {
+    const exId = el('g-ex').value, target = parseInt(el('g-reps').value, 10);
+    if (!target || target < 1) return toast('הכנס יעד חזרות');
+    S.goals.push({ type: 'reps', exId, target }); save(); render(); toast('יעד נוסף 🎯');
+  };
+  document.querySelectorAll('[data-del-goal]').forEach((b) => b.onclick = (ev) => { ev.stopPropagation(); S.goals.splice(+b.dataset.delGoal, 1); save(); render(); });
 
   // ---- settings (live plan edits) ----
   document.querySelectorAll('[data-set-goal]').forEach((b) => b.onclick = () => { S.profile.goal = b.dataset.setGoal; save(); render(); toast('המטרה עודכנה ✓'); });
