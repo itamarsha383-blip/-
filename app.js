@@ -518,6 +518,46 @@ function ScreenHome() {
 }
 function greet() { const h = new Date().getHours(); return h < 12 ? 'בוקר טוב' : h < 18 ? 'צהריים טובים' : 'ערב טוב'; }
 function quoteOfDay() { return QUOTES[Math.floor(Date.now() / 864e5) % QUOTES.length]; }
+
+// ---------- progress photos: PRIVATE, local-only, explicit share ----------
+const PHOTOS_KEY = 'kin_photos';
+let photoView = null;   // id of a photo open in the viewer
+function loadPhotos() { try { return JSON.parse(localStorage.getItem(PHOTOS_KEY) || '[]'); } catch { return []; } }
+function savePhotos(a) { try { localStorage.setItem(PHOTOS_KEY, JSON.stringify(a)); return true; } catch { toast('אין מספיק מקום — מחק תמונה ישנה'); return false; } }
+function addPhotoFromFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 720; let w = img.width, h = img.height;
+      const scale = Math.min(1, max / Math.max(w, h)); w = Math.round(w * scale); h = Math.round(h * scale);
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = cv.toDataURL('image/jpeg', 0.65);
+      const arr = loadPhotos();
+      arr.push({ id: 'p' + new Date().getTime(), date: todayStr(), dataUrl, shared: false });
+      while (arr.length > 30) arr.shift();
+      if (savePhotos(arr)) { render(); toast('נשמר פרטית 🔒'); }
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+async function sharePhoto(id) {
+  const arr = loadPhotos(); const ph = arr.find((x) => x.id === id); if (!ph) return;
+  try {
+    const blob = await (await fetch(ph.dataUrl)).blob();
+    const file = new File([blob], 'kin-progress.jpg', { type: 'image/jpeg' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], text: 'ההתקדמות שלי ב-KIN 💪' });
+      ph.shared = true; savePhotos(arr);
+    } else {
+      const a = document.createElement('a'); a.href = ph.dataUrl; a.download = 'kin-progress.jpg'; a.click();
+    }
+  } catch {}
+}
+function deletePhoto(id) { savePhotos(loadPhotos().filter((x) => x.id !== id)); photoView = null; render(); }
 function randomQuote() { return QUOTES[Math.floor(Math.random() * QUOTES.length)]; }
 function weekStrip() {
   const names = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
@@ -865,7 +905,18 @@ function ScreenExercise(id) {
    ============================================================ */
 function ScreenProgress() {
   const pts = S.weights.slice(-12);
+  const pv = photoView ? loadPhotos().find((x) => x.id === photoView) : null;
   return `<div class="screen">
+    ${pv ? `<div class="photo-overlay" data-photo-close>
+      <div style="text-align:center" onclick="event.stopPropagation()">
+        <img src="${pv.dataUrl}" alt="">
+        <div class="pacts">
+          <button class="btn" data-photo-share="${pv.id}">שתף 📤</button>
+          <button class="btn ghost" data-photo-del="${pv.id}" style="color:var(--danger);border-color:var(--danger)">מחק</button>
+        </div>
+        <p class="muted" style="margin-top:12px;font-size:12px">🔒 פרטי — שיתוף רק בבחירתך</p>
+      </div>
+    </div>` : ''}
     <h2 class="h-lg" style="margin-bottom:14px">ההתקדמות שלך</h2>
     <div class="stats">
       <div class="stat"><div class="num accent">${S.streak}</div><div class="lab">רצף ימים</div></div>
@@ -896,6 +947,18 @@ function ScreenProgress() {
         <button class="btn sm" data-add-weight>הוסף</button>
       </div>
     </div>
+
+    ${(() => {
+      const photos = loadPhotos();
+      return `<div class="section-title">📸 תמונות התקדמות · פרטי</div>
+      <div class="card">
+        <p class="muted" style="font-size:12.5px;margin:0 0 12px">🔒 נשמרות <b style="color:var(--text)">רק במכשיר שלך</b>. אף אחד לא רואה אותן — אתה בוחר ידנית מה לשתף.</p>
+        <div class="photo-grid">
+          <label class="photo-add">＋<input type="file" accept="image/*" capture="environment" hidden data-photo-input></label>
+          ${photos.slice().reverse().map((ph) => `<div class="photo-cell" data-photo="${ph.id}"><img src="${ph.dataUrl}" alt=""><span class="photo-date">${ph.date}${ph.shared ? ' · שותף' : ''}</span></div>`).join('')}
+        </div>
+      </div>`;
+    })()}
 
     <div class="section-title">היסטוריית אימונים</div>
     <div class="card">
@@ -1359,6 +1422,13 @@ function bind() {
   document.querySelectorAll('[data-filter]').forEach((b) => b.onclick = () => go('library', { filter: b.dataset.filter }));
 
   // ---- progress ----
+  // ---- progress photos ----
+  const pin = document.querySelector('[data-photo-input]'); if (pin) pin.onchange = () => { if (pin.files && pin.files[0]) addPhotoFromFile(pin.files[0]); };
+  document.querySelectorAll('[data-photo]').forEach((b) => b.onclick = () => { photoView = b.dataset.photo; render(); });
+  const pClose = document.querySelector('[data-photo-close]'); if (pClose) pClose.onclick = () => { photoView = null; render(); };
+  const pShare = document.querySelector('[data-photo-share]'); if (pShare) pShare.onclick = () => sharePhoto(pShare.dataset.photoShare);
+  const pDel = document.querySelector('[data-photo-del]'); if (pDel) pDel.onclick = () => { if (confirm('למחוק את התמונה?')) deletePhoto(pDel.dataset.photoDel); };
+
   const aw = document.querySelector('[data-add-weight]'); if (aw) aw.onclick = () => {
     const raw = +el('w-input').value; const v = clampNum(fromDisp(raw), 20, 300); if (!v) return toast('הכנס משקל סביר');
     // one weigh-in per day: replace today's if it exists
