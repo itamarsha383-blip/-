@@ -21,7 +21,10 @@ const DEFAULT_STATE = {
   reactions: {},               // { memberName: count } — family kudos (local demo)
   recentFoods: [],             // recently logged food names (fast re-log)
   water: {},                   // { 'YYYY-MM-DD': ml }
-  version: 3
+  prs: {},                     // { exId: {best, date} } — personal records (max reps)
+  repHistory: {},              // { exId: [{date, reps}] } — for strength trend
+  startDate: null,             // first day (for deload cycle)
+  version: 4
 };
 
 let S = load();
@@ -39,6 +42,7 @@ function load() {
 // Forward-compatible migration: fills missing fields so old saves never break.
 function migrate(s) {
   s.exState ||= {}; s.badges ||= []; s.reactions ||= {}; s.recentFoods ||= []; s.water ||= {};
+  s.prs ||= {}; s.repHistory ||= {}; if (s.startDate === undefined) s.startDate = null;
   if (s.profile && s.profile.injuries === undefined) s.profile.injuries = [];
   s.version = SCHEMA_VERSION;
   return s;
@@ -238,9 +242,22 @@ function demoSVG(pattern) {
 
 // Coach-style nutrition targets live in data.js (nutritionPlan).
 function macroTargets(p) { return nutritionPlan(p); }
+// Every 4th week is a lighter deload week for recovery (real coaching practice).
+function isDeload() {
+  if (!S.startDate) return false;
+  const weeks = Math.floor((Date.now() - new Date(S.startDate + 'T00:00:00').getTime()) / (7 * 864e5));
+  return weeks > 0 && weeks % 4 === 3;
+}
 // Today's session rotates through the weekly split (progressive, not repetitive),
 // with the adaptive engine (exState) feeding rep targets back in.
-function todaysSession() { return buildSession(S.profile, S.workoutsLog.length, S.exState); }
+function todaysSession() {
+  const sess = buildSession(S.profile, S.workoutsLog.length, S.exState);
+  if (isDeload()) {
+    sess.deload = true;
+    sess.main = sess.main.map((e) => ({ ...e, sets: Math.max(2, e.sets - 1) }));
+  }
+  return sess;
+}
 
 // ---------- achievements ----------
 const BADGES = [
@@ -250,6 +267,7 @@ const BADGES = [
   { id: 's3', emoji: '🔥', name: 'רצף 3', desc: '3 ימים ברצף', test: () => S.streak >= 3 },
   { id: 's7', emoji: '⚡', name: 'שבוע מושלם', desc: 'רצף של 7 ימים', test: () => S.streak >= 7 },
   { id: 'level', emoji: '📈', name: 'מתקדמים', desc: 'עלית עומס בתרגיל', test: () => Object.values(S.exState).some((x) => (x.adjust || 0) >= 2) },
+  { id: 'pr', emoji: '🏆', name: 'שובר שיאים', desc: 'קבעת שיא אישי', test: () => Object.keys(S.prs).length >= 1 },
   { id: 'log', emoji: '⚖️', name: 'עוקב/ת', desc: 'רשמת 3 שקילות', test: () => S.weights.length >= 3 },
   { id: 'eat', emoji: '🥗', name: 'תזונה בשליטה', desc: 'רשמת יום אכילה מלא', test: () => Object.values(S.nutrition).some((d) => d.length >= 3) }
 ];
@@ -453,6 +471,7 @@ function ScreenHome() {
     </div>
 
     ${streakAtRisk() ? `<div class="nudge"><span class="ne">🔥</span><div class="grow"><b>הרצף שלך בסכנה!</b><div class="muted" style="font-size:13px">אימון קצר היום ישמור על ${S.streak} הימים שצברת.</div></div><button class="btn sm" data-start-workout>10 דק׳</button></div>` : ''}
+    ${sess.deload ? `<div class="nudge" style="background:linear-gradient(160deg,#141d2b,#0f1620);border-color:#28394d"><span class="ne">🌙</span><div class="grow"><b>שבוע דילואד</b><div class="muted" style="font-size:13px">עומס מופחת להתאוששות — ככה גדלים חזק יותר.</div></div></div>` : ''}
 
     <div class="hero">
       <h1 class="h-xl" style="margin-bottom:2px">${greet()}, ${esc(p.name)}</h1>
@@ -655,12 +674,20 @@ function ScreenActive() {
       ${Array.from({ length: totalSets }).map((_, i) =>
         `<div class="setdot ${i < active.set ? 'done' : i === active.set ? 'cur' : ''}">${i + 1}</div>`).join('')}
     </div>
+    ${e.timed ? `
     <div class="h-xl" style="margin:6px 0">${e.reps}${adjBadge}</div>
     <p class="muted">סט ${active.set + 1}/${totalSets} · מנוחה ${fmtRest(e.rest)} · ${e.rpe}</p>
     <div class="spacer"></div>
-    ${e.timed
-      ? `<button class="btn" data-start-hold>התחל טיימר (${e.holdSec} שנ׳) ▶</button>`
-      : `<button class="btn" data-complete-set>סיימתי את הסט ✓</button>`}
+    <button class="btn" data-start-hold>התחל טיימר (${e.holdSec} שנ׳) ▶</button>` : `
+    <p class="muted" style="margin:6px 0 0">יעד: <b style="color:var(--text)">${e.reps}</b>${adjBadge} · סט ${active.set + 1}/${totalSets}</p>
+    <div class="flex" style="justify-content:center;gap:16px;margin:12px 0 6px">
+      <button class="setdot" data-rep-dec style="width:48px;height:48px;font-size:26px">−</button>
+      <div style="min-width:96px"><div class="h-xl" style="margin:0">${active.repInput != null ? active.repInput : (e.repsTarget || 8)}</div><div class="muted" style="font-size:11px">חזרות שביצעת</div></div>
+      <button class="setdot" data-rep-inc style="width:48px;height:48px;font-size:26px">＋</button>
+    </div>
+    <p class="muted" style="font-size:12.5px">מנוחה ${fmtRest(e.rest)} · ${e.rpe}${S.prs[e.id] ? ` · 🏆 שיא: ${S.prs[e.id].best}` : ''}</p>
+    <div class="spacer"></div>
+    <button class="btn" data-complete-set>סיימתי את הסט ✓</button>`}
     <div class="spacer"></div>
     <button class="btn ghost" data-ex="${e.id}">איך עושים? טכניקה וטעויות</button>
   </div>`;
@@ -699,9 +726,22 @@ function stopHold() { if (active.timer) clearInterval(active.timer); active.work
 function completeSet() {
   tap(12);
   const e = active.sess.main[active.i];
+  // record reps + detect a personal record (non-timed exercises)
+  if (!e.timed) {
+    const reps = active.repInput != null ? active.repInput : (e.repsTarget || 0);
+    active.sessionBest = Math.max(active.sessionBest || 0, reps);
+    if (reps > (S.prs[e.id]?.best || 0)) { S.prs[e.id] = { best: reps, date: todayStr() }; active.gotPR = true; }
+    active.repInput = null;
+  }
   active.set++;
   if (active.set >= e.sets) {
-    // exercise finished → ask how it felt (adaptive engine)
+    if (!e.timed && active.sessionBest) {
+      (S.repHistory[e.id] ||= []).push({ date: todayStr(), reps: active.sessionBest });
+      if (S.repHistory[e.id].length > 60) S.repHistory[e.id].shift();
+    }
+    save();
+    if (active.gotPR) { confetti(); tap(30); setTimeout(() => toast(`🏆 שיא חדש ב${e.name}!`), 200); }
+    active.gotPR = false; active.sessionBest = 0;
     if (active.timer) clearInterval(active.timer);
     active.resting = false;
     active.feedbackFor = e;
@@ -780,6 +820,12 @@ function ScreenExercise(id) {
           <button class="btn" data-yt="${esc(e.name)}">▶ צפה בסרטון הדגמה</button>
         </div>`}
 
+    ${S.prs[e.id] ? `<div class="section-title">השיא שלך 🏆</div>
+    <div class="card">
+      <div class="between"><span class="h-lg">${S.prs[e.id].best} <span style="font-size:14px" class="muted">חזרות</span></span><span class="muted" style="font-size:12px">${S.prs[e.id].date}</span></div>
+      ${(S.repHistory[e.id] || []).length >= 2 ? repSparkline(S.repHistory[e.id]) : ''}
+    </div>` : ''}
+
     <div class="section-title">נקודות מפתח (Cues) 🎯</div>
     <div class="card">${e.cues.map((c) => `<div class="flex" style="padding:5px 0"><span style="color:var(--accent)">✓</span><span>${esc(c)}</span></div>`).join('')}</div>
 
@@ -818,6 +864,11 @@ function ScreenProgress() {
     </div>
 
     ${weeklyInsights()}
+
+    ${Object.keys(S.prs).length ? `<div class="section-title">שיאים אישיים 🏆</div>
+    <div class="card">
+      ${Object.entries(S.prs).map(([id, pr]) => { const ex = EXERCISES.find((e) => e.id === id); return ex ? `<div class="ex-item"><div class="ex-emoji">${ex.emoji}</div><div class="grow"><div class="ex-name">${esc(ex.name)}</div><div class="ex-meta">${pr.date}</div></div><span class="pill accent">${pr.best} חזרות</span></div>` : ''; }).join('')}
+    </div>` : ''}
 
     <div class="section-title">הישגים · ${S.badges.length}/${BADGES.length}</div>
     <div class="card">
@@ -876,6 +927,19 @@ function weeklyInsights() {
       ${wDelta !== null ? `<div class="between" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)"><span class="muted">מגמת משקל (30 יום)</span><span>${wDelta > 0 ? '▲' : wDelta < 0 ? '▼' : '■'} ${Math.abs(wDelta)} ק״ג</span></div>` : ''}
     </div>`;
 }
+function repSparkline(hist) {
+  const pts = hist.slice(-14);
+  const W = 300, H = 60, pad = 6;
+  const vals = pts.map((p) => p.reps);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const x = (i) => pad + (i * (W - pad * 2)) / Math.max(1, pts.length - 1);
+  const y = (v) => H - pad - ((v - min) / (max - min || 1)) * (H - pad * 2);
+  const poly = pts.map((p, i) => `${x(i).toFixed(1)},${y(p.reps).toFixed(1)}`).join(' ');
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="height:60px;margin-top:8px">
+    <polyline points="${poly}"/>
+    ${pts.map((p, i) => `<circle class="dot" cx="${x(i).toFixed(1)}" cy="${y(p.reps).toFixed(1)}" r="3"/>`).join('')}
+  </svg>`;
+}
 function weightChart(pts) {
   const W = 320, H = 130, pad = 10;
   const min = Math.min(...pts.map((p) => p.kg)) - 1;
@@ -895,12 +959,14 @@ function weightChart(pts) {
    NUTRITION
    ============================================================ */
 let pendingFood = null;   // food awaiting a quantity choice
+function mealForNow() { const h = new Date().getHours(); return h < 11 ? 'בוקר' : h < 16 ? 'צהריים' : h < 22 ? 'ערב' : 'נשנוש'; }
+const MEAL_EMOJI = { 'בוקר': '🌅', 'צהריים': '☀️', 'ערב': '🌙', 'נשנוש': '🍿' };
 function addFood(f, qty) {
   if (!f) return;
   const q = qty > 0 ? qty : 1;
   const label = q === 1 ? f.name : `${f.name} ×${q}`;
   const t = todayStr();
-  (S.nutrition[t] ||= []).push({ name: label, kcal: Math.round(f.kcal * q), p: +(f.p * q).toFixed(1), c: +(f.c * q).toFixed(1), f: +(f.f * q).toFixed(1) });
+  (S.nutrition[t] ||= []).push({ name: label, kcal: Math.round(f.kcal * q), p: +(f.p * q).toFixed(1), c: +(f.c * q).toFixed(1), f: +(f.f * q).toFixed(1), meal: mealForNow() });
   S.recentFoods = [f.name, ...(S.recentFoods || []).filter((n) => n !== f.name)].slice(0, 8);
   pendingFood = null; route.params.q = ''; save(); render(); toast(`${label} נוסף ✓`); checkBadges();
 }
@@ -963,7 +1029,13 @@ function ScreenNutrition() {
     </div>`}
 
     ${today.length ? `<div class="section-title">מה אכלת היום</div><div class="card">
-      ${today.map((f, i) => `<div class="ex-item"><div class="ex-emoji">•</div><div class="grow"><div class="ex-name">${esc(f.name)}</div><div class="ex-meta">${f.kcal} קל׳</div></div><button class="badge" data-del-food="${i}">מחק</button></div>`).join('')}
+      ${['בוקר', 'צהריים', 'ערב', 'נשנוש'].map((meal) => {
+        const items = today.map((f, i) => ({ f, i })).filter(({ f }) => (f.meal || 'נשנוש') === meal);
+        if (!items.length) return '';
+        const mkcal = items.reduce((a, { f }) => a + f.kcal, 0);
+        return `<div class="between" style="padding:8px 2px 4px"><span class="muted" style="font-size:12px;font-weight:700">${MEAL_EMOJI[meal]} ${meal}</span><span class="muted" style="font-size:12px">${mkcal} קל׳</span></div>
+        ${items.map(({ f, i }) => `<div class="ex-item"><div class="ex-emoji" style="font-size:15px">•</div><div class="grow"><div class="ex-name">${esc(f.name)}</div><div class="ex-meta">${f.kcal} קל׳ · ${Math.round(f.p)}ח/${Math.round(f.c)}פ/${Math.round(f.f)}ש</div></div><button class="badge" data-del-food="${i}">מחק</button></div>`).join('')}`;
+      }).join('')}
     </div>` : ''}
     <p class="muted center" style="font-size:11.5px;margin-top:14px;line-height:1.6">יעדים לפי נוסחת Mifflin-St Jeor · ערכי מזון לפי ${FOOD_SOURCE}.<br>מידע כללי בלבד — לא ייעוץ תזונתי/רפואי. להתאמה אישית פנה לאיש מקצוע.</p>
   </div>`;
@@ -1210,7 +1282,8 @@ function bind() {
   document.querySelectorAll('[data-equip]').forEach((b) => b.onclick = () => { d.equip = b.dataset.equip; save(); render(); });
   const fin = document.querySelector('[data-finish]'); if (fin) fin.onclick = () => {
     if (!d.equip) return toast('בחר ציוד');
-    S.profile = { ...d }; if (d.weight) S.weights = [{ date: todayStr(), kg: d.weight }]; S.draft = {}; save();
+    S.profile = { ...d }; if (d.weight) S.weights = [{ date: todayStr(), kg: d.weight }]; S.draft = {};
+    S.startDate = S.startDate || todayStr(); save();
     go('home'); setTimeout(() => toast(`התוכנית של ${S.profile.name} מוכנה! 🚀`), 250);
   };
 
@@ -1222,6 +1295,8 @@ function bind() {
   document.querySelectorAll('[data-fb]').forEach((b) => b.onclick = () => applyFeedback(b.dataset.fb));
   const sh = document.querySelector('[data-start-hold]'); if (sh) sh.onclick = startHold;
   const st = document.querySelector('[data-stop-hold]'); if (st) st.onclick = stopHold;
+  const rInc = document.querySelector('[data-rep-inc]'); if (rInc) rInc.onclick = () => { const e = active.sess.main[active.i]; const v = active.repInput != null ? active.repInput : (e.repsTarget || 8); active.repInput = v + 1; render(); };
+  const rDec = document.querySelector('[data-rep-dec]'); if (rDec) rDec.onclick = () => { const e = active.sess.main[active.i]; const v = active.repInput != null ? active.repInput : (e.repsTarget || 8); active.repInput = Math.max(1, v - 1); render(); };
   const sr = document.querySelector('[data-skip-rest]'); if (sr) sr.onclick = () => { if (active.timer) clearInterval(active.timer); active.resting = false; render(); };
   const qw = document.querySelector('[data-quit-workout]'); if (qw) qw.onclick = () => {
     if (!confirm('לצאת מהאימון? ההתקדמות של האימון הנוכחי לא תישמר.')) return;
