@@ -38,6 +38,7 @@ const DEFAULT_STATE = {
 let S = load();
 let route = { name: S.profile ? 'home' : 'onboard', params: {} };
 let active = null;             // active-workout runtime state
+let exerciseReturn = null;     // where to go 'back' from an exercise detail
 // derived streak is recomputed from dates on boot (fixes stale/incorrect streaks)
 setTimeout(() => { if (typeof refreshStreak === 'function') { refreshStreak(); } }, 0);
 
@@ -453,42 +454,38 @@ function ScreenOnboard() {
       </div>
       <button class="btn" data-save-body>המשך</button>
     </div>`,
-    // 3 — level
+    // 3 — level (single choice → tap advances)
     `<div class="screen">
       <button class="back" data-prev>›  חזרה</button>
       <h2 class="h-lg">מה הרמה שלך?</h2>
-      <p class="muted" style="margin:6px 0 20px">נתחיל בדיוק מהמקום הנכון בשבילך.</p>
+      <p class="muted" style="margin:6px 0 20px">נתחיל בדיוק מהמקום הנכון בשבילך. (לחיצה ממשיכה)</p>
       <div class="chips" style="flex-direction:column">
         ${LEVELS.map((l) => `<button class="chip ${d.level === l.id ? 'sel' : ''}" data-level="${l.id}" style="flex:1 1 100%">
           <div class="t">${l.label}</div><div class="s">${l.desc}</div></button>`).join('')}
       </div>
-      <div class="spacer"></div>
-      <button class="btn" data-next-level>המשך</button>
     </div>`,
-    // 4 — goal
+    // 4 — goals (MULTIPLE choice → keep continue)
     `<div class="screen">
       <button class="back" data-prev>›  חזרה</button>
-      <h2 class="h-lg">מה המטרה?</h2>
-      <p class="muted" style="margin:6px 0 20px">התוכנית והתזונה ייבנו סביב זה.</p>
+      <h2 class="h-lg">מה המטרות שלך?</h2>
+      <p class="muted" style="margin:6px 0 20px">אפשר לבחור כמה — התוכנית והתזונה יתאימו לשילוב.</p>
       <div class="chips">
-        ${GOALS.map((g) => `<button class="chip ${d.goal === g.id ? 'sel' : ''}" data-goal="${g.id}">
+        ${GOALS.map((g) => `<button class="chip ${(d.goals || []).includes(g.id) ? 'sel' : ''}" data-goal="${g.id}">
           <div class="emoji">${g.emoji}</div><div class="t">${g.label}</div></button>`).join('')}
       </div>
       <div class="spacer"></div>
       <button class="btn" data-next-goal>המשך</button>
     </div>`,
-    // 5 — training days per week
+    // 5 — training days per week (single choice → tap advances)
     `<div class="screen">
       <button class="back" data-prev>›  חזרה</button>
       <h2 class="h-lg">כמה ימים בשבוע?</h2>
-      <p class="muted" style="margin:6px 0 20px">זה קובע את מבנה התוכנית — בדיוק כמו שמאמן היה שואל.</p>
+      <p class="muted" style="margin:6px 0 20px">זה קובע את מבנה התוכנית. (לחיצה ממשיכה)</p>
       <div class="chips" style="flex-direction:column">
         ${[3, 4, 5].map((n) => `<button class="chip ${d.days === n ? 'sel' : ''}" data-days="${n}" style="flex:1 1 100%">
           <div class="t">${n} ימים בשבוע</div>
           <div class="s">${n === 3 ? 'גוף מלא — מומלץ להתחלה' : n === 4 ? 'עליון / תחתון' : 'דחיפה / משיכה / רגליים'}</div></button>`).join('')}
       </div>
-      <div class="spacer"></div>
-      <button class="btn" data-next-days>המשך</button>
     </div>`,
     // 6 — injuries / limitations
     `<div class="screen">
@@ -502,17 +499,15 @@ function ScreenOnboard() {
       <div class="spacer"></div>
       <button class="btn" data-next-injuries>המשך</button>
     </div>`,
-    // 7 — equipment
+    // 7 — equipment (single choice → tap builds the plan)
     `<div class="screen">
       <button class="back" data-prev>›  חזרה</button>
       <h2 class="h-lg">מה יש לך בבית?</h2>
-      <p class="muted" style="margin:6px 0 20px">נתאים את התרגילים לציוד שזמין לך.</p>
+      <p class="muted" style="margin:6px 0 20px">נתאים את התרגילים לציוד שזמין לך. (לחיצה בונה את התוכנית)</p>
       <div class="chips">
         ${EQUIP.map((e) => `<button class="chip ${d.equip === e.id ? 'sel' : ''}" data-equip="${e.id}">
           <div class="emoji">${e.emoji}</div><div class="t">${e.label}</div></button>`).join('')}
       </div>
-      <div class="spacer"></div>
-      <button class="btn" data-finish>בונים לי תוכנית 🚀</button>
     </div>`
   ];
   return steps[step] || steps[0];
@@ -656,7 +651,7 @@ function ScreenWorkouts() {
   const p = S.profile;
   const sess = todaysSession();
   return `<div class="screen">
-    <div class="between" style="margin-bottom:6px"><h2 class="h-lg">${sess.name}</h2><span class="pill">${GOALS.find(g=>g.id===p.goal)?.emoji||''} ${GOALS.find(g=>g.id===p.goal)?.label||''}</span></div>
+    <div class="between" style="margin-bottom:6px"><h2 class="h-lg">${sess.name}</h2><span class="pill">${goalList(p).map(id=>GOALS.find(g=>g.id===id)?.emoji||'').join('')} ${goalList(p).map(id=>GOALS.find(g=>g.id===id)?.label).filter(Boolean).join(' + ')}</span></div>
     <p class="muted" style="margin:0 0 4px">${sess.splitLabel} · ${sess.days} אימונים בשבוע · כ־${estMinutes(sess)} דק׳</p>
     <p class="muted" style="margin:0 0 14px;font-size:13px">📋 ${sess.goalStyle} · ${sess.rx.sets} סטים · מנוחה ${fmtRest(sess.rx.rest)} · ${sess.rx.rpe}</p>
     ${weekStrip()}
@@ -1435,7 +1430,7 @@ function ScreenProfile() {
     <div class="center" style="margin:10px 0 20px">
       <div class="avatar" style="width:76px;height:76px;font-size:30px;margin:0 auto">${esc(initials(p.name))}</div>
       <h2 class="h-lg" style="margin-top:12px">${esc(p.name)}</h2>
-      <p class="muted">${GOALS.find(g=>g.id===p.goal)?.label} · רמה ${['','מתחיל','בינוני','מתקדם'][p.level]}</p>
+      <p class="muted">${goalList(p).map(id=>GOALS.find(g=>g.id===id)?.label).filter(Boolean).join(' + ')} · רמה ${['','מתחיל','בינוני','מתקדם'][p.level]}</p>
     </div>
     <div class="card">
       <div class="between" style="padding:8px 0"><span class="muted">גיל</span><span>${p.age}</span></div>
@@ -1563,9 +1558,9 @@ function ScreenSettings() {
     <button class="back" data-nav="profile">›  חזרה</button>
     <h2 class="h-lg" style="margin-bottom:16px">הגדרות ⚙️</h2>
 
-    <div class="section-title">מטרה</div>
+    <div class="section-title">מטרות (אפשר כמה)</div>
     <div class="chips">
-      ${GOALS.map((g) => `<button class="chip ${p.goal === g.id ? 'sel' : ''}" data-set-goal="${g.id}"><div class="emoji">${g.emoji}</div><div class="t">${g.label}</div></button>`).join('')}
+      ${GOALS.map((g) => `<button class="chip ${goalList(p).includes(g.id) ? 'sel' : ''}" data-set-goal="${g.id}"><div class="emoji">${g.emoji}</div><div class="t">${g.label}</div></button>`).join('')}
     </div>
 
     <div class="section-title">ימים בשבוע</div>
@@ -1649,8 +1644,16 @@ function ScreenPrivacy() {
 function bind() {
   // nav + generic navigation
   document.querySelectorAll('[data-nav]').forEach((b) => b.onclick = () => { tap(); go(b.dataset.nav); });
-  document.querySelectorAll('[data-ex]').forEach((b) => b.onclick = (ev) => { ev.stopPropagation(); go('exercise', { id: b.dataset.ex }); });
-  const back = document.querySelector('[data-back]'); if (back) back.onclick = () => history.back ? go('library') : go('library');
+  document.querySelectorAll('[data-ex]').forEach((b) => b.onclick = (ev) => {
+    ev.stopPropagation();
+    if (route.name !== 'exercise') exerciseReturn = route.name;   // remember where we came from
+    go('exercise', { id: b.dataset.ex });
+  });
+  const back = document.querySelector('[data-back]'); if (back) back.onclick = () => {
+    let dest = exerciseReturn || 'library';
+    if (dest === 'active' && !active) dest = 'workouts';           // workout ended meanwhile
+    go(dest);
+  };
   document.querySelectorAll('[data-yt]').forEach((b) => b.onclick = () => {
     const url = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(b.dataset.yt + ' exercise proper form tutorial');
     window.open(url, '_blank', 'noopener');
@@ -1678,12 +1681,14 @@ function bind() {
     if (!d.age || !d.weight || !d.height || !d.gender) return toast('מלא גיל, מין, משקל וגובה (ערכים סבירים)');
     S.onboardStep = 3; save(); render();
   };
-  document.querySelectorAll('[data-level]').forEach((b) => b.onclick = () => { d.level = +b.dataset.level; save(); render(); });
-  const nl = document.querySelector('[data-next-level]'); if (nl) nl.onclick = () => { if (!d.level) return toast('בחר רמה'); S.onboardStep = 4; save(); render(); };
-  document.querySelectorAll('[data-goal]').forEach((b) => b.onclick = () => { d.goal = b.dataset.goal; save(); render(); });
-  const ng = document.querySelector('[data-next-goal]'); if (ng) ng.onclick = () => { if (!d.goal) return toast('בחר מטרה'); S.onboardStep = 5; save(); render(); };
-  document.querySelectorAll('[data-days]').forEach((b) => b.onclick = () => { d.days = +b.dataset.days; save(); render(); });
-  const nd = document.querySelector('[data-next-days]'); if (nd) nd.onclick = () => { if (!d.days) return toast('בחר תדירות'); S.onboardStep = 6; save(); render(); };
+  document.querySelectorAll('[data-level]').forEach((b) => b.onclick = () => { d.level = +b.dataset.level; S.onboardStep = 4; save(); render(); });
+  document.querySelectorAll('[data-goal]').forEach((b) => b.onclick = () => {
+    const id = b.dataset.goal; d.goals = d.goals || [];
+    d.goals = d.goals.includes(id) ? d.goals.filter((x) => x !== id) : [...d.goals, id];
+    save(); render();
+  });
+  const ng = document.querySelector('[data-next-goal]'); if (ng) ng.onclick = () => { if (!(d.goals && d.goals.length)) return toast('בחר לפחות מטרה אחת'); S.onboardStep = 5; save(); render(); };
+  document.querySelectorAll('[data-days]').forEach((b) => b.onclick = () => { d.days = +b.dataset.days; S.onboardStep = 6; save(); render(); });
   document.querySelectorAll('[data-injury]').forEach((b) => b.onclick = () => {
     const id = b.dataset.injury; let inj = d.injuries || [];
     if (id === 'none') inj = ['none'];
@@ -1691,13 +1696,14 @@ function bind() {
     d.injuries = inj; save(); render();
   });
   const nj = document.querySelector('[data-next-injuries]'); if (nj) nj.onclick = () => { d.injuries = (d.injuries || ['none']).filter((x) => x !== 'none'); S.onboardStep = 7; save(); render(); };
-  document.querySelectorAll('[data-equip]').forEach((b) => b.onclick = () => { d.equip = b.dataset.equip; save(); render(); });
-  const fin = document.querySelector('[data-finish]'); if (fin) fin.onclick = () => {
-    if (!d.equip) return toast('בחר ציוד');
-    S.profile = { ...d }; if (d.weight) S.weights = [{ date: todayStr(), kg: d.weight }]; S.draft = {};
-    S.startDate = S.startDate || todayStr(); save();
+  document.querySelectorAll('[data-equip]').forEach((b) => b.onclick = () => {
+    d.equip = b.dataset.equip;                       // single choice → build the plan
+    const goals = (d.goals && d.goals.length) ? d.goals : ['muscle'];
+    S.profile = { ...d, goals, goal: goals[0] };
+    if (d.weight) S.weights = [{ date: todayStr(), kg: d.weight }];
+    S.draft = {}; S.startDate = S.startDate || todayStr(); save();
     go('firstweek');
-  };
+  });
 
   // ---- workout ----
   document.querySelectorAll('[data-start-workout]').forEach((b) => b.onclick = startWorkout);
@@ -1837,7 +1843,12 @@ function bind() {
   const stopP = document.querySelector('[data-stop-program]'); if (stopP) stopP.onclick = () => { if (confirm('לעצור את התוכנית?')) { S.activeProgram = null; save(); render(); } };
 
   // ---- settings (live plan edits) ----
-  document.querySelectorAll('[data-set-goal]').forEach((b) => b.onclick = () => { S.profile.goal = b.dataset.setGoal; save(); render(); toast('המטרה עודכנה ✓'); });
+  document.querySelectorAll('[data-set-goal]').forEach((b) => b.onclick = () => {
+    const id = b.dataset.setGoal; let gs = goalList(S.profile);
+    gs = gs.includes(id) ? gs.filter((x) => x !== id) : [...gs, id];
+    if (!gs.length) gs = [id];
+    S.profile.goals = gs; S.profile.goal = gs[0]; save(); render(); toast('המטרות עודכנו ✓');
+  });
   document.querySelectorAll('[data-set-days]').forEach((b) => b.onclick = () => { S.profile.days = +b.dataset.setDays; save(); render(); toast('התדירות עודכנה ✓'); });
   document.querySelectorAll('[data-set-level]').forEach((b) => b.onclick = () => { S.profile.level = +b.dataset.setLevel; save(); render(); toast('הרמה עודכנה ✓'); });
   document.querySelectorAll('[data-set-units]').forEach((b) => b.onclick = () => { S.profile.units = b.dataset.setUnits; save(); render(); });
@@ -1851,7 +1862,7 @@ function bind() {
     S.profile.injuries = inj; save(); render();
   });
 
-  const ep = document.querySelector('[data-edit-profile]'); if (ep) ep.onclick = () => { S.draft = { ...S.profile }; S.onboardStep = 1; save(); go('onboard'); };
+  const ep = document.querySelector('[data-edit-profile]'); if (ep) ep.onclick = () => { S.draft = { ...S.profile, goals: goalList(S.profile) }; S.onboardStep = 1; save(); go('onboard'); };
   const rs = document.querySelector('[data-reset]'); if (rs) rs.onclick = () => {
     if (confirm('לאפס את כל הנתונים ולהתחיל מחדש?')) { localStorage.removeItem(KEY); S = load(); go('onboard'); }
   };

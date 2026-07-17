@@ -299,6 +299,11 @@ const INJURIES = [
   { id: 'wrist', label: 'שורש כף יד', emoji: '🤲', avoid: ['pushup', 'pike', 'mountain', 'burpee'] }
 ];
 
+// --- Goals: support multiple selected goals ---------------------------
+function goalList(p) { return (Array.isArray(p.goals) && p.goals.length) ? p.goals : (p.goal ? [p.goal] : ['muscle']); }
+// The workout scheme follows the highest-priority selected goal.
+function primaryTrainingGoal(p) { const g = goalList(p); for (const pref of ['strength', 'muscle', 'fatloss', 'mobility']) if (g.includes(pref)) return pref; return g[0] || 'muscle'; }
+
 // --- Prescription by goal (sets / reps / rest / RPE) -------------------
 function prescription(goal, level) {
   const base = {
@@ -360,7 +365,8 @@ function buildSession(profile, sessionOffset = 0, adjustments = {}, opts = {}) {
   const split = chooseSplit(profile);
   const tmpl = split.sessions[sessionOffset % split.sessions.length];
   const patterns = (opts && opts.patterns) ? opts.patterns : tmpl.patterns;
-  const rx = prescription(profile.goal, profile.level);
+  const pg = primaryTrainingGoal(profile);
+  const rx = prescription(pg, profile.level);
   const hasBar = profile.equip === 'bar' || profile.equip === 'weights';
 
   // Exercises to avoid based on the user's injuries/limitations.
@@ -393,7 +399,7 @@ function buildSession(profile, sessionOffset = 0, adjustments = {}, opts = {}) {
 
     const timed = e.timed;
     const adj = adjustments[e.id]?.adjust || 0;
-    const target = repTarget(profile.goal, profile.level, adj);
+    const target = repTarget(pg, profile.level, adj);
     const baseSec = profile.level >= 2 ? 35 : 25;
     const holdSec = Math.max(15, Math.min(75, baseSec + adj * 5));
     main.push({
@@ -421,7 +427,7 @@ function buildSession(profile, sessionOffset = 0, adjustments = {}, opts = {}) {
     name: opts.name || tmpl.name,
     splitLabel: opts.splitLabel || split.label,
     days: split.days,
-    goalStyle: GOALS.find((g) => g.id === profile.goal)?.style || '',
+    goalStyle: goalList(profile).map((id) => GOALS.find((g) => g.id === id)?.label).filter(Boolean).join(' + '),
     warmup,
     main,
     cooldown: rot(COOLDOWNS, 3),
@@ -437,11 +443,14 @@ function nutritionPlan(p) {
   const days = p.days || (LEVELS.find((l) => l.id === p.level)?.days) || 3;
   const activity = days >= 5 ? 1.55 : days === 4 ? 1.48 : 1.42;
   let kcal = bmr * activity;
-  if (p.goal === 'fatloss') kcal *= 0.82;       // ~18% deficit — sustainable
-  if (p.goal === 'muscle') kcal *= 1.10;        // modest surplus
+  // Adapt calories to the COMBINATION of goals.
+  const goals = goalList(p);
+  if (goals.includes('fatloss') && goals.includes('muscle')) kcal *= 0.92;  // recomposition
+  else if (goals.includes('fatloss')) kcal *= 0.82;                          // ~18% deficit
+  else if (goals.includes('muscle')) kcal *= 1.10;                           // modest surplus
   kcal = Math.round(kcal / 10) * 10;
-  // Protein: higher on a cut (muscle retention) and for muscle gain.
-  const protPerKg = p.goal === 'fatloss' ? 2.2 : p.goal === 'muscle' ? 2.0 : 1.8;
+  // Protein: highest priority across selected goals.
+  const protPerKg = goals.includes('fatloss') ? 2.2 : goals.includes('muscle') ? 2.0 : 1.8;
   const protein = Math.round(protPerKg * w);
   const fat = Math.round((kcal * 0.27) / 9);
   const carbs = Math.round((kcal - protein * 4 - fat * 9) / 4);
