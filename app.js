@@ -30,6 +30,8 @@ const DEFAULT_STATE = {
   maxStreak: 0,                // longest streak ever
   theme: 'dark',               // 'dark' | 'light'
   activeProgram: null,         // {id, start} — focused 30-day program
+  sound: true,                 // audio cues on/off
+  vibrate: true,               // haptics on/off
   version: 5
 };
 
@@ -50,6 +52,7 @@ function migrate(s) {
   s.exState ||= {}; s.badges ||= []; s.reactions ||= {}; s.recentFoods ||= []; s.water ||= {};
   s.prs ||= {}; s.repHistory ||= {}; if (s.startDate === undefined) s.startDate = null; s.goals ||= [];
   s.challenges ||= {}; s.mealTemplates ||= []; s.maxStreak ||= 0; s.theme ||= 'dark'; if (s.activeProgram === undefined) s.activeProgram = null;
+  if (s.sound === undefined) s.sound = true; if (s.vibrate === undefined) s.vibrate = true;
   if (s.profile && s.profile.injuries === undefined) s.profile.injuries = [];
   s.version = SCHEMA_VERSION;
   return s;
@@ -71,6 +74,7 @@ function initials(name) { return (name || 'א').trim().slice(0, 1); }
 // audio + haptic cue (end of rest / end of a timed hold)
 let _audio;
 function beep(freq = 880, dur = 0.14) {
+  if (S && S.sound === false) return;
   try {
     _audio = _audio || new (window.AudioContext || window.webkitAudioContext)();
     const o = _audio.createOscillator(), g = _audio.createGain();
@@ -81,7 +85,7 @@ function beep(freq = 880, dur = 0.14) {
     o.start(); o.stop(_audio.currentTime + dur);
   } catch {}
 }
-function cue() { beep(); try { navigator.vibrate && navigator.vibrate(180); } catch {} }
+function cue() { beep(); try { if (S.vibrate !== false && navigator.vibrate) navigator.vibrate(180); } catch {} }
 
 // Shareable progress report image (canvas → share/download).
 async function shareReport() {
@@ -116,7 +120,7 @@ async function shareReport() {
 }
 function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
 function wrapText(ctx, text, x, y, maxW, lh) { const words = text.split(' '); let line = ''; for (const w of words) { const t = line + w + ' '; if (ctx.measureText(t).width > maxW && line) { ctx.fillText(line.trim(), x, y); line = w + ' '; y += lh; } else line = t; } ctx.fillText(line.trim(), x, y); }
-function tap(ms = 8) { try { navigator.vibrate && navigator.vibrate(ms); } catch {} }
+function tap(ms = 8) { try { if (S.vibrate !== false && navigator.vibrate) navigator.vibrate(ms); } catch {} }
 
 // Celebratory confetti burst (workout complete, PR, badge).
 function confetti() {
@@ -529,7 +533,7 @@ function ScreenHome() {
       <div class="avatar" data-nav="profile">${esc(initials(p.name))}</div>
     </div>
 
-    ${streakAtRisk() ? `<div class="nudge"><span class="ne">🔥</span><div class="grow"><b>הרצף שלך בסכנה!</b><div class="muted" style="font-size:13px">אימון קצר היום ישמור על ${S.streak} הימים שצברת.</div></div><button class="btn sm" data-start-workout>10 דק׳</button></div>` : ''}
+    ${streakAtRisk() ? `<div class="nudge"><span class="ne">🔥</span><div class="grow"><b>הרצף שלך בסכנה!</b><div class="muted" style="font-size:13px">אימון קצר היום ישמור על ${S.streak} הימים שצברת.</div></div><button class="btn sm" data-quick-workout>10 דק׳</button></div>` : ''}
     ${sess.deload ? `<div class="nudge" style="background:linear-gradient(160deg,#141d2b,#0f1620);border-color:#28394d"><span class="ne">🌙</span><div class="grow"><b>שבוע דילואד</b><div class="muted" style="font-size:13px">עומס מופחת להתאוששות — ככה גדלים חזק יותר.</div></div></div>` : ''}
 
     <div class="hero">
@@ -538,6 +542,8 @@ function ScreenHome() {
       ${activityRings()}
       <div class="spacer"></div>
       <button class="btn" data-start-workout>${S.lastWorkout === todayStr() ? 'אימון נוסף' : 'התחל אימון היום'} ›</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" data-quick-workout>⚡ אימון מהיר · 10 דק׳</button>
     </div>
 
     <div class="card" style="text-align:center;font-style:italic;color:var(--text)"><span style="color:var(--accent);font-size:18px">❝</span> ${esc(quoteOfDay())} <span style="color:var(--accent);font-size:18px">❞</span></div>
@@ -700,6 +706,20 @@ function releaseWake() { try { if (wakeSentinel && wakeSentinel.release) wakeSen
 
 function startWorkout() {
   const sess = todaysSession();
+  active = { sess, phase: 'warmup', wi: 0, ci: 0, i: 0, set: 0, resting: false, restLeft: 0, timer: null, prsThisSession: [] };
+  requestWake();
+  go('active');
+  startWarmTimer();
+}
+// Express ~10-minute session: fewer drills, 3 moves, one less set each.
+function startQuickWorkout() {
+  const full = todaysSession();
+  const sess = {
+    ...full, name: full.name + ' · מהיר ⚡',
+    warmup: full.warmup.slice(0, 2),
+    main: full.main.slice(0, 3).map((e) => ({ ...e, sets: Math.max(2, e.sets - 1), rest: Math.min(e.rest, 45) })),
+    cooldown: full.cooldown.slice(0, 1)
+  };
   active = { sess, phase: 'warmup', wi: 0, ci: 0, i: 0, set: 0, resting: false, restLeft: 0, timer: null, prsThisSession: [] };
   requestWake();
   go('active');
@@ -1070,6 +1090,9 @@ function ScreenProgress() {
     <div class="section-title">נפח אימונים שבועי 📊${S.maxStreak ? ` · רצף שיא 🔥${S.maxStreak}` : ''}</div>
     <div class="card">${S.workoutsLog.length ? weeklyVolumeChart() : `<p class="muted center" style="padding:10px">כאן תראה כמה התאמנת כל שבוע</p>`}</div>
 
+    <div class="section-title">5 השבועות האחרונים 🗓️</div>
+    <div class="card">${historyHeatmap()}</div>
+
     ${Object.keys(S.prs).length ? `<div class="section-title">שיאים אישיים 🏆</div>
     <div class="card">
       ${Object.entries(S.prs).map(([id, pr]) => { const ex = EXERCISES.find((e) => e.id === id); return ex ? `<div class="ex-item"><div class="ex-emoji">${ex.emoji}</div><div class="grow"><div class="ex-name">${esc(ex.name)}</div><div class="ex-meta">${pr.date}</div></div><span class="pill accent">${pr.best} חזרות</span></div>` : ''; }).join('')}
@@ -1143,6 +1166,12 @@ function weeklyInsights() {
       </div>
       ${wDelta !== null ? `<div class="between" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)"><span class="muted">מגמת משקל (30 יום)</span><span>${wDelta > 0 ? '▲' : wDelta < 0 ? '▼' : '■'} ${Math.abs(wDelta)} ק״ג</span></div>` : ''}
     </div>`;
+}
+function historyHeatmap() {
+  const days = 35, set = new Set(S.workoutsLog.map((w) => w.date)), today = Math.floor(Date.now() / 864e5);
+  let cells = '';
+  for (let i = days - 1; i >= 0; i--) { const dnum = today - i; const date = new Date(dnum * 864e5).toISOString().slice(0, 10); cells += `<div class="hm-cell ${set.has(date) ? 'on' : ''} ${i === 0 ? 'today' : ''}" title="${date}"></div>`; }
+  return `<div class="heatmap">${cells}</div><div class="between muted" style="font-size:11px;margin-top:8px"><span>לפני 5 שבועות</span><span>היום</span></div>`;
 }
 function weeklyVolumeChart() {
   const weeks = 6, buckets = new Array(weeks).fill(0), now = Date.now();
@@ -1566,6 +1595,12 @@ function ScreenSettings() {
       <button class="chip ${S.theme === 'light' ? 'sel' : ''}" data-set-theme="light" style="flex:1"><div class="t">☀️ בהיר</div></button>
     </div>
 
+    <div class="section-title">צליל ורטט</div>
+    <div class="card">
+      <div class="between" style="padding:8px 0"><span>🔊 צלילי טיימר</span><button class="react-btn" data-toggle-sound>${S.sound !== false ? 'פעיל' : 'כבוי'}</button></div>
+      <div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span>📳 רטט</span><button class="react-btn" data-toggle-vibrate>${S.vibrate !== false ? 'פעיל' : 'כבוי'}</button></div>
+    </div>
+
     <div class="spacer"></div>
     <p class="muted center" style="font-size:12px">השינויים נשמרים מיד ומעדכנים את התוכנית שלך.</p>
   </div>`;
@@ -1666,6 +1701,7 @@ function bind() {
 
   // ---- workout ----
   document.querySelectorAll('[data-start-workout]').forEach((b) => b.onclick = startWorkout);
+  document.querySelectorAll('[data-quick-workout]').forEach((b) => b.onclick = startQuickWorkout);
   const cs = document.querySelector('[data-complete-set]'); if (cs) cs.onclick = completeSet;
   const wn = document.querySelector('[data-warm-next]'); if (wn) wn.onclick = warmNext;
   const cn = document.querySelector('[data-cool-next]'); if (cn) cn.onclick = coolNext;
@@ -1806,6 +1842,8 @@ function bind() {
   document.querySelectorAll('[data-set-level]').forEach((b) => b.onclick = () => { S.profile.level = +b.dataset.setLevel; save(); render(); toast('הרמה עודכנה ✓'); });
   document.querySelectorAll('[data-set-units]').forEach((b) => b.onclick = () => { S.profile.units = b.dataset.setUnits; save(); render(); });
   document.querySelectorAll('[data-set-theme]').forEach((b) => b.onclick = () => { S.theme = b.dataset.setTheme; save(); render(); });
+  const tgS = document.querySelector('[data-toggle-sound]'); if (tgS) tgS.onclick = () => { S.sound = S.sound === false; save(); render(); };
+  const tgV = document.querySelector('[data-toggle-vibrate]'); if (tgV) tgV.onclick = () => { S.vibrate = S.vibrate === false; save(); render(); if (S.vibrate) tap(20); };
   document.querySelectorAll('[data-set-injury]').forEach((b) => b.onclick = () => {
     const id = b.dataset.setInjury; let inj = (S.profile.injuries && S.profile.injuries.length) ? S.profile.injuries : ['none'];
     if (id === 'none') inj = [];

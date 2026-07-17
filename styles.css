@@ -283,6 +283,12 @@ h1,h2,h3,.ex-name,.lb-name,.h-xl,.h-lg { unicode-bidi: plaintext; }
 .wday.done .wd { color: var(--accent); }
 .wday.today { outline: 2px solid var(--accent); outline-offset: -1px; }
 
+/* ---------- history heatmap ---------- */
+.heatmap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.hm-cell { aspect-ratio: 1; border-radius: 5px; background: var(--card-2); }
+.hm-cell.on { background: var(--accent); }
+.hm-cell.today { outline: 2px solid var(--accent); outline-offset: -1px; }
+
 /* ---------- badges ---------- */
 .badges { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
 .badge-item { text-align: center; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 6px; }
