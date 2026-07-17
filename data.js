@@ -356,9 +356,10 @@ function repTarget(goal, level, adjust) {
 // --- Session builder (warm-up → main → cooldown) ----------------------
 // sessionOffset lets the plan rotate day-to-day (progressive, not repetitive).
 // adjustments: { exId: {adjust} } feeds the adaptive engine back into targets.
-function buildSession(profile, sessionOffset = 0, adjustments = {}) {
+function buildSession(profile, sessionOffset = 0, adjustments = {}, opts = {}) {
   const split = chooseSplit(profile);
   const tmpl = split.sessions[sessionOffset % split.sessions.length];
+  const patterns = (opts && opts.patterns) ? opts.patterns : tmpl.patterns;
   const rx = prescription(profile.goal, profile.level);
   const hasBar = profile.equip === 'bar' || profile.equip === 'weights';
 
@@ -372,7 +373,7 @@ function buildSession(profile, sessionOffset = 0, adjustments = {}) {
   );
   const used = new Set();
   const main = [];
-  for (const pat of tmpl.patterns) {
+  for (const pat of patterns) {
     let cands = eligible(pat, profile.level).filter((e) => !used.has(e.id));
     if (!cands.length) {
       // substitute a safe bodyweight alternative so the session is never empty
@@ -417,8 +418,8 @@ function buildSession(profile, sessionOffset = 0, adjustments = {}) {
   // Cooldown: rotating stretches.
   const rot = (arr, n) => Array.from({ length: n }, (_, i) => arr[(sessionOffset + i) % arr.length]);
   return {
-    name: tmpl.name,
-    splitLabel: split.label,
+    name: opts.name || tmpl.name,
+    splitLabel: opts.splitLabel || split.label,
     days: split.days,
     goalStyle: GOALS.find((g) => g.id === profile.goal)?.style || '',
     warmup,
@@ -554,6 +555,16 @@ const VIDEO_CLIPS = [
   ...EXERCISES.map((e) => e.id),
   ...WARMUPS.map((w) => w.id),
   ...COOLDOWNS.map((c) => c.id)
+];
+
+// --- focused programs -------------------------------------------------
+// session = the movement patterns each program's workout emphasises.
+const PROGRAMS = [
+  { id: 'pullup', name: '30 יום למתח הראשון', emoji: '🧗', desc: 'בניית כוח משיכה הדרגתי עד המתח הראשון', days: 30, session: ['vert_pull', 'horiz_pull', 'vert_pull', 'core'] },
+  { id: 'pushup50', name: '50 שכיבות סמיכה', emoji: '🙇', desc: 'מ־0 ל־50 שכיבות תוך 30 יום', days: 30, session: ['horiz_push', 'vert_push', 'horiz_push', 'core'] },
+  { id: 'core', name: 'ליבת פלדה', emoji: '🔥', desc: '21 יום לבטן וליבה חזקה ויציבה', days: 21, session: ['core', 'core', 'cardio', 'core'] },
+  { id: 'legs', name: 'רגליים חזקות', emoji: '🦵', desc: '30 יום כוח וסיבולת לפלג גוף תחתון', days: 30, session: ['squat', 'hinge', 'squat', 'cardio'] },
+  { id: 'fatburn', name: 'שריפת שומן 30 יום', emoji: '💧', desc: 'אימוני מעגל אינטנסיביים לחיטוב', days: 30, session: ['cardio', 'squat', 'horiz_push', 'core', 'cardio'] }
 ];
 
 // --- daily challenges (rotates by day) --------------------------------

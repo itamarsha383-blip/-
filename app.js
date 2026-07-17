@@ -29,6 +29,7 @@ const DEFAULT_STATE = {
   mealTemplates: [],           // [{name, items:[...]}]
   maxStreak: 0,                // longest streak ever
   theme: 'dark',               // 'dark' | 'light'
+  activeProgram: null,         // {id, start} — focused 30-day program
   version: 5
 };
 
@@ -48,7 +49,7 @@ function load() {
 function migrate(s) {
   s.exState ||= {}; s.badges ||= []; s.reactions ||= {}; s.recentFoods ||= []; s.water ||= {};
   s.prs ||= {}; s.repHistory ||= {}; if (s.startDate === undefined) s.startDate = null; s.goals ||= [];
-  s.challenges ||= {}; s.mealTemplates ||= []; s.maxStreak ||= 0; s.theme ||= 'dark';
+  s.challenges ||= {}; s.mealTemplates ||= []; s.maxStreak ||= 0; s.theme ||= 'dark'; if (s.activeProgram === undefined) s.activeProgram = null;
   if (s.profile && s.profile.injuries === undefined) s.profile.injuries = [];
   s.version = SCHEMA_VERSION;
   return s;
@@ -295,8 +296,15 @@ function isDeload() {
 }
 // Today's session rotates through the weekly split (progressive, not repetitive),
 // with the adaptive engine (exState) feeding rep targets back in.
+function activeProgram() { return S.activeProgram ? PROGRAMS.find((p) => p.id === S.activeProgram.id) : null; }
+function programDay() {
+  if (!S.activeProgram) return 0;
+  return new Set(S.workoutsLog.filter((w) => w.date >= S.activeProgram.start).map((w) => w.date)).size;
+}
 function todaysSession() {
-  const sess = buildSession(S.profile, S.workoutsLog.length, S.exState);
+  const prog = activeProgram();
+  const opts = prog ? { patterns: prog.session, name: `${prog.name} · יום ${Math.min(prog.days, programDay() + 1)}`, splitLabel: 'תוכנית ממוקדת' } : {};
+  const sess = buildSession(S.profile, S.workoutsLog.length, S.exState, opts);
   if (isDeload()) {
     sess.deload = true;
     sess.main = sess.main.map((e) => ({ ...e, sets: Math.max(2, e.sets - 1) }));
@@ -361,7 +369,7 @@ function fmtRest(sec) {
 function render() {
   document.body.classList.toggle('light', S.theme === 'light');
   const app = el('app');
-  const showNav = S.profile && ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy', 'cloud', 'settings', 'goals'].includes(route.name) && route.name !== 'firstweek';
+  const showNav = S.profile && ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy', 'cloud', 'settings', 'goals', 'programs'].includes(route.name) && route.name !== 'firstweek';
   let html = '';
   switch (route.name) {
     case 'onboard': html = ScreenOnboard(); break;
@@ -379,6 +387,7 @@ function render() {
     case 'settings': html = ScreenSettings(); break;
     case 'goals': html = ScreenGoals(); break;
     case 'firstweek': html = ScreenFirstWeek(); break;
+    case 'programs': html = ScreenPrograms(); break;
     default: html = ScreenHome();
   }
   app.innerHTML = html + (showNav ? Nav() : '');
@@ -533,6 +542,8 @@ function ScreenHome() {
 
     <div class="card" style="text-align:center;font-style:italic;color:var(--text)"><span style="color:var(--accent);font-size:18px">❝</span> ${esc(quoteOfDay())} <span style="color:var(--accent);font-size:18px">❞</span></div>
 
+    ${activeProgram() ? (() => { const a = activeProgram(); const day = Math.min(a.days, programDay()); const pct = Math.round((day / a.days) * 100); return `<div class="card" data-nav="programs" style="cursor:pointer"><div class="between" style="margin-bottom:8px"><span class="ex-name">${a.emoji} ${esc(a.name)}</span><span class="muted" style="font-size:13px">יום ${day}/${a.days}</span></div><div class="mtrack"><div class="mfill p" style="width:${pct}%"></div></div></div>`; })() : ''}
+
     <div class="between" style="margin:2px 2px 8px"><span class="section-title" style="margin:0">היעדים שלי 🎯</span><button class="react-btn" data-nav="goals">${S.goals.length ? 'ערוך ›' : 'הגדר יעד ›'}</button></div>
     <div class="card" data-nav="goals" style="cursor:pointer">
       ${S.goals.length ? S.goals.slice(0, 2).map((g) => { const gp = goalProgress(g); return `<div style="padding:6px 0"><div class="between" style="margin-bottom:5px;font-size:13px"><span>${gp.title}</span><span class="muted">${Math.round(gp.pct)}%</span></div><div class="mtrack"><div class="mfill p" style="width:${gp.pct}%"></div></div></div>`; }).join('') : `<p class="muted center" style="padding:6px;font-size:13px">הגדר יעד ותראה את ההתקדמות אליו כאן 🎯</p>`}
@@ -673,7 +684,10 @@ function ScreenWorkouts() {
 
     <button class="btn" data-start-workout>התחל אימון 🔥</button>
     <div class="spacer"></div>
-    <button class="btn ghost" data-nav="library">עיין בכל התרגילים</button>
+    <div class="row2">
+      <button class="btn ghost" data-nav="programs">🎯 תוכניות</button>
+      <button class="btn ghost" data-nav="library">📚 תרגילים</button>
+    </div>
   </div>`;
 }
 
@@ -1423,6 +1437,33 @@ function ScreenProfile() {
 }
 
 /* ============================================================
+   FOCUSED PROGRAMS
+   ============================================================ */
+function ScreenPrograms() {
+  const active = activeProgram();
+  return `<div class="screen">
+    <button class="back" data-nav="home">›  חזרה</button>
+    <h2 class="h-lg" style="margin-bottom:6px">תוכניות ממוקדות 🎯</h2>
+    <p class="muted" style="margin:0 0 16px">מסלול ברור למטרה — האימונים היומיים יתאימו את עצמם לתוכנית.</p>
+
+    ${active ? (() => { const day = Math.min(active.days, programDay()); const pct = Math.round((day / active.days) * 100); return `<div class="hero">
+      <div class="between"><span class="pill accent">${active.emoji} פעיל</span><span class="muted">יום ${day}/${active.days}</span></div>
+      <h3 class="h-lg" style="margin:12px 0 6px">${esc(active.name)}</h3>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <p class="muted" style="margin:10px 0 12px">${pct >= 100 ? '🎉 סיימת את התוכנית! כל הכבוד.' : `נותרו ${active.days - day} ימי אימון`}</p>
+      <button class="btn ghost" data-stop-program style="color:var(--danger);border-color:var(--danger)">עצור תוכנית</button>
+    </div>`; })() : ''}
+
+    <div class="section-title">${active ? 'תוכניות נוספות' : 'בחר תוכנית'}</div>
+    ${PROGRAMS.filter((p) => !active || p.id !== active.id).map((p) => `<div class="card">
+      <div class="flex" style="margin-bottom:8px"><span style="font-size:30px">${p.emoji}</span><div class="grow"><div class="ex-name">${esc(p.name)}</div><div class="ex-meta">${p.days} ימים</div></div></div>
+      <p class="muted" style="font-size:13.5px;margin:0 0 12px">${esc(p.desc)}</p>
+      <button class="btn sm" data-start-program="${p.id}">התחל תוכנית ›</button>
+    </div>`).join('')}
+  </div>`;
+}
+
+/* ============================================================
    FIRST-WEEK PREVIEW (shown right after onboarding)
    ============================================================ */
 function ScreenFirstWeek() {
@@ -1756,6 +1797,8 @@ function bind() {
   };
   document.querySelectorAll('[data-del-goal]').forEach((b) => b.onclick = (ev) => { ev.stopPropagation(); S.goals.splice(+b.dataset.delGoal, 1); save(); render(); });
   const chDone = document.querySelector('[data-challenge-done]'); if (chDone) chDone.onclick = () => { S.challenges[todayStr()] = true; save(); render(); confetti(); tap(20); toast('אתגר הושלם! 🔥'); };
+  document.querySelectorAll('[data-start-program]').forEach((b) => b.onclick = () => { S.activeProgram = { id: b.dataset.startProgram, start: todayStr() }; save(); render(); confetti(); toast('התוכנית התחילה! 🎯'); });
+  const stopP = document.querySelector('[data-stop-program]'); if (stopP) stopP.onclick = () => { if (confirm('לעצור את התוכנית?')) { S.activeProgram = null; save(); render(); } };
 
   // ---- settings (live plan edits) ----
   document.querySelectorAll('[data-set-goal]').forEach((b) => b.onclick = () => { S.profile.goal = b.dataset.setGoal; save(); render(); toast('המטרה עודכנה ✓'); });
