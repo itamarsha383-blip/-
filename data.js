@@ -556,6 +556,24 @@ const VIDEO_CLIPS = [
   ...COOLDOWNS.map((c) => c.id)
 ];
 
+// --- daily challenges (rotates by day) --------------------------------
+const DAILY_CHALLENGES = [
+  { emoji: '🦵', text: '50 סקוואטים במהלך היום' },
+  { emoji: '🙇', text: '30 שכיבות סמיכה מפוזרות' },
+  { emoji: '🧘', text: 'פלאנק מצטבר של 3 דקות' },
+  { emoji: '🚶', text: '8,000 צעדים היום' },
+  { emoji: '💧', text: 'לשתות 3 ליטר מים' },
+  { emoji: '🌅', text: '5 דקות מתיחות בבוקר' },
+  { emoji: '🔥', text: '40 מטפסי הרים' },
+  { emoji: '🍎', text: 'לאכול 2 מנות ירק' },
+  { emoji: '🏃', text: '20 ברפי במהלך היום' },
+  { emoji: '🌙', text: 'ללכת לישון לפני חצות' },
+  { emoji: '🍗', text: 'להגיע ליעד החלבון היומי' },
+  { emoji: '🤸', text: '20 מכרעים לכל רגל' },
+  { emoji: '💪', text: '3 סטים של מקסימום שכיבות' },
+  { emoji: '🧗', text: 'תלייה על מוט 60 שניות מצטבר' }
+];
+
 // --- 100 motivational lines (daily quote + between-set nudges) --------
 const QUOTES = [
   'כל אימון סופר. גם הקצר.',

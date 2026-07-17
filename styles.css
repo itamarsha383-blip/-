@@ -17,6 +17,18 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
 
+body.light {
+  --bg: #F4F6F8;
+  --bg-2: #EAEEF2;
+  --card: #FFFFFF;
+  --card-2: #EEF2F6;
+  --line: #DCE3EA;
+  --text: #10151B;
+  --muted: #647082;
+  --shadow: 0 10px 30px rgba(30,50,80,.10);
+}
+body.light { background: radial-gradient(1200px 600px at 80% -10%, #e6eef7 0%, var(--bg) 55%); }
+
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; padding: 0; height: 100%; }
 body {
@@ -48,6 +60,14 @@ body {
 
 /* confetti overlay */
 #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 200; }
+
+/* boot splash */
+#splash { position: fixed; inset: 0; z-index: 300; background: var(--bg); display: grid; place-items: center; animation: splash-out .5s ease 1s forwards; }
+#splash .splash-logo { font-weight: 900; letter-spacing: 3px; font-size: 42px; color: var(--text); animation: splash-pop .6s cubic-bezier(.22,.9,.3,1); }
+#splash .splash-logo b { color: var(--accent); }
+@keyframes splash-pop { from { opacity: 0; transform: scale(.8); } to { opacity: 1; transform: none; } }
+@keyframes splash-out { to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { #splash { animation: splash-out .3s ease .3s forwards; } }
 
 /* ---------- activity rings (Apple-Fitness style) ---------- */
 .rings-wrap { display: flex; align-items: center; gap: 18px; }

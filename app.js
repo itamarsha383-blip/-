@@ -25,7 +25,11 @@ const DEFAULT_STATE = {
   repHistory: {},              // { exId: [{date, reps}] } — for strength trend
   startDate: null,             // first day (for deload cycle)
   goals: [],                   // personal goals: {type:'weight'|'reps', ...}
-  version: 4
+  challenges: {},              // { 'YYYY-MM-DD': true } daily challenge done
+  mealTemplates: [],           // [{name, items:[...]}]
+  maxStreak: 0,                // longest streak ever
+  theme: 'dark',               // 'dark' | 'light'
+  version: 5
 };
 
 let S = load();
@@ -44,6 +48,7 @@ function load() {
 function migrate(s) {
   s.exState ||= {}; s.badges ||= []; s.reactions ||= {}; s.recentFoods ||= []; s.water ||= {};
   s.prs ||= {}; s.repHistory ||= {}; if (s.startDate === undefined) s.startDate = null; s.goals ||= [];
+  s.challenges ||= {}; s.mealTemplates ||= []; s.maxStreak ||= 0; s.theme ||= 'dark';
   if (s.profile && s.profile.injuries === undefined) s.profile.injuries = [];
   s.version = SCHEMA_VERSION;
   return s;
@@ -76,6 +81,40 @@ function beep(freq = 880, dur = 0.14) {
   } catch {}
 }
 function cue() { beep(); try { navigator.vibrate && navigator.vibrate(180); } catch {} }
+
+// Shareable progress report image (canvas → share/download).
+async function shareReport() {
+  const cv = document.createElement('canvas'); cv.width = 1080; cv.height = 1350;
+  const ctx = cv.getContext('2d'); ctx.textAlign = 'center'; ctx.direction = 'rtl';
+  const g = ctx.createLinearGradient(0, 0, 1080, 1350); g.addColorStop(0, '#12181f'); g.addColorStop(1, '#0B0E11');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 1080, 1350);
+  ctx.fillStyle = '#C6FF3D'; ctx.font = '900 90px sans-serif'; ctx.fillText('KIN', 540, 150);
+  ctx.fillStyle = '#EDF1F5'; ctx.font = 'bold 46px sans-serif'; ctx.fillText('דוח התקדמות · ' + (S.profile?.name || ''), 540, 240);
+  const stats = [
+    ['אימונים סה״כ', S.workoutsLog.length],
+    ['רצף נוכחי', S.streak + ' ימים'],
+    ['רצף שיא', (S.maxStreak || 0) + ' ימים'],
+    ['שיאים אישיים', Object.keys(S.prs).length],
+    ['שקילות', S.weights.length]
+  ];
+  let y = 400;
+  stats.forEach(([lab, val]) => {
+    ctx.fillStyle = '#151A21'; roundRect(ctx, 120, y, 840, 130, 24); ctx.fill();
+    ctx.fillStyle = '#8A97A6'; ctx.font = '36px sans-serif'; ctx.textAlign = 'right'; ctx.fillText(lab, 900, y + 82);
+    ctx.fillStyle = '#C6FF3D'; ctx.font = 'bold 64px sans-serif'; ctx.textAlign = 'left'; ctx.fillText(String(val), 180, y + 90);
+    y += 158;
+  });
+  ctx.textAlign = 'center'; ctx.fillStyle = '#EDF1F5'; ctx.font = 'italic 38px sans-serif';
+  wrapText(ctx, quoteOfDay(), 540, y + 40, 900, 50);
+  try {
+    const blob = await new Promise((res) => cv.toBlob(res, 'image/png'));
+    const file = new File([blob], 'kin-report.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: 'ההתקדמות שלי ב-KIN 💪' });
+    else { const a = document.createElement('a'); a.href = cv.toDataURL('image/png'); a.download = 'kin-report.png'; a.click(); }
+  } catch {}
+}
+function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function wrapText(ctx, text, x, y, maxW, lh) { const words = text.split(' '); let line = ''; for (const w of words) { const t = line + w + ' '; if (ctx.measureText(t).width > maxW && line) { ctx.fillText(line.trim(), x, y); line = w + ' '; y += lh; } else line = t; } ctx.fillText(line.trim(), x, y); }
 function tap(ms = 8) { try { navigator.vibrate && navigator.vibrate(ms); } catch {} }
 
 // Celebratory confetti burst (workout complete, PR, badge).
@@ -272,6 +311,7 @@ const BADGES = [
   { id: 'w10', emoji: '🏆', name: 'מכור/ה', desc: '10 אימונים', test: () => S.workoutsLog.length >= 10 },
   { id: 's3', emoji: '🔥', name: 'רצף 3', desc: '3 ימים ברצף', test: () => S.streak >= 3 },
   { id: 's7', emoji: '⚡', name: 'שבוע מושלם', desc: 'רצף של 7 ימים', test: () => S.streak >= 7 },
+  { id: 's14', emoji: '👑', name: 'בלתי ניתן לעצירה', desc: 'רצף שיא של 14 ימים', test: () => (S.maxStreak || 0) >= 14 },
   { id: 'level', emoji: '📈', name: 'מתקדמים', desc: 'עלית עומס בתרגיל', test: () => Object.values(S.exState).some((x) => (x.adjust || 0) >= 2) },
   { id: 'pr', emoji: '🏆', name: 'שובר שיאים', desc: 'קבעת שיא אישי', test: () => Object.keys(S.prs).length >= 1 },
   { id: 'log', emoji: '⚖️', name: 'עוקב/ת', desc: 'רשמת 3 שקילות', test: () => S.weights.length >= 3 },
@@ -303,7 +343,7 @@ function computeStreak() {
   return streak;
 }
 // Recompute derived streak state (call on load + after every workout).
-function refreshStreak() { S.streak = computeStreak(); S.lastWorkout = S.workoutsLog.length ? S.workoutsLog[S.workoutsLog.length - 1].date : null; }
+function refreshStreak() { S.streak = computeStreak(); S.lastWorkout = S.workoutsLog.length ? S.workoutsLog[S.workoutsLog.length - 1].date : null; S.maxStreak = Math.max(S.maxStreak || 0, S.streak); }
 // Alive chain, but not trained yet today → nudge before it breaks.
 function streakAtRisk() {
   if (!S.workoutsLog.length || S.lastWorkout === todayStr()) return false;
@@ -319,8 +359,9 @@ function fmtRest(sec) {
    ROUTER
    ============================================================ */
 function render() {
+  document.body.classList.toggle('light', S.theme === 'light');
   const app = el('app');
-  const showNav = S.profile && ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy', 'cloud', 'settings', 'goals'].includes(route.name);
+  const showNav = S.profile && ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy', 'cloud', 'settings', 'goals'].includes(route.name) && route.name !== 'firstweek';
   let html = '';
   switch (route.name) {
     case 'onboard': html = ScreenOnboard(); break;
@@ -337,6 +378,7 @@ function render() {
     case 'cloud': html = ScreenCloud(); break;
     case 'settings': html = ScreenSettings(); break;
     case 'goals': html = ScreenGoals(); break;
+    case 'firstweek': html = ScreenFirstWeek(); break;
     default: html = ScreenHome();
   }
   app.innerHTML = html + (showNav ? Nav() : '');
@@ -496,6 +538,9 @@ function ScreenHome() {
       ${S.goals.length ? S.goals.slice(0, 2).map((g) => { const gp = goalProgress(g); return `<div style="padding:6px 0"><div class="between" style="margin-bottom:5px;font-size:13px"><span>${gp.title}</span><span class="muted">${Math.round(gp.pct)}%</span></div><div class="mtrack"><div class="mfill p" style="width:${gp.pct}%"></div></div></div>`; }).join('') : `<p class="muted center" style="padding:6px;font-size:13px">הגדר יעד ותראה את ההתקדמות אליו כאן 🎯</p>`}
     </div>
 
+    ${(() => { const ch = dailyChallenge(); const done = !!S.challenges[todayStr()]; return `<div class="section-title">אתגר יומי ${done ? '✅' : '🔥'}</div>
+    <div class="card"><div class="between"><div class="flex"><span style="font-size:26px">${ch.emoji}</span><span class="ex-name" style="font-size:14px">${esc(ch.text)}</span></div>${done ? '<span class="pill accent">בוצע!</span>' : '<button class="btn sm" data-challenge-done>סיימתי</button>'}</div></div>`; })()}
+
     <div class="between" style="margin:2px 2px 8px"><span class="section-title" style="margin:0">הנתונים שלך</span><button class="react-btn" data-nav="progress">התקדמות והישגים ›</button></div>
     <div class="stats" data-nav="progress" style="cursor:pointer">
       <div class="stat"><div class="num accent">${S.workoutsLog.length}</div><div class="lab">אימונים סה״כ</div></div>
@@ -525,6 +570,7 @@ function ScreenHome() {
 }
 function greet() { const h = new Date().getHours(); return h < 12 ? 'בוקר טוב' : h < 18 ? 'צהריים טובים' : 'ערב טוב'; }
 function quoteOfDay() { return QUOTES[Math.floor(Date.now() / 864e5) % QUOTES.length]; }
+function dailyChallenge() { return DAILY_CHALLENGES[Math.floor(Date.now() / 864e5) % DAILY_CHALLENGES.length]; }
 
 // ---------- progress photos: PRIVATE, local-only, explicit share ----------
 const PHOTOS_KEY = 'kin_photos';
@@ -634,14 +680,23 @@ function ScreenWorkouts() {
 /* ============================================================
    ACTIVE WORKOUT
    ============================================================ */
+let wakeSentinel = null;
+function requestWake() { try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then((w) => { wakeSentinel = w; }).catch(() => {}); } catch {} }
+function releaseWake() { try { if (wakeSentinel && wakeSentinel.release) wakeSentinel.release(); wakeSentinel = null; } catch {} }
+
 function startWorkout() {
   const sess = todaysSession();
-  active = { sess, phase: 'warmup', wi: 0, ci: 0, i: 0, set: 0, resting: false, restLeft: 0, timer: null };
+  active = { sess, phase: 'warmup', wi: 0, ci: 0, i: 0, set: 0, resting: false, restLeft: 0, timer: null, prsThisSession: [] };
+  requestWake();
   go('active');
+  startWarmTimer();
 }
 function ScreenActive() {
   if (!active) { go('workouts'); return ''; }
   const s = active.sess;
+
+  // ----- SUMMARY phase -----
+  if (active.phase === 'summary') return summaryScreen();
 
   // ----- WARM-UP phase -----
   if (active.phase === 'warmup') {
@@ -652,10 +707,10 @@ function ScreenActive() {
       <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
       ${photoDemo(wu.id, `<span class="fig">${wu.emoji}</span>`, 'הכנת הגוף לאימון')}
       <h2 class="h-lg">${esc(wu.name)}</h2>
-      <div class="h-xl" style="margin:10px 0 2px">${wu.sec} שנ׳</div>
+      <div class="timer" style="font-size:52px">${active.warmLeft != null ? active.warmLeft : wu.sec}</div>
       <p class="muted">${esc(wu.note)}</p>
       <div class="spacer"></div>
-      <button class="btn" data-warm-next>סיימתי ✓</button>
+      <button class="btn" data-warm-next>דלג ›</button>
     </div>`;
   }
 
@@ -668,10 +723,10 @@ function ScreenActive() {
       <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
       ${photoDemo(cd.id, `<span class="fig">${cd.emoji}</span>`, 'שחרור ומתיחה')}
       <h2 class="h-lg">${esc(cd.name)}</h2>
-      <div class="h-xl" style="margin:10px 0 2px">${cd.sec} שנ׳</div>
+      <div class="timer" style="font-size:52px">${active.coolLeft != null ? active.coolLeft : cd.sec}</div>
       <p class="muted">${esc(cd.note)}</p>
       <div class="spacer"></div>
-      <button class="btn" data-cool-next>סיימתי ✓</button>
+      <button class="btn" data-cool-next>דלג ›</button>
     </div>`;
   }
 
@@ -704,6 +759,10 @@ function ScreenActive() {
       <div class="timer">${active.restLeft}</div>
       <p class="muted">הבא: ${esc(e.name)} · סט ${active.set + 1}/${totalSets}</p>
       <p style="font-size:14px;margin-top:10px;font-style:italic;color:var(--accent)">${esc(active.restQuote || quoteOfDay())}</p>
+      <div class="flex" style="justify-content:center;gap:12px;margin-top:16px">
+        <button class="btn ghost sm" data-rest-sub>−15 שנ׳</button>
+        <button class="btn ghost sm" data-rest-add>+15 שנ׳</button>
+      </div>
       <div class="spacer"></div>
       <button class="btn" data-skip-rest>דלג על המנוחה ›</button>
     </div>`;
@@ -746,24 +805,73 @@ function ScreenActive() {
     <div class="spacer"></div>
     <button class="btn" data-complete-set>סיימתי את הסט ✓</button>`}
     <div class="spacer"></div>
-    <button class="btn ghost" data-ex="${e.id}">איך עושים? טכניקה וטעויות</button>
+    <div class="row2">
+      <button class="btn ghost" data-ex="${e.id}">טכניקה</button>
+      <button class="btn ghost" data-swap-ex>🔄 החלף תרגיל</button>
+    </div>
   </div>`;
 }
-function warmNext() {
-  active.wi++;
-  if (active.wi >= active.sess.warmup.length) { active.phase = 'main'; }
+function summaryScreen() {
+  const s = active.sess;
+  const totalSets = s.main.reduce((a, e) => a + e.sets, 0);
+  const prs = active.prsThisSession || [];
+  return `<div class="screen aw-wrap">
+    <div style="font-size:56px;margin-top:6vh">🎉</div>
+    <h1 class="h-xl" style="margin:8px 0 2px">אימון הושלם!</h1>
+    <p class="muted" style="margin-bottom:18px">${esc(s.name)}</p>
+    <div class="stats" style="margin-bottom:14px">
+      <div class="stat"><div class="num accent">${s.main.length}</div><div class="lab">תרגילים</div></div>
+      <div class="stat"><div class="num">${totalSets}</div><div class="lab">סטים</div></div>
+      <div class="stat"><div class="num">${estMinutes(s)}</div><div class="lab">דקות</div></div>
+    </div>
+    ${prs.length ? `<div class="card"><div class="section-title" style="margin-top:0">שיאים חדשים 🏆</div>${prs.map((p) => `<div class="ex-item"><div class="ex-emoji">🏆</div><div class="grow"><div class="ex-name">${esc(p.name)}</div></div><span class="pill accent">${p.reps} חזרות</span></div>`).join('')}</div>` : ''}
+    <p style="font-style:italic;color:var(--accent);margin:8px 0 4px">${esc(randomQuote())}</p>
+    <div class="spacer"></div>
+    <button class="btn" data-finish-summary>סיום 🔥</button>
+  </div>`;
+}
+function startWarmTimer() {
+  if (!active || active.phase !== 'warmup') return;
+  if (active.timer) clearInterval(active.timer);
+  active.warmLeft = active.sess.warmup[active.wi].sec;
   render();
+  active.timer = setInterval(() => {
+    active.warmLeft--;
+    if (active.warmLeft <= 3 && active.warmLeft > 0) beep(1200, 0.07);
+    if (active.warmLeft <= 0) { clearInterval(active.timer); cue(); warmNext(); }
+    else { const t = document.querySelector('.timer'); if (t) t.textContent = active.warmLeft; }
+  }, 1000);
+}
+function warmNext() {
+  if (active.timer) clearInterval(active.timer);
+  active.wi++;
+  if (active.wi >= active.sess.warmup.length) { active.phase = 'main'; render(); }
+  else startWarmTimer();
+}
+function startCoolTimer() {
+  if (!active || active.phase !== 'cooldown') return;
+  if (active.timer) clearInterval(active.timer);
+  active.coolLeft = active.sess.cooldown[active.ci].sec;
+  render();
+  active.timer = setInterval(() => {
+    active.coolLeft--;
+    if (active.coolLeft <= 3 && active.coolLeft > 0) beep(1200, 0.07);
+    if (active.coolLeft <= 0) { clearInterval(active.timer); cue(); coolNext(); }
+    else { const t = document.querySelector('.timer'); if (t) t.textContent = active.coolLeft; }
+  }, 1000);
 }
 function coolNext() {
+  if (active.timer) clearInterval(active.timer);
   active.ci++;
-  if (active.ci >= active.sess.cooldown.length) return finishWorkout();
-  render();
+  if (active.ci >= active.sess.cooldown.length) { active.phase = 'summary'; render(); }
+  else startCoolTimer();
 }
 function startRest(sec) {
   active.resting = true; active.restLeft = sec; active.restQuote = randomQuote();
   render();
   active.timer = setInterval(() => {
     active.restLeft--;
+    if (active.restLeft <= 3 && active.restLeft > 0) beep(1200, 0.07);
     if (active.restLeft <= 0) { clearInterval(active.timer); active.resting = false; cue(); render(); }
     else { const t = document.querySelector('.timer'); if (t) t.textContent = active.restLeft; }
   }, 1000);
@@ -775,11 +883,23 @@ function startHold() {
   render();
   active.timer = setInterval(() => {
     active.workLeft--;
+    if (active.workLeft <= 3 && active.workLeft > 0) beep(1200, 0.07);
     if (active.workLeft <= 0) { clearInterval(active.timer); active.working = false; cue(); completeSet(); }
     else { const t = document.querySelector('.timer'); if (t) t.textContent = active.workLeft; }
   }, 1000);
 }
 function stopHold() { if (active.timer) clearInterval(active.timer); active.working = false; completeSet(); }
+function swapExercise() {
+  const s = active.sess, cur = s.main[active.i], p = S.profile;
+  const used = new Set(s.main.map((x) => x.id));
+  const hasBar = p.equip === 'bar' || p.equip === 'weights';
+  const avoid = new Set(); (p.injuries || []).forEach((id) => (INJURIES.find((x) => x.id === id)?.avoid || []).forEach((x) => avoid.add(x)));
+  const cands = EXERCISES.filter((e) => e.pattern === cur.pattern && e.id !== cur.id && !used.has(e.id) && e.level <= p.level && (hasBar || (e.equip !== 'bar' && e.equip !== 'bars')) && !avoid.has(e.id));
+  if (!cands.length) return toast('אין חלופה זמינה לתרגיל הזה');
+  const ne = cands[Math.floor(Math.random() * cands.length)];
+  s.main[active.i] = { ...ne, sets: cur.sets, reps: ne.timed ? `${cur.holdSec || 30} שנ׳` : cur.reps, repsTarget: ne.timed ? null : cur.repsTarget, holdSec: ne.timed ? (cur.holdSec || 30) : null, rest: cur.rest, rpe: cur.rpe, adjusted: 0, graduated: false, timed: ne.timed };
+  active.set = 0; active.repInput = null; render(); toast('הוחלף ל' + ne.name);
+}
 function completeSet() {
   tap(12);
   const e = active.sess.main[active.i];
@@ -797,7 +917,7 @@ function completeSet() {
       if (S.repHistory[e.id].length > 60) S.repHistory[e.id].shift();
     }
     save();
-    if (active.gotPR) { confetti(); tap(30); setTimeout(() => toast(`🏆 שיא חדש ב${e.name}!`), 200); }
+    if (active.gotPR) { (active.prsThisSession ||= []).push({ name: e.name, reps: S.prs[e.id].best }); confetti(); tap(30); setTimeout(() => toast(`🏆 שיא חדש ב${e.name}!`), 200); }
     active.gotPR = false; active.sessionBest = 0;
     if (active.timer) clearInterval(active.timer);
     active.resting = false;
@@ -815,17 +935,17 @@ function applyFeedback(kind) {
   save();
   active.feedbackFor = null;
   active.set = 0; active.i++;
-  if (active.i >= active.sess.main.length) { active.phase = 'cooldown'; return render(); }
+  if (active.i >= active.sess.main.length) { active.phase = 'cooldown'; active.ci = 0; startCoolTimer(); return; }
   startRest(active.sess.main[active.i].rest);  // rest before next exercise
 }
 function finishWorkout() {
   if (active?.timer) clearInterval(active.timer);
+  releaseWake();
   S.workoutsLog.push({ date: todayStr(), name: active.sess.name, exercises: active.sess.main.map((e) => e.id) });
-  refreshStreak(); save();
+  refreshStreak(); S.maxStreak = Math.max(S.maxStreak || 0, S.streak); save();
   active = null;
   go('home');
   confetti(); tap(30);
-  setTimeout(() => toast('כל הכבוד! אימון הושלם 🔥'), 250);
   checkBadges();
   if (Cloud.enabled()) { Cloud.resetCache(); Cloud.syncSelf({ workouts: S.workoutsLog.length, streak: S.streak }).catch(() => {}); }
 }
@@ -924,7 +1044,7 @@ function ScreenProgress() {
         <p class="muted" style="margin-top:12px;font-size:12px">🔒 פרטי — שיתוף רק בבחירתך</p>
       </div>
     </div>` : ''}
-    <h2 class="h-lg" style="margin-bottom:14px">ההתקדמות שלך</h2>
+    <div class="between" style="margin-bottom:14px"><h2 class="h-lg">ההתקדמות שלך</h2><button class="react-btn" data-share-report>📤 שתף דוח</button></div>
     <div class="stats">
       <div class="stat"><div class="num accent">${S.streak}</div><div class="lab">רצף ימים</div></div>
       <div class="stat"><div class="num">${S.workoutsLog.length}</div><div class="lab">אימונים</div></div>
@@ -932,6 +1052,9 @@ function ScreenProgress() {
     </div>
 
     ${weeklyInsights()}
+
+    <div class="section-title">נפח אימונים שבועי 📊${S.maxStreak ? ` · רצף שיא 🔥${S.maxStreak}` : ''}</div>
+    <div class="card">${S.workoutsLog.length ? weeklyVolumeChart() : `<p class="muted center" style="padding:10px">כאן תראה כמה התאמנת כל שבוע</p>`}</div>
 
     ${Object.keys(S.prs).length ? `<div class="section-title">שיאים אישיים 🏆</div>
     <div class="card">
@@ -1006,6 +1129,14 @@ function weeklyInsights() {
       </div>
       ${wDelta !== null ? `<div class="between" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)"><span class="muted">מגמת משקל (30 יום)</span><span>${wDelta > 0 ? '▲' : wDelta < 0 ? '▼' : '■'} ${Math.abs(wDelta)} ק״ג</span></div>` : ''}
     </div>`;
+}
+function weeklyVolumeChart() {
+  const weeks = 6, buckets = new Array(weeks).fill(0), now = Date.now();
+  S.workoutsLog.forEach((w) => { const d = Math.floor((now - new Date(w.date + 'T00:00:00').getTime()) / (7 * 864e5)); if (d >= 0 && d < weeks) buckets[weeks - 1 - d]++; });
+  const max = Math.max(1, ...buckets), W = 300, H = 110, bw = (W - 16) / weeks;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" style="height:110px">
+    ${buckets.map((v, i) => { const h = (v / max) * (H - 30); const x = 8 + i * bw; return `<rect x="${(x + 4).toFixed(1)}" y="${(H - 18 - h).toFixed(1)}" width="${(bw - 8).toFixed(1)}" height="${Math.max(2, h).toFixed(1)}" rx="4" fill="var(--accent)" opacity="${v ? 1 : .22}"/>${v ? `<text x="${(x + bw / 2).toFixed(1)}" y="${(H - 22 - h).toFixed(1)}" text-anchor="middle" font-size="11" fill="var(--text)">${v}</text>` : ''}<text x="${(x + bw / 2).toFixed(1)}" y="${H - 4}" text-anchor="middle" font-size="9" fill="var(--muted)">${i === weeks - 1 ? 'השבוע' : (weeks - 1 - i) + 'ש׳'}</text>`; }).join('')}
+  </svg>`;
 }
 function repSparkline(hist) {
   const pts = hist.slice(-14);
@@ -1108,6 +1239,19 @@ function ScreenNutrition() {
       : q ? `<p class="muted center" style="padding:8px">לא נמצא — נרחיב את המאגר עם API אמיתי בהמשך</p>` : ''}
     </div>`}
 
+    ${!pendingFood ? `<div class="section-title">תבניות ארוחה ⚡</div>
+    <div class="card">
+      ${S.mealTemplates.length ? `<div class="chips" style="margin-bottom:10px">${S.mealTemplates.map((t, i) => `<button class="chip" data-apply-tmpl="${i}" style="flex:0 0 auto;padding:8px 14px"><div class="t">${esc(t.name)}</div><div class="s">${t.items.length} פריטים</div></button>`).join('')}</div>` : `<p class="muted" style="font-size:13px;margin:0 0 10px">שמור ארוחה קבועה (כמו הבוקר שלך) והוסף אותה בלחיצה אחת.</p>`}
+      ${today.length ? `<button class="btn sm ghost" data-save-tmpl>💾 שמור את ארוחת היום כתבנית</button>` : ''}
+      ${S.mealTemplates.length ? `<button class="btn sm ghost" data-del-tmpl style="margin-top:8px;color:var(--danger);border-color:var(--danger)">מחק תבנית אחרונה</button>` : ''}
+    </div>` : ''}
+
+    ${!pendingFood && (mt.protein - sum.p) > 15 ? `<div class="section-title">רעיונות להשלמת חלבון 💡</div>
+    <div class="card">
+      <p class="muted" style="font-size:12.5px;margin:0 0 10px">נשארו ${Math.round(mt.protein - sum.p)} ג׳ חלבון להיום — הצעות עשירות בחלבון:</p>
+      <div class="chips">${FOODS.filter((f) => f.p >= 10).sort((a, b) => b.p - a.p).slice(0, 4).map((f) => `<button class="chip" data-idea="${esc(f.name)}" style="flex:0 0 auto;padding:8px 12px"><div class="t">${esc(f.name)}</div><div class="s">${f.p}ג׳ חלבון</div></button>`).join('')}</div>
+    </div>` : ''}
+
     ${today.length ? `<div class="section-title">מה אכלת היום</div><div class="card">
       ${['בוקר', 'צהריים', 'ערב', 'נשנוש'].map((meal) => {
         const items = today.map((f, i) => ({ f, i })).filter(({ f }) => (f.meal || 'נשנוש') === meal);
@@ -1152,6 +1296,7 @@ function familyCloud() {
     <div class="between" style="margin-bottom:4px"><h2 class="h-lg">המשפחה 👨‍👩‍👧‍👦</h2><span class="pill accent">☁️ מחובר</span></div>
     <p class="muted" style="margin:0 0 16px">משפחה: <b style="color:var(--text)">${esc(Cloud.familyCode())}</b> · חי מכל המכשירים.</p>
 
+    ${mem && mem.length ? `<div class="nudge" style="background:linear-gradient(160deg,#2a2410,#1a1608);border-color:#4a3f1a"><span class="ne">🏅</span><div class="grow"><b>אלוף השבוע: ${esc(mem[0].name)}</b><div class="muted" style="font-size:13px">🔥 ${mem[0].streak} · ${mem[0].workouts} אימונים</div></div></div>` : ''}
     <div class="section-title">טבלת ליגה חיה</div>
     <div class="card">${body}</div>
 
@@ -1177,6 +1322,7 @@ function familyLocal() {
       <button class="btn" data-nav="cloud">חבר את המשפחה בענן ›</button>
     </div>
 
+    <div class="nudge" style="background:linear-gradient(160deg,#2a2410,#1a1608);border-color:#4a3f1a"><span class="ne">🏅</span><div class="grow"><b>אלוף השבוע: ${esc(ranked[0].name)}</b><div class="muted" style="font-size:13px">🔥 ${ranked[0].streak} · ${ranked[0].workouts} אימונים</div></div></div>
     <div class="section-title">טבלת ליגה (דוגמה)</div>
     <div class="card">
       ${ranked.map((m, i) => `<div class="lb-row ${m.you ? 'you' : ''}">
@@ -1277,6 +1423,28 @@ function ScreenProfile() {
 }
 
 /* ============================================================
+   FIRST-WEEK PREVIEW (shown right after onboarding)
+   ============================================================ */
+function ScreenFirstWeek() {
+  const split = chooseSplit(S.profile);
+  const sess = todaysSession();
+  return `<div class="screen">
+    <div class="center" style="margin-top:5vh">
+      <div style="font-size:56px">🎯</div>
+      <h1 class="h-xl" style="margin:10px 0 4px">התוכנית שלך מוכנה, ${esc(S.profile.name)}!</h1>
+      <p class="muted" style="margin-bottom:20px">${split.label} · ${split.days} אימונים בשבוע</p>
+    </div>
+    <div class="section-title">השבוע הראשון שלך</div>
+    <div class="card">
+      ${split.sessions.map((ss, i) => `<div class="ex-item"><div class="ex-emoji">${['💪', '🔥', '⚡', '🌟', '🏆'][i] || '✅'}</div><div class="grow"><div class="ex-name">${esc(ss.name)}</div><div class="ex-meta">${ss.patterns.length} תרגילים</div></div></div>`).join('')}
+    </div>
+    <div class="section-title">האימון הראשון</div>
+    <div class="card">${sess.main.slice(0, 4).map((e) => `<div class="ex-item"><div class="ex-emoji">${e.emoji}</div><div class="grow"><div class="ex-name">${esc(e.name)}</div><div class="ex-meta">${e.sets} × ${e.reps}</div></div></div>`).join('')}</div>
+    <button class="btn" data-nav="home">בוא נתחיל 🚀</button>
+  </div>`;
+}
+
+/* ============================================================
    GOALS
    ============================================================ */
 function goalProgress(g) {
@@ -1349,6 +1517,12 @@ function ScreenSettings() {
     <div class="chips">
       <button class="chip ${p.units !== 'lb' ? 'sel' : ''}" data-set-units="kg" style="flex:1"><div class="t">קילוגרם (ק״ג)</div></button>
       <button class="chip ${p.units === 'lb' ? 'sel' : ''}" data-set-units="lb" style="flex:1"><div class="t">פאונד (lb)</div></button>
+    </div>
+
+    <div class="section-title">מראה</div>
+    <div class="chips">
+      <button class="chip ${S.theme !== 'light' ? 'sel' : ''}" data-set-theme="dark" style="flex:1"><div class="t">🌙 כהה</div></button>
+      <button class="chip ${S.theme === 'light' ? 'sel' : ''}" data-set-theme="light" style="flex:1"><div class="t">☀️ בהיר</div></button>
     </div>
 
     <div class="spacer"></div>
@@ -1446,7 +1620,7 @@ function bind() {
     if (!d.equip) return toast('בחר ציוד');
     S.profile = { ...d }; if (d.weight) S.weights = [{ date: todayStr(), kg: d.weight }]; S.draft = {};
     S.startDate = S.startDate || todayStr(); save();
-    go('home'); setTimeout(() => toast(`התוכנית של ${S.profile.name} מוכנה! 🚀`), 250);
+    go('firstweek');
   };
 
   // ---- workout ----
@@ -1459,16 +1633,22 @@ function bind() {
   const st = document.querySelector('[data-stop-hold]'); if (st) st.onclick = stopHold;
   const rInc = document.querySelector('[data-rep-inc]'); if (rInc) rInc.onclick = () => { const e = active.sess.main[active.i]; const v = active.repInput != null ? active.repInput : (e.repsTarget || 8); active.repInput = v + 1; render(); };
   const rDec = document.querySelector('[data-rep-dec]'); if (rDec) rDec.onclick = () => { const e = active.sess.main[active.i]; const v = active.repInput != null ? active.repInput : (e.repsTarget || 8); active.repInput = Math.max(1, v - 1); render(); };
+  const raB = document.querySelector('[data-rest-add]'); if (raB) raB.onclick = () => { if (active && active.resting) { active.restLeft += 15; const t = document.querySelector('.timer'); if (t) t.textContent = active.restLeft; } };
+  const rsB = document.querySelector('[data-rest-sub]'); if (rsB) rsB.onclick = () => { if (active && active.resting) { active.restLeft = Math.max(1, active.restLeft - 15); const t = document.querySelector('.timer'); if (t) t.textContent = active.restLeft; } };
+  const swB = document.querySelector('[data-swap-ex]'); if (swB) swB.onclick = swapExercise;
+  const fsB = document.querySelector('[data-finish-summary]'); if (fsB) fsB.onclick = finishWorkout;
   const sr = document.querySelector('[data-skip-rest]'); if (sr) sr.onclick = () => { if (active.timer) clearInterval(active.timer); active.resting = false; render(); };
   const qw = document.querySelector('[data-quit-workout]'); if (qw) qw.onclick = () => {
     if (!confirm('לצאת מהאימון? ההתקדמות של האימון הנוכחי לא תישמר.')) return;
-    if (active?.timer) clearInterval(active.timer); active = null; go('workouts');
+    if (active?.timer) clearInterval(active.timer); releaseWake(); active = null; go('workouts');
   };
 
   // ---- library filter ----
   document.querySelectorAll('[data-filter]').forEach((b) => b.onclick = () => go('library', { filter: b.dataset.filter }));
 
   // ---- progress ----
+  const srB = document.querySelector('[data-share-report]'); if (srB) srB.onclick = shareReport;
+
   // ---- progress photos ----
   const pin = document.querySelector('[data-photo-input]'); if (pin) pin.onchange = () => { if (pin.files && pin.files[0]) addPhotoFromFile(pin.files[0]); };
   document.querySelectorAll('[data-photo]').forEach((b) => b.onclick = () => { photoView = b.dataset.photo; render(); });
@@ -1503,6 +1683,16 @@ function bind() {
     const t = todayStr(); const next = (S.water[t] || 0) + (+b.dataset.water);
     S.water[t] = Math.max(0, next); save(); render(); checkBadges();
   });
+  const stmpl = document.querySelector('[data-save-tmpl]'); if (stmpl) stmpl.onclick = () => {
+    const items = (S.nutrition[todayStr()] || []).map((f) => ({ name: f.name, kcal: f.kcal, p: f.p, c: f.c, f: f.f }));
+    if (!items.length) return; S.mealTemplates.push({ name: 'תבנית ' + (S.mealTemplates.length + 1), items }); save(); render(); toast('נשמר כתבנית ✓');
+  };
+  document.querySelectorAll('[data-apply-tmpl]').forEach((b) => b.onclick = () => {
+    const t = S.mealTemplates[+b.dataset.applyTmpl]; if (!t) return; const day = todayStr();
+    (S.nutrition[day] ||= []).push(...t.items.map((f) => ({ ...f, meal: mealForNow() }))); save(); render(); toast(`${t.name} נוסף ✓`); checkBadges();
+  });
+  const dtmpl = document.querySelector('[data-del-tmpl]'); if (dtmpl) dtmpl.onclick = () => { S.mealTemplates.pop(); save(); render(); };
+  document.querySelectorAll('[data-idea]').forEach((b) => b.onclick = () => { const f = FOODS.find((x) => x.name === b.dataset.idea); if (f) { pendingFood = f; render(); } });
   document.querySelectorAll('[data-del-food]').forEach((b) => b.onclick = () => {
     S.nutrition[todayStr()].splice(+b.dataset.delFood, 1); save(); render();
   });
@@ -1565,12 +1755,14 @@ function bind() {
     S.goals.push({ type: 'reps', exId, target }); save(); render(); toast('יעד נוסף 🎯');
   };
   document.querySelectorAll('[data-del-goal]').forEach((b) => b.onclick = (ev) => { ev.stopPropagation(); S.goals.splice(+b.dataset.delGoal, 1); save(); render(); });
+  const chDone = document.querySelector('[data-challenge-done]'); if (chDone) chDone.onclick = () => { S.challenges[todayStr()] = true; save(); render(); confetti(); tap(20); toast('אתגר הושלם! 🔥'); };
 
   // ---- settings (live plan edits) ----
   document.querySelectorAll('[data-set-goal]').forEach((b) => b.onclick = () => { S.profile.goal = b.dataset.setGoal; save(); render(); toast('המטרה עודכנה ✓'); });
   document.querySelectorAll('[data-set-days]').forEach((b) => b.onclick = () => { S.profile.days = +b.dataset.setDays; save(); render(); toast('התדירות עודכנה ✓'); });
   document.querySelectorAll('[data-set-level]').forEach((b) => b.onclick = () => { S.profile.level = +b.dataset.setLevel; save(); render(); toast('הרמה עודכנה ✓'); });
   document.querySelectorAll('[data-set-units]').forEach((b) => b.onclick = () => { S.profile.units = b.dataset.setUnits; save(); render(); });
+  document.querySelectorAll('[data-set-theme]').forEach((b) => b.onclick = () => { S.theme = b.dataset.setTheme; save(); render(); });
   document.querySelectorAll('[data-set-injury]').forEach((b) => b.onclick = () => {
     const id = b.dataset.setInjury; let inj = (S.profile.injuries && S.profile.injuries.length) ? S.profile.injuries : ['none'];
     if (id === 'none') inj = [];
