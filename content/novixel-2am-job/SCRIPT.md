@@ -1,6 +1,6 @@
 # 🎬 "The 2AM Job" — Novixel.ai Reel/TikTok (v3)
 
-**Angle:** #2 Conversion engine — proof the AI books real money while you sleep.
+**Angle:** #2 Conversion engine — proof the AI books real jobs while you sleep.
 **Format:** 9:16 (1080×1920) · ~26s · faceless · English (US audience).
 **Golden rules:** huge hook at 0s · cut every ~1.5–2s · captions CENTER (not bottom) ·
 real AI-call audio is the "wow" · ONE CTA · loop the ending.
@@ -10,7 +10,7 @@ real AI-call audio is the "wow" · ONE CTA · loop the ending.
 ## Assets in this kit
 **Phone mockups (sharp PNGs, this folder):**
 - `screen1_call.png` — incoming call, 2:14 AM, "Novi is answering…"
-- `screen2_calendar.png` — new booking "Roof Inspection 9AM · $8,000 est."
+- `screen2_calendar.png` — new booking "Roof Inspection 9AM · New client"
 - `screen3_sms.png` — SMS confirmation thread
 - `screen4_missed.png` — lock screen, "12 missed calls today"
 - `screen5_offer.png` — offer card, $197/mo, novixelai.com CTA
@@ -35,7 +35,7 @@ reception desk at night.
 ## Timeline (drop into CapCut)
 | Time | Visual | Audio | On-screen text (center) |
 |---|---|---|---|
-| 0.0–2.0 | b-roll bedroom, slow zoom | phone buzz | **This AI booked an $8,000 job — at 2AM.** |
+| 0.0–2.0 | b-roll bedroom, slow zoom | phone buzz | **This AI booked a new job at 2AM — while you slept.** |
 | 2.0–3.5 | screen1_call slides in | ring → clip 2 | You were asleep. It answered anyway. |
 | 3.5–5.0 | screen1_call + waveform | clip 1 (customer) | *(caption of the line)* |
 | 5.0–7.0 | screen1_call | clip 3 (Novi) | *(caption of the line)* |
@@ -70,5 +70,6 @@ reception desk at night.
 **First comment:** 👉 novixelai.com
 
 ## Honesty note
-$8,000 / "47 jobs" are illustrative. Swap in a real number the moment you have one —
-real results convert far better and build trust.
+No dollar figures are shown (per request) — the drama is "booked at 2AM while you slept."
+If/when you have a real result (e.g. a booked job value or count), add it — real numbers
+convert even better and build trust.
