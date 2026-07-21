@@ -1,0 +1,48 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1080px; height:1920px; overflow:hidden; }
+  body { font-family:"Helvetica Neue", Arial, "Liberation Sans", sans-serif;
+    background:#08080b; color:#fff; display:flex; flex-direction:column; }
+  .status { display:flex; justify-content:space-between; align-items:center;
+    padding:34px 60px 0; font-size:34px; font-weight:600; }
+  .status .dots { font-size:30px; }
+  .top { display:flex; flex-direction:column; align-items:center; padding:40px 0 34px;
+    border-bottom:2px solid #16171d; }
+  .top .av { width:130px; height:130px; border-radius:50%;
+    background:conic-gradient(from 200deg,#6ea8ff,#b07cff,#ff8fd0,#6ea8ff);
+    display:flex; align-items:center; justify-content:center; position:relative; }
+  .top .av::after { content:""; position:absolute; inset:6px; border-radius:50%; background:#0b0b10; }
+  .top .av span { position:relative; z-index:2; font-size:70px; font-weight:800;
+    background:linear-gradient(135deg,#8fb6ff,#ff9ed6); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .top .name { margin-top:20px; font-size:46px; font-weight:700; }
+  .top .biz { margin-top:8px; font-size:32px; color:#8890a0; }
+  .thread { flex:1; padding:50px 50px; display:flex; flex-direction:column; gap:34px; }
+  .stamp { text-align:center; font-size:30px; color:#6b7280; margin:4px 0 8px; }
+  .msg { max-width:78%; font-size:42px; line-height:1.35; padding:32px 40px; border-radius:44px; }
+  .in { align-self:flex-start; background:#26272e; border-bottom-left-radius:14px; }
+  .out { align-self:flex-end; color:#fff; border-bottom-right-radius:14px;
+    background:linear-gradient(135deg,#3a7bff,#6a5cff); }
+  .tag { align-self:flex-start; font-size:30px; color:#8890a0; margin-top:-18px; margin-left:14px; }
+  .bar { margin:0 50px 60px; display:flex; align-items:center; gap:20px;
+    background:#101017; border:2px solid #23242c; border-radius:50px; padding:26px 40px; }
+  .bar .ph { flex:1; font-size:36px; color:#5b616e; }
+  .bar .snd { width:74px; height:74px; border-radius:50%; background:#34c759;
+    display:flex; align-items:center; justify-content:center; font-size:38px; }
+</style></head><body>
+  <div class="status"><div>2:15 AM</div><div class="dots">📶 &nbsp; 🔋</div></div>
+  <div class="top">
+    <div class="av"><span>N</span></div>
+    <div class="name">Novi</div>
+    <div class="biz">AI Receptionist · Novixel.ai</div>
+  </div>
+  <div class="thread">
+    <div class="stamp">Today 2:15 AM</div>
+    <div class="msg out">Hi! This is Novi. You're booked for a roof inspection tomorrow at 9:00 AM ✅</div>
+    <div class="msg out">Reply <b>C</b> to confirm — see you then!</div>
+    <div class="msg in">C</div>
+    <div class="msg in">Wow that was fast, thank you 🙏</div>
+    <div class="tag">Delivered</div>
+  </div>
+  <div class="bar"><div class="ph">Text Message</div><div class="snd">▲</div></div>
+</body></html>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1080px; height:1920px; overflow:hidden; }
+  body {
+    font-family: "Helvetica Neue", Arial, "Liberation Sans", sans-serif;
+    background: radial-gradient(120% 80% at 50% 0%, #14141b 0%, #08080b 55%, #050507 100%);
+    color:#fff; position:relative;
+  }
+  .status { display:flex; justify-content:space-between; align-items:center;
+    padding:34px 60px 0; font-size:34px; font-weight:600; letter-spacing:.5px; }
+  .status .dots { display:flex; gap:10px; align-items:center; font-size:30px; opacity:.9; }
+  .live { display:flex; align-items:center; justify-content:center; gap:14px;
+    margin-top:60px; font-size:26px; letter-spacing:6px; color:#9aa0aa; font-weight:600; }
+  .live .g { width:14px; height:14px; border-radius:50%; background:#38e08a; box-shadow:0 0 18px #38e08a; }
+  .wrap { position:absolute; top:0; left:0; right:0; bottom:0;
+    display:flex; flex-direction:column; align-items:center; }
+  .time2am { margin-top:150px; font-size:44px; font-weight:600; color:#c9ccd3; letter-spacing:2px; }
+  .label { margin-top:26px; font-size:40px; color:#8890a0; letter-spacing:3px; text-transform:uppercase; }
+  .avatar { margin-top:60px; width:280px; height:280px; border-radius:50%;
+    background: conic-gradient(from 200deg, #6ea8ff, #b07cff, #ff8fd0, #6ea8ff);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 80px rgba(140,120,255,.45); position:relative; }
+  .avatar::after { content:""; position:absolute; inset:8px; border-radius:50%;
+    background:#0b0b10; }
+  .avatar span { position:relative; z-index:2; font-size:150px; font-weight:800;
+    background:linear-gradient(135deg,#8fb6ff,#c79bff,#ff9ed6);
+    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .caller { margin-top:70px; font-size:96px; font-weight:800; letter-spacing:-1px; }
+  .sub { margin-top:20px; font-size:44px; color:#9aa0aa; }
+  .answering { margin-top:64px; display:flex; align-items:center; gap:22px;
+    background:rgba(140,120,255,.12); border:2px solid rgba(160,140,255,.35);
+    padding:26px 52px; border-radius:60px; }
+  .answering .bars { display:flex; gap:8px; align-items:flex-end; height:44px; }
+  .answering .bars i { width:9px; border-radius:5px; background:linear-gradient(#8fb6ff,#ff9ed6); }
+  .answering span { font-size:44px; font-weight:700; }
+  .b1{height:20px} .b2{height:44px} .b3{height:30px} .b4{height:40px} .b5{height:24px} .b6{height:38px}
+  .actions { position:absolute; bottom:210px; left:0; right:0;
+    display:flex; justify-content:center; gap:180px; }
+  .btn { width:150px; height:150px; border-radius:50%; display:flex; align-items:center;
+    justify-content:center; font-size:70px; }
+  .decline { background:#ff3b30; transform:rotate(135deg); }
+  .accept { background:#34c759; box-shadow:0 0 50px rgba(52,199,89,.5); }
+  .brand { position:absolute; bottom:80px; left:0; right:0; text-align:center;
+    font-size:34px; letter-spacing:3px; color:#6b7280; font-weight:600; }
+  .brand b { color:#fff; } .brand .ai { background:linear-gradient(135deg,#8fb6ff,#ff9ed6);
+    -webkit-background-clip:text; background-clip:text; color:transparent; }
+</style></head><body>
+  <div class="status"><div>2:14 AM</div><div class="dots">📶 &nbsp; 🔋</div></div>
+  <div class="wrap">
+    <div class="live"><span class="g"></span> SYSTEM LIVE</div>
+    <div class="label">Incoming call</div>
+    <div class="avatar"><span>N</span></div>
+    <div class="caller">New Lead</div>
+    <div class="sub">mobile • Unknown</div>
+    <div class="answering">
+      <div class="bars"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i><i class="b5"></i><i class="b6"></i></div>
+      <span>Novi is answering…</span>
+    </div>
+    <div class="actions">
+      <div class="btn decline">📞</div>
+      <div class="btn accept">📞</div>
+    </div>
+    <div class="brand"><b>Novixel</b><span class="ai">.ai</span> &nbsp;•&nbsp; 24/7 AI Receptionist</div>
+  </div>
+</body></html>

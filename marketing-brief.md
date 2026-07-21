@@ -38,4 +38,14 @@ firms, auto shops. The buyer is a busy owner who can't answer every call.
 ## Status / learnings
 - 2 videos posted on IG + FB → ~0 traffic. Reference reel:
   https://www.instagram.com/reel/DaVmOyFvEYH/
+- **Why the 2 videos flopped (diagnosed frame-by-frame):**
+  - v1: AI-avatar spokesperson, same static shot 25s, no hook, no captions, logo-forward,
+    4:5 not full 9:16. Read as an ad → scrolled.
+  - v2: AI "fake podcast", good message ("you don't need more leads, you're losing them")
+    and captions — but **shot landscape (1644×1080)** so it letterboxed tiny on vertical
+    feeds, still avatar format, slow to the point, captions at bottom (hidden by UI).
+  - Pattern: avatar TALKING ABOUT the company doesn't work. Fix = SHOW the product working,
+    huge hook at 0s, full 9:16, captions center, cut every ~1.5s.
+- **First produced asset:** `content/novixel-2am-job/` — "The 2AM Job" conversion reel
+  (angle #2). 5 sharp phone mockups + 2 b-roll + 7 AI voice lines + full CapCut recipe.
 - Winners get appended here as saved examples to tune future content.

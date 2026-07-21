@@ -1,0 +1,68 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1080px; height:1920px; overflow:hidden; }
+  body { font-family:"Helvetica Neue", Arial, "Liberation Sans", sans-serif;
+    background:#08080b; color:#fff; }
+  .status { display:flex; justify-content:space-between; align-items:center;
+    padding:34px 60px 0; font-size:34px; font-weight:600; }
+  .status .dots { font-size:30px; }
+  .head { padding:40px 60px 10px; }
+  .head .day { font-size:40px; color:#8890a0; letter-spacing:2px; text-transform:uppercase; }
+  .head .date { font-size:76px; font-weight:800; margin-top:8px; }
+  .live { display:inline-flex; align-items:center; gap:12px; margin-top:20px;
+    font-size:26px; letter-spacing:4px; color:#9aa0aa; font-weight:600; }
+  .live .g { width:13px; height:13px; border-radius:50%; background:#38e08a; box-shadow:0 0 16px #38e08a; }
+  .grid { margin-top:30px; padding:0 60px; }
+  .row { display:flex; gap:34px; align-items:stretch; height:150px; }
+  .hr { width:150px; text-align:right; padding-right:10px; padding-top:6px;
+    font-size:34px; color:#5b616e; border-top:2px solid #1c1d24; }
+  .slot { flex:1; border-top:2px solid #1c1d24; }
+  .dim { opacity:.5; }
+  .event { flex:1; border-top:2px solid transparent; position:relative; }
+  .card { position:relative; margin-top:12px; border-radius:28px; padding:34px 40px;
+    background:linear-gradient(135deg, rgba(110,168,255,.18), rgba(255,143,208,.16));
+    border:2px solid rgba(160,140,255,.5); box-shadow:0 20px 60px rgba(120,100,255,.25); }
+  .card .new { position:absolute; top:-26px; left:34px; font-size:26px; font-weight:800;
+    letter-spacing:2px; padding:10px 24px; border-radius:40px;
+    background:linear-gradient(135deg,#8fb6ff,#c79bff,#ff9ed6); color:#0a0a0c; }
+  .card h3 { font-size:52px; font-weight:800; }
+  .card .meta { margin-top:14px; font-size:38px; color:#c9ccd3; }
+  .card .via { margin-top:22px; display:flex; align-items:center; gap:14px;
+    font-size:34px; color:#9aa0aa; }
+  .card .via b { color:#fff; }
+  .card .value { position:absolute; right:40px; bottom:34px; font-size:46px; font-weight:800;
+    background:linear-gradient(135deg,#8fb6ff,#ff9ed6); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .toast { margin:50px 60px 0; background:#101017; border:2px solid #23242c;
+    border-radius:26px; padding:30px 40px; display:flex; align-items:center; gap:24px; }
+  .toast .ic { width:70px; height:70px; border-radius:20px;
+    background:linear-gradient(135deg,#8fb6ff,#ff9ed6); display:flex; align-items:center;
+    justify-content:center; font-size:40px; font-weight:800; color:#0a0a0c; }
+  .toast .t1 { font-size:38px; font-weight:700; }
+  .toast .t2 { font-size:30px; color:#8890a0; margin-top:6px; }
+</style></head><body>
+  <div class="status"><div>2:15 AM</div><div class="dots">📶 &nbsp; 🔋</div></div>
+  <div class="head">
+    <div class="day">Tomorrow</div>
+    <div class="date">Wed 22</div>
+    <div class="live"><span class="g"></span> BOOKED BY NOVI · WHILE YOU SLEPT</div>
+  </div>
+  <div class="grid">
+    <div class="row"><div class="hr dim">8 AM</div><div class="slot"></div></div>
+    <div class="row"><div class="hr">9 AM</div>
+      <div class="event"><div class="card">
+        <div class="new">NEW BOOKING</div>
+        <h3>Roof Inspection</h3>
+        <div class="meta">9:00 – 10:00 AM · On-site</div>
+        <div class="via">via <b>Novi</b> · AI Receptionist</div>
+        <div class="value">$8,000 est.</div>
+      </div></div>
+    </div>
+    <div class="row"><div class="hr dim">11 AM</div><div class="slot"></div></div>
+  </div>
+  <div class="toast">
+    <div class="ic">✓</div>
+    <div><div class="t1">Confirmation text sent to customer</div>
+    <div class="t2">Instant SMS · 2:15 AM</div></div>
+  </div>
+</body></html>

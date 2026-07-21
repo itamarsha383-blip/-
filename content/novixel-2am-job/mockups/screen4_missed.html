@@ -1,0 +1,58 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1080px; height:1920px; overflow:hidden; }
+  body { font-family:"Helvetica Neue", Arial, "Liberation Sans", sans-serif;
+    background:linear-gradient(180deg,#0a0a12 0%, #05050a 100%); color:#fff; }
+  .status { display:flex; justify-content:space-between; align-items:center;
+    padding:34px 60px 0; font-size:34px; font-weight:600; }
+  .status .dots { font-size:30px; }
+  .clock { text-align:center; margin-top:60px; }
+  .clock .t { font-size:180px; font-weight:300; letter-spacing:-4px; line-height:1; }
+  .clock .d { font-size:40px; color:#aab0bd; margin-top:14px; font-weight:500; }
+  .banner { margin:56px 50px 30px; display:flex; align-items:center; justify-content:center;
+    gap:20px; font-size:40px; font-weight:800; color:#ff5b52; letter-spacing:1px; }
+  .banner .badge { background:#ff3b30; color:#fff; font-size:34px; font-weight:800;
+    padding:8px 26px; border-radius:40px; }
+  .notif { margin:22px 50px; background:rgba(28,28,36,.82); backdrop-filter:blur(10px);
+    border-radius:34px; padding:34px 40px; display:flex; align-items:center; gap:30px; }
+  .notif .ic { width:92px; height:92px; border-radius:24px; background:#ff3b30;
+    display:flex; align-items:center; justify-content:center; font-size:48px; flex:none; }
+  .notif .tx { flex:1; }
+  .notif .r1 { display:flex; justify-content:space-between; align-items:baseline; }
+  .notif .app { font-size:34px; font-weight:700; letter-spacing:.5px; color:#e8e9ee; }
+  .notif .time { font-size:30px; color:#8890a0; }
+  .notif .msg { font-size:40px; font-weight:600; margin-top:8px; }
+  .notif .sub { font-size:32px; color:#9aa0aa; margin-top:4px; }
+  .fade { opacity:.55; } .fade2 { opacity:.3; }
+</style></head><body>
+  <div class="status"><div>11:47 PM</div><div class="dots">📶 &nbsp; 🔋</div></div>
+  <div class="clock">
+    <div class="t">11:47</div>
+    <div class="d">Tuesday, July 21</div>
+  </div>
+  <div class="banner"><span class="badge">12</span> MISSED CALLS TODAY</div>
+  <div class="notif">
+    <div class="ic">📞</div>
+    <div class="tx"><div class="r1"><span class="app">MISSED CALL</span><span class="time">now</span></div>
+      <div class="msg">Unknown — Potential customer</div>
+      <div class="sub">No voicemail left</div></div>
+  </div>
+  <div class="notif">
+    <div class="ic">📞</div>
+    <div class="tx"><div class="r1"><span class="app">MISSED CALL</span><span class="time">9m ago</span></div>
+      <div class="msg">Unknown — Potential customer</div>
+      <div class="sub">Called your competitor next</div></div>
+  </div>
+  <div class="notif fade">
+    <div class="ic">📞</div>
+    <div class="tx"><div class="r1"><span class="app">MISSED CALL</span><span class="time">40m ago</span></div>
+      <div class="msg">Unknown — Potential customer</div>
+      <div class="sub">No voicemail left</div></div>
+  </div>
+  <div class="notif fade2">
+    <div class="ic">📞</div>
+    <div class="tx"><div class="r1"><span class="app">MISSED CALL</span><span class="time">1h ago</span></div>
+      <div class="msg">Unknown — Potential customer</div></div>
+  </div>
+</body></html>
