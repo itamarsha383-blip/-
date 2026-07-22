@@ -5,13 +5,9 @@
   body { font-family:"Helvetica Neue", Arial, "Liberation Sans", sans-serif;
     background:radial-gradient(130% 80% at 50% 45%, #101017 0%, #08080c 55%, #040406 100%);
     color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  .logo { display:flex; align-items:center; gap:30px; opacity:0; transform:translateY(24px) scale(.98);
+  .logo { opacity:0; transform:translateY(24px) scale(.98);
     animation:rise 1.1s cubic-bezier(.2,.8,.2,1) .3s forwards; }
-  .mark { width:120px; height:120px; border-radius:30px; border:3px solid rgba(160,140,255,.55);
-    display:flex; align-items:center; justify-content:center; font-size:72px; font-weight:800; background:#0b0b12; }
-  .mark span { background:linear-gradient(135deg,#8fb6ff,#c79bff,#ff9ed6); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .name { font-size:92px; font-weight:800; letter-spacing:-1px; }
-  .name .ai { background:linear-gradient(135deg,#8fb6ff,#ff9ed6); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .logo img { width:660px; height:auto; display:block; }
   .line { margin-top:54px; font-size:52px; font-weight:400; color:#c9ccd3; letter-spacing:.5px;
     opacity:0; animation:fade 1.2s ease-out 1.3s forwards; }
   .url { margin-top:70px; font-size:44px; letter-spacing:3px; color:#8890a0; font-weight:600;
@@ -23,7 +19,7 @@
     filter:blur(20px); opacity:0; animation:fade 2s ease-out .3s forwards; }
 </style></head><body>
   <div class="glow"></div>
-  <div class="logo"><div class="mark"><span>N</span></div><div class="name">Novixel<span class="ai">.ai</span></div></div>
+  <div class="logo"><img src="brand/logo_full.png"></div>
   <div class="line">never miss another call.</div>
   <div class="url">novixelai.com</div>
 </body></html>

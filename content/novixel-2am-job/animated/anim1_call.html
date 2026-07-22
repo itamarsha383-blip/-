@@ -16,15 +16,12 @@
   @keyframes glow { 50%{ box-shadow:0 0 34px #38e08a; } }
   .label { margin-top:26px; font-size:40px; color:#8890a0; letter-spacing:3px; text-transform:uppercase; }
   .avatar { margin-top:60px; width:280px; height:280px; border-radius:50%;
-    background:conic-gradient(from 200deg,#6ea8ff,#b07cff,#ff8fd0,#6ea8ff);
+    background:#0e0e15; border:3px solid rgba(255,255,255,.22);
     display:flex; align-items:center; justify-content:center; position:relative;
     animation:ring 2s ease-in-out infinite; }
-  @keyframes ring { 0%,100%{ box-shadow:0 0 60px rgba(140,120,255,.4); }
-    50%{ box-shadow:0 0 110px rgba(150,120,255,.7); } }
-  .avatar::after { content:""; position:absolute; inset:8px; border-radius:50%; background:#0b0b10; }
-  .avatar span { position:relative; z-index:2; font-size:150px; font-weight:800;
-    background:linear-gradient(135deg,#8fb6ff,#c79bff,#ff9ed6);
-    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  @keyframes ring { 0%,100%{ box-shadow:0 0 50px rgba(255,255,255,.12); }
+    50%{ box-shadow:0 0 90px rgba(255,255,255,.28); } }
+  .avatar img.mk { position:relative; z-index:2; width:46%; }
   .caller { margin-top:70px; font-size:96px; font-weight:800; }
   .sub { margin-top:20px; font-size:44px; color:#9aa0aa; }
   .answering { margin-top:64px; display:flex; align-items:center; gap:22px;
@@ -45,14 +42,13 @@
   @keyframes pulse { 50%{ transform:scale(1.08); box-shadow:0 0 80px rgba(52,199,89,.8); } }
   .brand { position:absolute; bottom:80px; left:0; right:0; text-align:center;
     font-size:34px; letter-spacing:3px; color:#6b7280; font-weight:600; }
-  .brand b { color:#fff; } .brand .ai { background:linear-gradient(135deg,#8fb6ff,#ff9ed6);
-    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .brand b { color:#fff; font-weight:800; }
 </style></head><body>
   <div class="status"><div>2:14 AM</div><div class="dots">📶 &nbsp; 🔋</div></div>
   <div class="wrap">
     <div class="live"><span class="g"></span> SYSTEM LIVE</div>
     <div class="label">Incoming call</div>
-    <div class="avatar"><span>N</span></div>
+    <div class="avatar"><img class="mk" src="brand/logo_mark.png"></div>
     <div class="caller">New Lead</div>
     <div class="sub">mobile • Unknown</div>
     <div class="answering">
@@ -60,6 +56,6 @@
       <span>Novi is answering…</span>
     </div>
     <div class="actions"><div class="btn decline">📞</div><div class="btn accept">📞</div></div>
-    <div class="brand"><b>Novixel</b><span class="ai">.ai</span> &nbsp;•&nbsp; 24/7 AI Receptionist</div>
+    <div class="brand"><b>NovixelAI</b> &nbsp;•&nbsp; 24/7 AI Receptionist</div>
   </div>
 </body></html>

@@ -10,11 +10,9 @@
   .top { display:flex; flex-direction:column; align-items:center; padding:40px 0 34px;
     border-bottom:2px solid #16171d; }
   .top .av { width:130px; height:130px; border-radius:50%;
-    background:conic-gradient(from 200deg,#6ea8ff,#b07cff,#ff8fd0,#6ea8ff);
+    background:#0e0e15; border:2px solid rgba(255,255,255,.22);
     display:flex; align-items:center; justify-content:center; position:relative; }
-  .top .av::after { content:""; position:absolute; inset:6px; border-radius:50%; background:#0b0b10; }
-  .top .av span { position:relative; z-index:2; font-size:70px; font-weight:800;
-    background:linear-gradient(135deg,#8fb6ff,#ff9ed6); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .top .av img.mk { position:relative; z-index:2; width:48%; }
   .top .name { margin-top:20px; font-size:46px; font-weight:700; }
   .top .biz { margin-top:8px; font-size:32px; color:#8890a0; }
   .thread { flex:1; padding:50px 50px; display:flex; flex-direction:column; gap:34px; }
@@ -50,9 +48,9 @@
 </style></head><body>
   <div class="status"><div>2:15 AM</div><div class="dots">📶 &nbsp; 🔋</div></div>
   <div class="top">
-    <div class="av"><span>N</span></div>
+    <div class="av"><img class="mk" src="brand/logo_mark.png"></div>
     <div class="name">Novi</div>
-    <div class="biz">AI Receptionist · Novixel.ai</div>
+    <div class="biz">AI Receptionist · NovixelAI</div>
   </div>
   <div class="thread">
     <div class="stamp">Today 2:15 AM</div>
