@@ -1,0 +1,87 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1080px;height:1920px;overflow:hidden;background:#000;
+    font-family:"Helvetica Neue",-apple-system,Arial,"Liberation Sans",sans-serif;color:#fff}
+  #screen{position:absolute;inset:0;background:#000;display:flex;flex-direction:column}
+  .status{display:flex;justify-content:space-between;align-items:center;padding:30px 56px 0;font-size:32px;font-weight:600}
+  .status .r{display:flex;gap:12px;align-items:center;font-size:28px}
+  /* header */
+  .hdr{display:flex;flex-direction:column;align-items:center;padding:18px 0 26px;border-bottom:1px solid #1c1c1e;position:relative}
+  .hdr .back{position:absolute;left:44px;top:26px;font-size:44px;color:#0a84ff}
+  .hdr .av{width:104px;height:104px;border-radius:50%;background:#3a3a3c;display:flex;align-items:center;justify-content:center;font-size:52px}
+  .hdr .nm{margin-top:12px;font-size:34px;font-weight:600}
+  .hdr .sub{margin-top:2px;font-size:26px;color:#8e8e93}
+  /* thread */
+  .thread{flex:1;padding:34px 40px 20px;display:flex;flex-direction:column;justify-content:flex-end;gap:20px;overflow:hidden}
+  .tstamp{text-align:center;font-size:26px;color:#8e8e93;margin:6px 0 10px}
+  .tstamp b{color:#c7c7cc;font-weight:700}
+  .row{display:flex;flex-direction:column;opacity:0;transform:translateY(24px) scale(.9);transform-origin:bottom}
+  .row.show{animation:pop .34s cubic-bezier(.2,.9,.3,1.2) forwards}
+  @keyframes pop{to{opacity:1;transform:none}}
+  .row.me{align-items:flex-end}.row.them{align-items:flex-start}
+  .b{max-width:74%;font-size:40px;line-height:1.32;padding:26px 34px;border-radius:38px}
+  .them .b{background:#262629;border-bottom-left-radius:12px}
+  .me .b{background:linear-gradient(#0a84ff,#0a74e6);border-bottom-right-radius:12px}
+  .tag{font-size:24px;color:#8e8e93;margin:8px 14px 0;display:flex;align-items:center;gap:8px}
+  .tag .z{color:#c79bff;font-weight:700}
+  .read{align-self:flex-end;font-size:24px;color:#8e8e93;margin:2px 12px 0}
+  /* typing */
+  .typing{align-self:flex-start;background:#262629;border-radius:38px;border-bottom-left-radius:12px;
+    padding:30px 38px;display:flex;gap:14px;opacity:0}
+  .typing.show{opacity:1}.typing.hide{opacity:0;transition:opacity .2s}
+  .typing i{width:18px;height:18px;border-radius:50%;background:#8e8e93;animation:blink 1.2s infinite}
+  .typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-6px)}}
+  /* input bar */
+  .bar{margin:0 40px 40px;display:flex;align-items:center;gap:18px;border:2px solid #2c2c2e;border-radius:44px;padding:20px 32px}
+  .bar .ph{flex:1;color:#5a5a5e;font-size:32px}
+  /* hook banner */
+  #hook{position:absolute;top:320px;left:40px;right:40px;text-align:center;font-size:50px;font-weight:800;
+    line-height:1.15;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.95);z-index:5;
+    background:rgba(0,0,0,.35);padding:24px 30px;border-radius:24px;backdrop-filter:blur(2px)}
+  /* end */
+  #end{position:absolute;inset:0;opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(130% 80% at 50% 45%,#101017,#08080c 55%,#040406);z-index:20}
+  #end.on{opacity:1;transition:opacity .5s}
+  #end img{width:640px}
+  #end .t{margin-top:48px;font-size:50px;color:#c9ccd3}
+  #end .u{margin-top:54px;font-size:44px;letter-spacing:3px;color:#8890a0;font-weight:700}
+</style></head><body>
+  <div id="screen">
+    <div class="status"><div>2:14</div><div class="r">📶 🔋</div></div>
+    <div class="hdr"><div class="back">‹</div><div class="av">🙍‍♂️</div>
+      <div class="nm">Unknown</div><div class="sub">+1 (415) 892‑0143</div></div>
+    <div class="thread" id="thread">
+      <div class="tstamp">Today <b>2:14 AM</b></div>
+    </div>
+    <div class="bar"><div class="ph">Text Message</div><div>🎤</div></div>
+  </div>
+  <div id="hook">A customer texted my business<br>at 2 AM 👇</div>
+  <div id="end"><img src="brand/logo_full.png"><div class="t">never miss another call.</div><div class="u">novixelai.com</div></div>
+<script>
+const thread=document.getElementById('thread'),hook=document.getElementById('hook'),end=document.getElementById('end');
+function msg(side,html,tag){const r=document.createElement('div');r.className='row '+side;
+  r.innerHTML='<div class="b">'+html+'</div>'+(tag?'<div class="tag"><span class="z">⚡ Novixel AI</span> · auto‑reply</div>':'');
+  thread.appendChild(r);requestAnimationFrame(()=>r.classList.add('show'));return r;}
+let typingEl=null;
+function typing(on){if(on){typingEl=document.createElement('div');typingEl.className='typing';
+  typingEl.innerHTML='<i></i><i></i><i></i>';thread.appendChild(typingEl);requestAnimationFrame(()=>typingEl.classList.add('show'));}
+  else if(typingEl){typingEl.remove();typingEl=null;}}
+function read(){const r=document.createElement('div');r.className='read';r.textContent='Read 2:15 AM';thread.appendChild(r);}
+const T=[
+ [400, ()=>msg('them','Hi is anyone there?? My roof is leaking really bad 😩')],
+ [1900,()=>msg('them','I need someone ASAP please')],
+ [3200,()=>typing(true)],
+ [4300,()=>{typing(false);msg('me','Hi, this is Novi from the team 👋 So sorry to hear that — I can help right now.',true);}],
+ [6100,()=>msg('me','I can send a crew tomorrow at 9 AM. What\'s the address?')],
+ [7900,()=>msg('them','214 Oak Street. That works!!')],
+ [9200,()=>typing(true)],
+ [10000,()=>{typing(false);msg('me','You\'re booked for 9 AM ✅ Sending a reminder now. Hang in there!');}],
+ [11900,()=>msg('them','omg thank you, you\'re a lifesaver 🙏')],
+ [13100,()=>{hook.innerHTML='And I was still asleep. 😴';}],
+ [15200,()=>{end.classList.add('on');}],
+];
+T.forEach(([t,fn])=>setTimeout(fn,t));
+</script>
+</body></html>
