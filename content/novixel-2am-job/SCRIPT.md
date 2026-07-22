@@ -16,8 +16,9 @@ the full AI call is the "wow" — let it breathe · ONE CTA · loop the ending.
 - `screen5_offer.png` — offer card, $197/mo, novixelai.com CTA
 (HTML source of each is here too — edit text and re-screenshot to remix.)
 
-**B-roll (in your Higgsfield history):** dark bedroom w/ glowing phone · empty
-reception desk at night.
+**B-roll (in your Higgsfield history):** dark bedroom w/ glowing phone (the only
+background — used for the 0–2s hook and the closing loop). *(Reception-desk shot
+dropped — it didn't fit the "owner asleep at home" story.)*
 
 **Voiceover / dialogue clips (Higgsfield → seed_audio):**
 
@@ -53,7 +54,7 @@ reception desk at night.
 | 11.0–15.0 | screen2_calendar (booking pops in) | clip 5 (Novi) | Booked. Confirmed. While you slept. |
 | 15.0–18.0 | screen3_sms | clip 6 (customer) + "ding" | *(caption of the SMS)* |
 | 18.0–22.0 | screen4_missed | clip 7 (VO) | Every missed call = a customer calling someone else. |
-| 22.0–30.0 | b-roll desk → screen5_offer | clip 8 (VO) | $7 a day. Never miss a lead again. |
+| 22.0–30.0 | screen5_offer (animated) | clip 8 (VO) | $7 a day. Never miss a lead again. |
 | 30.0–34.0 | screen5_offer (hold on CTA) | clip 9 (VO) | See it live → novixelai.com |
 | 34.0–35.0 | loop back to b-roll bedroom | (music tail) | novixelai.com · link in bio |
 
