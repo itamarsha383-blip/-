@@ -1,0 +1,179 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1080px;height:1920px;overflow:hidden;background:#000;
+    font-family:"Helvetica Neue",Arial,"Liberation Sans",sans-serif;color:#fff}
+  .scene{position:absolute;inset:0;opacity:0;transition:opacity .5s ease}
+  .scene.on{opacity:1}
+  .status{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;
+    padding:34px 60px 0;font-size:34px;font-weight:600}
+  .status .d{font-size:30px}
+
+  /* ---------- HOOK ---------- */
+  #hook{background:radial-gradient(120% 80% at 50% 38%,#15151d 0%,#08080b 55%,#040406 100%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring{width:260px;height:260px;border-radius:50%;border:3px solid rgba(255,255,255,.15);
+    display:flex;align-items:center;justify-content:center;position:relative;margin-top:-120px;
+    animation:ping 1.4s ease-out infinite}
+  .ring img{width:44%;opacity:.9}
+  @keyframes ping{0%{box-shadow:0 0 0 0 rgba(120,140,255,.35)}100%{box-shadow:0 0 0 90px rgba(120,140,255,0)}}
+  .calllbl{margin-top:44px;font-size:34px;letter-spacing:4px;color:#8890a0;text-transform:uppercase}
+  .clock{margin-top:10px;font-size:40px;color:#c9ccd3;font-weight:600}
+
+  /* ---------- CALL ---------- */
+  #call{background:radial-gradient(120% 80% at 50% 0%,#14141b 0%,#08080b 55%,#050507 100%);
+    display:flex;flex-direction:column;align-items:center}
+  #call .live{margin-top:150px;display:flex;gap:14px;align-items:center;font-size:26px;
+    letter-spacing:6px;color:#9aa0aa;font-weight:600}
+  #call .live i{width:14px;height:14px;border-radius:50%;background:#38e08a;box-shadow:0 0 18px #38e08a}
+  #call .av{margin-top:60px;width:260px;height:260px;border-radius:50%;background:#0e0e15;
+    border:3px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;
+    animation:softpulse 2s ease-in-out infinite}
+  @keyframes softpulse{50%{box-shadow:0 0 90px rgba(255,255,255,.25)}}
+  #call .av img{width:46%}
+  #call .who{margin-top:56px;font-size:82px;font-weight:800}
+  #call .sub{margin-top:16px;font-size:40px;color:#9aa0aa}
+  #call .pill{margin-top:54px;display:flex;align-items:center;gap:20px;background:rgba(255,255,255,.06);
+    border:2px solid rgba(255,255,255,.16);padding:24px 48px;border-radius:60px}
+  #call .bars{display:flex;gap:8px;align-items:center;height:50px}
+  #call .bars b{width:9px;border-radius:5px;background:#cfd4ff;height:16px;animation:wave .9s ease-in-out infinite}
+  #call .bars b:nth-child(2){animation-delay:.1s}#call .bars b:nth-child(3){animation-delay:.2s}
+  #call .bars b:nth-child(4){animation-delay:.3s}#call .bars b:nth-child(5){animation-delay:.15s}
+  @keyframes wave{0%,100%{height:14px}50%{height:46px}}
+  #call .pill span{font-size:40px;font-weight:700}
+
+  /* ---------- CALENDAR ---------- */
+  #cal{background:#08080b}
+  #cal .h{padding:150px 60px 0}
+  #cal .day{font-size:38px;color:#8890a0;letter-spacing:2px;text-transform:uppercase}
+  #cal .date{font-size:72px;font-weight:800;margin-top:8px}
+  #cal .badgeline{margin-top:18px;display:inline-flex;align-items:center;gap:12px;font-size:26px;
+    letter-spacing:3px;color:#9aa0aa;font-weight:600}
+  #cal .badgeline i{width:13px;height:13px;border-radius:50%;background:#38e08a;box-shadow:0 0 16px #38e08a}
+  #cal .card{margin:60px 60px 0;border-radius:30px;padding:44px;position:relative;
+    background:linear-gradient(135deg,rgba(110,168,255,.16),rgba(255,143,208,.14));
+    border:2px solid rgba(160,140,255,.45);box-shadow:0 24px 70px rgba(120,100,255,.22)}
+  #cal.on .card{animation:cardin .7s cubic-bezier(.2,.8,.2,1) .2s both}
+  @keyframes cardin{0%{opacity:0;transform:translateY(40px) scale(.96)}100%{opacity:1;transform:none}}
+  #cal .new{position:absolute;top:-24px;left:44px;font-size:26px;font-weight:800;letter-spacing:2px;
+    padding:10px 24px;border-radius:40px;background:linear-gradient(135deg,#9fc0ff,#ff9ed6);color:#0a0a0c}
+  #cal .card h3{font-size:56px;font-weight:800}
+  #cal .card .m{margin-top:16px;font-size:40px;color:#c9ccd3}
+  #cal .card .v{margin-top:22px;font-size:36px;color:#9aa0aa}
+  #cal .card .v b{color:#fff}
+
+  /* ---------- SMS ---------- */
+  #sms{background:#08080b;display:flex;flex-direction:column}
+  #sms .top{margin-top:120px;display:flex;flex-direction:column;align-items:center;
+    padding-bottom:34px;border-bottom:2px solid #16171d}
+  #sms .av{width:120px;height:120px;border-radius:50%;background:#0e0e15;border:2px solid rgba(255,255,255,.22);
+    display:flex;align-items:center;justify-content:center}
+  #sms .av img{width:48%}
+  #sms .nm{margin-top:18px;font-size:44px;font-weight:700}
+  #sms .bz{margin-top:6px;font-size:30px;color:#8890a0}
+  #sms .thread{padding:56px 50px;display:flex;flex-direction:column;gap:34px}
+  #sms .b{max-width:78%;font-size:44px;line-height:1.35;padding:32px 40px;border-radius:44px}
+  #sms .out{align-self:flex-end;background:linear-gradient(135deg,#3a7bff,#6a5cff);border-bottom-right-radius:14px}
+  #sms .in{align-self:flex-start;background:#26272e;border-bottom-left-radius:14px}
+
+  /* ---------- REVEAL ---------- */
+  #reveal{background:radial-gradient(130% 80% at 50% 45%,#101017,#06060a 60%,#030304);
+    display:flex;align-items:center;justify-content:center}
+
+  /* ---------- END ---------- */
+  #end{background:radial-gradient(130% 80% at 50% 45%,#101017 0%,#08080c 55%,#040406 100%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center}
+  #end .glow{position:absolute;width:700px;height:700px;border-radius:50%;
+    background:radial-gradient(circle,rgba(140,120,255,.14),transparent 70%);filter:blur(20px)}
+  #end img{width:640px;position:relative}
+  #end .tag{margin-top:52px;font-size:50px;color:#c9ccd3}
+  #end .url{margin-top:60px;font-size:44px;letter-spacing:3px;color:#8890a0;font-weight:600}
+
+  /* ---------- HOOK BIG TEXT ---------- */
+  #hooktext{position:absolute;left:0;right:0;top:60%;padding:0 70px;text-align:center;
+    font-size:86px;font-weight:800;line-height:1.1;letter-spacing:-1px;opacity:0;
+    text-shadow:0 6px 40px rgba(0,0,0,.8)}
+  #hooktext.on{opacity:1}
+  #hooktext .sm{display:block;font-size:52px;font-weight:600;color:#c9ccd3;margin-top:20px}
+
+  /* ---------- CAPTIONS ---------- */
+  #cap{position:absolute;left:0;right:0;top:63%;display:flex;justify-content:center;padding:0 60px;opacity:0}
+  #cap.on{opacity:1}
+  #cap .box{max-width:900px;background:rgba(6,6,10,.72);border:1px solid rgba(255,255,255,.08);
+    border-radius:28px;padding:30px 44px;text-align:center;backdrop-filter:blur(6px)}
+  #cap .who{font-size:30px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+  #cap .who.novi{color:#9fb8ff}#cap .who.cust{color:#ffd27a}#cap .who.narr{color:#8fe0b0}
+  #cap .txt{font-size:56px;font-weight:800;line-height:1.25;text-shadow:0 3px 14px rgba(0,0,0,.9)}
+</style></head><body>
+  <div class="scene" id="hook">
+    <div class="status"><div>2:14 AM</div><div class="d">📶 🔋</div></div>
+    <div class="ring"><img src="brand/logo_mark.png"></div>
+    <div class="calllbl">Incoming call</div>
+    <div class="clock">New Lead · 2:14 AM</div>
+  </div>
+
+  <div class="scene" id="call">
+    <div class="status"><div>2:14 AM</div><div class="d">📶 🔋</div></div>
+    <div class="live"><i></i> SYSTEM LIVE</div>
+    <div class="av"><img src="brand/logo_mark.png"></div>
+    <div class="who">New Lead</div>
+    <div class="sub">mobile • Unknown</div>
+    <div class="pill"><div class="bars"><b></b><b></b><b></b><b></b><b></b></div><span>Novi is answering…</span></div>
+  </div>
+
+  <div class="scene" id="cal">
+    <div class="status"><div>2:15 AM</div><div class="d">📶 🔋</div></div>
+    <div class="h"><div class="day">Tomorrow</div><div class="date">Wed 22</div>
+      <div class="badgeline"><i></i> BOOKED BY NOVI · WHILE YOU SLEPT</div></div>
+    <div class="card"><div class="new">NEW BOOKING</div><h3>Roof Inspection</h3>
+      <div class="m">9:00 – 10:00 AM · On-site</div><div class="v">via <b>Novi</b> · AI Receptionist</div></div>
+  </div>
+
+  <div class="scene" id="sms">
+    <div class="status"><div>2:15 AM</div><div class="d">📶 🔋</div></div>
+    <div class="top"><div class="av"><img src="brand/logo_mark.png"></div><div class="nm">Novi</div>
+      <div class="bz">AI Receptionist · NovixelAI</div></div>
+    <div class="thread">
+      <div class="b out">You're booked for a roof inspection tomorrow at 9:00 AM ✅</div>
+      <div class="b in">Wow that was fast, thank you 🙏</div>
+    </div>
+  </div>
+
+  <div class="scene" id="reveal"></div>
+
+  <div class="scene" id="end">
+    <div class="glow"></div><img src="brand/logo_full.png">
+    <div class="tag">never miss another call.</div>
+    <div class="url">novixelai.com</div>
+  </div>
+
+  <div id="hooktext"></div>
+  <div id="cap"><div class="box"><div class="who"></div><div class="txt"></div></div></div>
+
+<script>
+const scene=id=>{document.querySelectorAll('.scene').forEach(s=>s.classList.toggle('on',s.id===id));};
+const hookEl=document.getElementById('hooktext');
+const cap=document.getElementById('cap'),capWho=cap.querySelector('.who'),capTxt=cap.querySelector('.txt');
+function showHook(html){hookEl.innerHTML=html;hookEl.classList.add('on');}
+function hideHook(){hookEl.classList.remove('on');}
+function showCap(who,cls,txt){capWho.className='who '+cls;capWho.textContent=who;capTxt.textContent=txt;cap.classList.add('on');}
+function hideCap(){cap.classList.remove('on');}
+// timeline (ms)
+const T=[
+ [0,()=>{scene('hook');showHook('Your phone just rang at 2AM.');}],
+ [1700,()=>{showHook('Your phone just rang at 2AM.<span class="sm">You didn\'t hear it.</span>');}],
+ [3100,()=>{hideHook();scene('call');showCap('','narr','But someone answered.');}],
+ [4600,()=>showCap('Novi','novi','Thanks for calling — this is Novi. How can I help?')],
+ [6900,()=>showCap('Customer','cust','My roof\'s leaking bad — can someone come out?')],
+ [9300,()=>showCap('Novi','novi','Absolutely. A crew can be there tomorrow at 9. What\'s the address?')],
+ [12200,()=>showCap('Customer','cust','It\'s 214 Oak Street. Tomorrow at 9 works great.')],
+ [14600,()=>showCap('Novi','novi','You\'re all booked — sending your confirmation now.')],
+ [16900,()=>{scene('cal');showCap('','narr','Booked. While you slept.')}],
+ [20200,()=>{scene('sms');showCap('Customer','cust','Wow, that was fast. Thank you!')}],
+ [22600,()=>{hideCap();scene('reveal');showHook('That wasn\'t you.');}],
+ [24100,()=>showHook('That wasn\'t you.<span class="sm">It was your AI.</span>')],
+ [26200,()=>{hideHook();scene('end');}],
+];
+T.forEach(([t,fn])=>setTimeout(fn,t));
+</script>
+</body></html>
