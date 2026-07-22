@@ -1,28 +1,36 @@
-# 🎬 "The 2AM Job" — Novixel.ai Reel/TikTok (v3)
+# 🎬 "The 2AM Call" — Novixel.ai (experience cut, v4)
 
-**Angle:** #2 Conversion engine — proof the AI books real jobs while you sleep.
-**Format:** 9:16 (1080×1920) · ~35s · faceless · English (US audience).
-**Golden rules:** huge hook at 0s · cut every ~1.5–2s · captions CENTER (not bottom) ·
-the full AI call is the "wow" — let it breathe · ONE CTA · loop the ending.
+**This is not an ad — it's an experience.** The viewer is dropped into a 2AM moment,
+eavesdrops on a call whose ending they want to hear, and only at the very end quietly
+realizes what made it possible. No logo, no price, no pitch up front.
+
+**Format:** 9:16 (1080×1920) · ~30s · faceless · English (US audience).
+
+## Why this holds attention to the last second
+- **Open loop at 0s** — phone ringing in the dark, "you're asleep." The brain needs
+  to know what happens.
+- **Eavesdrop** — the full natural call plays out. People stay to hear if it works /
+  if the customer books. The conversation *is* the retention engine.
+- **Delayed, quiet reveal** — branding and the "it was AI" twist come only at the end,
+  softly. It feels earned, not sold.
+- **No mid-video billboard** — the big price card and the "missed calls" argument are
+  cut from this piece (they read as an ad). Price lives in the caption. Save the
+  missed-calls angle for a separate video.
 
 ---
 
 ## Assets in this kit
-**Phone mockups (sharp PNGs, this folder):**
-- `screen1_call.png` — incoming call, 2:14 AM, "Novi is answering…"
-- `screen2_calendar.png` — new booking "Roof Inspection 9AM · New client" (no price)
-- `screen3_sms.png` — SMS confirmation thread
-- `screen4_missed.png` — lock screen, "12 missed calls today"
-- `screen5_offer.png` — offer card, $197/mo, novixelai.com CTA
-(HTML source of each is here too — edit text and re-screenshot to remix.)
+**Motion background (Higgsfield, in your history):** dark bedroom, phone lighting up
+at 2AM — the ONLY background. Opens the film and returns for the reveal + loop.
 
-**B-roll (in your Higgsfield history):** dark bedroom w/ glowing phone (the only
-background — used for the 0–2s hook and the closing loop). *(Reception-desk shot
-dropped — it didn't fit the "owner asleep at home" story.)*
+**Animated phone screens (MP4, `animated/`):**
+- `anim1_call.mp4` — incoming call + live waveform (the call)
+- `anim2_calendar.mp4` — booking slides into the calendar
+- `anim3_sms.mp4` — SMS thread, bubbles + typing
+- `anim6_end.mp4` — soft end card (wordmark + novixelai.com) *(no price, no CTA button)*
+- *(anim4_missed / anim5_offer — not used in this cut; kept for other videos)*
 
-**Voiceover / dialogue clips (Higgsfield → seed_audio):**
-
-*The call — play in this exact order (this is the centerpiece):*
+**Audio — the call (play in order, this is the centerpiece):**
 | # | Voice | Line |
 |---|---|---|
 | 1 | Ava (Novi) | "Thanks for calling — this is Novi. How can I help?" |
@@ -32,57 +40,46 @@ dropped — it didn't fit the "owner asleep at home" story.)*
 | 5 | Ava (Novi) | "You're all booked. I'll text you a confirmation right now." |
 | 6 | Mark (customer) | "Wow, that was fast. Thank you!" |
 
-*Narration (for the reframe + offer):*
-| # | Voice | Line |
-|---|---|---|
-| 7 | Harrison (VO) | "Your competitors miss calls. You won't." |
-| 8 | Harrison (VO) | "An AI receptionist that answers every call, 24/7. For less than seven dollars a day." |
-| 9 | Harrison (VO) | "Try Novixel — link in bio." |
-
-> Tip: some clips have trailing silence — trim the tails in CapCut so the call feels
-> snappy and natural (a real call has no dead air between turns).
+**Audio — the reveal (pick ONE, both generated):**
+- Harrison: "That wasn't you answering. It was your AI."
+- Harrison: "You slept through the whole call. Your AI didn't miss it."
 
 ---
 
-## Timeline (drop into CapCut)
-| Time | Visual | Audio | On-screen text (center) |
+## Timeline
+| Time | Visual | Audio | On-screen text (center, small) |
 |---|---|---|---|
-| 0.0–2.0 | b-roll bedroom, slow zoom | phone buzz | **This AI booked a new job at 2AM — while you slept.** |
-| 2.0–4.0 | screen1_call slides in | ringtone | You were asleep. It answered anyway. |
-| 4.0–7.0 | screen1_call + waveform | clip 1 (Novi) + clip 2 (customer) | *(captions of the call)* |
-| 7.0–11.0 | screen1_call | clip 3 (Novi) + clip 4 (customer) | *(captions of the call)* |
-| 11.0–15.0 | screen2_calendar (booking pops in) | clip 5 (Novi) | Booked. Confirmed. While you slept. |
-| 15.0–18.0 | screen3_sms | clip 6 (customer) + "ding" | *(caption of the SMS)* |
-| 18.0–22.0 | screen4_missed | clip 7 (VO) | Every missed call = a customer calling someone else. |
-| 22.0–30.0 | screen5_offer (animated) | clip 8 (VO) | $7 a day. Never miss a lead again. |
-| 30.0–34.0 | screen5_offer (hold on CTA) | clip 9 (VO) | See it live → novixelai.com |
-| 34.0–35.0 | loop back to b-roll bedroom | (music tail) | novixelai.com · link in bio |
+| 0.0–3.0 | bedroom motion, phone ringing in dark | phone buzz + room tone | It's 2:14 AM. → You're asleep. |
+| 3.0–5.0 | anim1_call (the phone answers itself) | clip 1 (Novi) | But someone answered. |
+| 5.0–9.0 | anim1_call + waveform | clip 2 + clip 3 | *(captions of the call)* |
+| 9.0–13.0 | anim1_call | clip 4 + clip 5 | *(captions of the call)* |
+| 13.0–17.0 | anim2_calendar (booking slides in) | soft "ding" | *(no text — let it land)* |
+| 17.0–20.0 | anim3_sms | clip 6 (customer) | *(caption of the SMS)* |
+| 20.0–24.0 | back to bedroom motion (calm now) | reveal line | That wasn't you. It was your AI. |
+| 24.0–28.0 | anim6_end (soft wordmark) | music tail | never miss another call |
+| 28.0–30.0 | loop back to the dark phone | — | novixelai.com |
 
 ---
 
-## Fastest CapCut workflow (~20 min)
-1. New 9:16 project. Drag the **9 clips in order** (call 1–6, then VO 7–9) onto the
-   timeline end to end. **Trim trailing silence** off each so the call flows naturally.
-2. Hit **Auto-Captions** (English) → it transcribes and syncs captions automatically.
-3. Style captions: bold sans (Montserrat/Poppins Bold), white, thin black stroke,
-   position CENTER (~60% height, out of the bottom UI zone).
-4. Drop each **image/mockup** on the video track above its matching audio segment
-   (follow the timeline table). Set images to **fill** the 1080×1920 frame.
-5. Add the big **hook text** at 0–2s (biggest text in the video).
-6. Add a subtle **music bed** (tense low pulse → lifts at the offer). Keep it under the VO.
-7. Micro-motion: give every still a slow zoom/pan (Ken Burns) so nothing is static.
-8. Export **1080×1920, 30/60fps, High bitrate**.
+## Editing notes (keep it feeling like a film, not an ad)
+- **Let the call breathe.** During the dialogue, DON'T over-cut — subtle slow zooms
+  only. The audio carries it; rapid cuts would break the immersion.
+- Trim trailing silence off each audio clip so the call feels natural and snappy.
+- Captions: bold sans, white, thin stroke, CENTER. Keep on-screen text minimal and
+  small — this is an experience, not a slideshow of claims.
+- Music: very low, tense/ambient during the call → soft warm resolve at the reveal.
+  Keep it under the voices.
+- Export 1080×1920, high bitrate.
 
-## Caption (post text)
-> Your business isn't losing money on ads. It's losing it at 2AM. 📞
-> Every missed call is a customer who called your competitor. Novi answers every
-> call, chat & text — 24/7 — and books the job while you sleep. $7/day. Cancel anytime.
-> → novixelai.com (link in bio)
+## Caption (post text) — price lives here, not in the video
+> It's 2AM. A customer's roof is leaking. They call. You're asleep… but someone picks up. 📞
+> This is Novi — an AI receptionist that answers every call, chat & text 24/7 and books
+> the job while you sleep. From $97/mo. Cancel anytime. → novixelai.com (link in bio)
 
 **Hashtags:** #smallbusinessowner #contractorlife #missedcalls #aitools #leadgeneration
 **First comment:** 👉 novixelai.com
 
 ## Honesty note
-No dollar figures are shown (per request) — the drama is "booked at 2AM while you slept."
-If/when you have a real result (a booked job value or count), add it — real numbers
-convert even better and build trust.
+No dollar claims in the video. The scenario (roof call, 9AM booking) is a realistic
+demonstration of how the product works — swap in a real recorded call the moment you
+have one; nothing sells this product like the real thing.
