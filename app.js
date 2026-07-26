@@ -5,6 +5,9 @@
 
 const KEY = 'kin_state_v1';
 const SCHEMA_VERSION = 3;
+// Visible build stamp — bumped on each deploy so you can confirm at a glance
+// (in Settings, bottom) that the live site really updated.
+const APP_VERSION = '6.0 · 2026-07-26';
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 const DEFAULT_STATE = {
@@ -1598,6 +1601,7 @@ function ScreenSettings() {
 
     <div class="spacer"></div>
     <p class="muted center" style="font-size:12px">השינויים נשמרים מיד ומעדכנים את התוכנית שלך.</p>
+    <p class="muted center" style="font-size:11px;opacity:.6;margin-top:10px">גרסה ${APP_VERSION}</p>
   </div>`;
 }
 

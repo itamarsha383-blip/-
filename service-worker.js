@@ -1,5 +1,5 @@
 // KIN service worker — enables installability + offline use.
-const CACHE = 'kin-v4';
+const CACHE = 'kin-v6';
 const ASSETS = [
   './',
   './index.html',
