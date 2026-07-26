@@ -34,7 +34,11 @@ const Cloud = (() => {
   const configured = () => !!(cfg && cfg.url && cfg.key);
   const enabled = () => !!(cfg && cfg.url && cfg.key && cfg.family && cfg.name);
   const base = () => cfg.url.replace(/\/+$/, '');
-  const headers = () => ({ apikey: cfg.key, Authorization: 'Bearer ' + cfg.key, 'Content-Type': 'application/json' });
+  // Works with both key types: legacy anon JWT (eyJ...) and the new
+  // publishable key (sb_publishable_...). The Bearer header is only meaningful
+  // for a JWT; for anon/public access the apikey header is what authorizes.
+  const authHeaders = (key) => { const h = { apikey: key }; if (/^eyJ/.test(key)) h.Authorization = 'Bearer ' + key; return h; };
+  const headers = () => ({ ...authHeaders(cfg.key), 'Content-Type': 'application/json' });
 
   function save(patch) { cfg = { ...(cfg || {}), ...patch }; localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }
   function clear() { cfg = null; members = null; status = 'idle'; localStorage.removeItem(CFG_KEY); }
@@ -71,8 +75,8 @@ const Cloud = (() => {
   async function test(tmp) {
     const c = tmp || cfg;
     try {
-      const res = await fetch(c.url.replace(/\/+$/, '') + '/rest/v1/members?limit=1&select=device_id',
-        { headers: { apikey: c.key, Authorization: 'Bearer ' + c.key } });
+      const th = { apikey: c.key }; if (/^eyJ/.test(c.key)) th.Authorization = 'Bearer ' + c.key;
+      const res = await fetch(c.url.replace(/\/+$/, '') + '/rest/v1/members?limit=1&select=device_id', { headers: th });
       if (res.ok) return { ok: true };
       if (res.status === 404) return { ok: false, error: 'הטבלה members לא קיימת — הרץ את ה-SQL' };
       if (res.status === 401) return { ok: false, error: 'המפתח (anon key) שגוי' };
