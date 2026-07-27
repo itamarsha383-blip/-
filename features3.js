@@ -129,6 +129,19 @@
   }
   const skillPct = (sk) => Math.round(skillDone(sk) / sk.milestones.length * 100);
 
+  // Rotating weekly skill challenge — deterministic by ISO week (no randomness needed).
+  function isoWeek() { const d = new Date(); const on = new Date(d.getFullYear(), 0, 1); return Math.floor((d - on) / (7 * 864e5)); }
+  const WEEKLY_CHALLENGES = [
+    'החזק פלאנק 60 שניות ברצף', 'בצע 50 שכיבות סמיכה מצטברות היום', 'נסה 10 שניות עמידת ידיים על הקיר',
+    'בצע 3 סטים של מקסימום מתח', '100 סקוואטים מצטברים היום', 'החזק tuck planche 10 שניות',
+    '5 דקות ניידות כתפיים', 'נסה pistol squat לספסל לכל רגל'
+  ];
+  function weeklyChallengeCard() {
+    const c = WEEKLY_CHALLENGES[isoWeek() % WEEKLY_CHALLENGES.length];
+    const key = 'wc' + isoWeek(); const done = (S.weeklyChallengeDone || []).includes(key);
+    return `<div class="card" style="border-color:${done ? 'var(--accent)' : 'var(--line)'}"><div class="between"><span class="flex"><span style="font-size:22px">🏁</span><span class="ex-name" style="font-size:14px">אתגר השבוע: ${c}</span></span>${done ? '<span class="pill accent">בוצע ✓</span>' : '<button class="btn sm" data-fx="wc-done">סיימתי</button>'}</div></div>`;
+  }
+
   // --- Skill tree overview ---
   function ScreenSkills() {
     const cats = [...new Set(SKILLS.map((s) => s.cat))];
@@ -138,6 +151,7 @@
       <p class="muted" style="margin:0 0 12px">המסלול שלך לתרגילי הדגל של הקליסתניקס. כל סקיל = שרשרת אבני-דרך.</p>
       ${!S.assessment ? `<div class="card" style="border-color:var(--accent)"><div class="ex-name" style="margin-bottom:4px">📋 עשה מבחן הערכה</div><p class="muted" style="font-size:13px;margin:0 0 10px">2 דקות שממקמות אותך ומדליקות אוטומטית את אבני-הדרך שכבר עברת.</p><button class="btn" data-fx="nav" data-to="assess">התחל מבחן</button></div>` : ''}
       ${rec ? `<div class="card"><span class="pill accent">🎯 סקיל החודש</span> <b>${rec.emoji} ${rec.name}</b> — ${skillPct(rec)}% הושלם</div>` : ''}
+      ${weeklyChallengeCard()}
       ${cats.map((c) => `<div class="section-title">${c}</div>
         ${SKILLS.filter((s) => s.cat === c).map((sk) => { const pct = skillPct(sk); const complete = pct === 100; return `<button class="skill-card ${complete ? 'done' : ''}" data-fx="nav" data-to="skill" data-id="${sk.id}">
           <span class="sk-emoji">${sk.emoji}</span>
@@ -169,7 +183,7 @@
         <div class="rm-body"><div class="rm-name">${m.n}</div>${auto ? `<div class="rm-meta">נבדק אוטומטית מהשיאים שלך (${m.auto.val}+ ${m.auto.ex === 'plank' ? 'שנ׳' : 'חזרות'})</div>` : ''}</div>
         ${!auto ? `<button class="react-btn" data-fx="ms-toggle" data-sk="${sk.id}" data-i="${i}">${done ? 'בוצע ✓' : 'סמן'}</button>` : done ? '<span class="pill accent">✓</span>' : '<span class="pill">נעול</span>'}
       </div>`; }).join('')}</div>
-      ${pct === 100 ? `<div class="card center" style="border-color:var(--accent);margin-top:12px"><div style="font-size:36px">🏆</div><div class="ex-name">כבשת את ${sk.name}!</div></div>` : ''}
+      ${pct === 100 ? `<div class="card center" style="border-color:var(--accent);margin-top:12px"><div style="font-size:36px">🏆</div><div class="ex-name" style="margin-bottom:8px">כבשת את ${sk.name}!</div><button class="btn sm" data-fx="skill-cert" data-id="${sk.id}">📜 קבל תעודה לשיתוף</button></div>` : ''}
     </div>`;
   }
 
@@ -196,6 +210,15 @@
     return { lvl, into: xp - acc, need, xp };
   }
   const RANKS = ['מתחיל', 'חניך', 'מתאמן', 'לוחם', 'אתלט', 'ותיק', 'מאסטר', 'אלוף', 'אגדה'];
+  // Streak pet grows with your best streak — a little companion to keep momentum.
+  function streakPet(streak) {
+    if (streak >= 30) return { emoji: '🐉', name: 'דרקון הרצף', hint: 'רצף שיא 30+ — אגדי!' };
+    if (streak >= 21) return { emoji: '🦁', name: 'אריה', hint: 'רצף 21+ — בלתי ניתן לעצירה' };
+    if (streak >= 14) return { emoji: '🐺', name: 'זאב', hint: 'רצף 14+ — חיה' };
+    if (streak >= 7) return { emoji: '🦊', name: 'שועל', hint: 'רצף 7+ — מתחמם' };
+    if (streak >= 3) return { emoji: '🐣', name: 'אפרוח', hint: 'רצף 3+ — גדל!' };
+    return { emoji: '🥚', name: 'ביצה', hint: 'התאמן 3 ימים ברצף כדי לבקוע' };
+  }
   function ScreenJourney() {
     const li = levelInfo();
     const rank = RANKS[Math.min(RANKS.length - 1, Math.floor((li.lvl - 1) / 2))];
@@ -206,8 +229,10 @@
       ['שתה מים (יעד)', (S.water && S.water[today()] || 0) > 0, 10],
       ['בדוק מוכנות', !!(S.readiness && S.readiness[today()]), 10]
     ];
+    const pet = streakPet(S.maxStreak || 0);
     return `<div class="screen">${backBtn('tools')}
       <h2 class="h-lg" style="margin-bottom:4px">🎮 המסע שלי</h2>
+      <div class="card center"><div style="font-size:52px;line-height:1">${pet.emoji}</div><div class="ex-name" style="margin-top:4px">${pet.name}</div><div class="muted" style="font-size:12px">${pet.hint}</div></div>
       <div class="card center" style="border-color:var(--accent)">
         <div class="muted">${rank}</div>
         <div class="h-xl" style="color:var(--accent)">רמה ${li.lvl}</div>
@@ -339,6 +364,8 @@
       save(); render();
     },
     'skill-month': (t2) => { S.skillOfMonth = S.skillOfMonth === t2.dataset.id ? '' : t2.dataset.id; save(); render(); },
+    'wc-done': () => { const key = 'wc' + isoWeek(); S.weeklyChallengeDone = S.weeklyChallengeDone || []; if (!S.weeklyChallengeDone.includes(key)) { S.weeklyChallengeDone.push(key); awardXP(30, 'אתגר שבועי'); } save(); toast('כל הכבוד! +30 XP'); render(); },
+    'skill-cert': (t2) => { const sk = SKILLS.find((s) => s.id === t2.dataset.id); if (sk) skillCertificate(sk); },
     'assess-save': () => {
       const map = { pushup: 'pushup', pullup: 'pullup', dip: 'dip', squat: 'squat', plank: 'plank', legraise: 'legraise' };
       const vals = {};
@@ -365,6 +392,30 @@
   const _go = window.go;
   window.go = function (name, params) { if (route.name === 'guided' && name !== 'guided' && guidedTimer) { clearInterval(guidedTimer); } _go(name, params); };
 
+  // Shareable skill certificate (canvas → share/download).
+  async function skillCertificate(sk) {
+    try {
+      const cv = document.createElement('canvas'); cv.width = 1080; cv.height = 1350;
+      const ctx = cv.getContext('2d'); ctx.textAlign = 'center'; ctx.direction = 'rtl';
+      const g = ctx.createLinearGradient(0, 0, 0, 1350); g.addColorStop(0, '#12181f'); g.addColorStop(1, '#0B0E11');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 1080, 1350);
+      ctx.strokeStyle = '#C6FF3D'; ctx.lineWidth = 6; ctx.strokeRect(50, 50, 980, 1250);
+      ctx.fillStyle = '#C6FF3D'; ctx.font = '900 70px sans-serif'; ctx.fillText('KIN', 540, 180);
+      ctx.fillStyle = '#8A97A6'; ctx.font = '34px sans-serif'; ctx.fillText('תעודת מיומנות', 540, 250);
+      ctx.font = '200px sans-serif'; ctx.fillText(sk.emoji, 540, 560);
+      ctx.fillStyle = '#EDF1F5'; ctx.font = 'bold 68px sans-serif'; ctx.fillText(sk.name, 540, 700);
+      ctx.fillStyle = '#8A97A6'; ctx.font = '38px sans-serif'; ctx.fillText('הוענקה ל', 540, 800);
+      ctx.fillStyle = '#C6FF3D'; ctx.font = 'bold 60px sans-serif'; ctx.fillText(S.profile.name || 'אלוף', 540, 880);
+      ctx.fillStyle = '#EDF1F5'; ctx.font = '34px sans-serif'; ctx.fillText('על כיבוש כל אבני הדרך', 540, 970);
+      ctx.fillStyle = '#8A97A6'; ctx.font = '30px sans-serif'; ctx.fillText(new Date().toLocaleDateString('he-IL'), 540, 1200);
+      const blob = await new Promise((res) => cv.toBlob(res, 'image/png'));
+      const file = new File([blob], 'kin-certificate.png', { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: `כבשתי ${sk.name} ב-KIN! 🏆` });
+      else { const a = document.createElement('a'); a.href = cv.toDataURL('image/png'); a.download = 'kin-certificate.png'; a.click(); }
+    } catch (e) { toast('לא הצלחתי ליצור תעודה'); }
+  }
+
   Object.assign(window.FEATURE_SCREENS, { skills: ScreenSkills, skill: ScreenSkill, assess: ScreenAssess, journey: ScreenJourney, guided: ScreenGuided });
   window.FEATURE_ROUTES = Object.keys(window.FEATURE_SCREENS);
+  window._skillPct = skillPct; // reused by wave 5 (rare achievements)
 })();

@@ -63,7 +63,7 @@ const Cloud = (() => {
     try {
       if (stats) await syncSelf(stats);
       const url = base() + '/rest/v1/members?family=eq.' + encodeURIComponent(cfg.family) +
-        '&order=streak.desc,workouts.desc&select=name,workouts,streak,device_id';
+        '&order=streak.desc,workouts.desc&select=name,workouts,streak,device_id,updated_at';
       const res = await fetch(url, { headers: headers() });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       members = await res.json();

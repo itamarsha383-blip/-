@@ -7,7 +7,7 @@ const KEY = 'kin_state_v1';
 const SCHEMA_VERSION = 3;
 // Visible build stamp — bumped on each deploy so you can confirm at a glance
 // (in Settings, bottom) that the live site really updated.
-const APP_VERSION = '8.5 · 2026-07-27';
+const APP_VERSION = '9.0 · 2026-07-27';
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 const DEFAULT_STATE = {
@@ -753,6 +753,8 @@ function startWorkout() {
   const sess = todaysSession();
   active = { sess, phase: 'warmup', wi: 0, ci: 0, i: 0, set: 0, resting: false, restLeft: 0, timer: null, prsThisSession: [] };
   requestWake();
+  // Touch the cloud so family "active now" presence reflects that you just started.
+  if (typeof Cloud !== 'undefined' && Cloud.enabled()) Cloud.syncSelf({ workouts: S.workoutsLog.length, streak: S.streak }).catch(() => {});
   go('active');
   startWarmTimer();
 }
