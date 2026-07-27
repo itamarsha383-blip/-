@@ -336,3 +336,31 @@ h1,h2,h3,.ex-name,.lb-name,.h-xl,.h-lg { unicode-bidi: plaintext; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
 }
+
+/* ---------- feature module (Tools & extras) ---------- */
+.mfill { background: var(--accent); }
+.tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tool-card { display: grid; gap: 3px; text-align: start; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; font-family: inherit; color: var(--text); cursor: pointer; }
+.tool-card:active { transform: scale(.98); }
+.tool-card .te { font-size: 24px; }
+.tool-card .tt { font-weight: 800; font-size: 14.5px; }
+.tool-card .td { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+.fld { display: grid; gap: 5px; font-size: 12.5px; color: var(--muted); }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.mrow { display: flex; flex-wrap: wrap; gap: 10px; }
+.mcell { flex: 1 0 28%; background: var(--card-2); border-radius: 12px; padding: 10px; }
+.mcell .mk { font-size: 11px; color: var(--muted); }
+.mcell .mv { font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+.bars { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding-top: 8px; }
+.bar { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; }
+.bfill { width: 70%; min-height: 3px; background: var(--accent); border-radius: 6px 6px 0 0; }
+.bar .bl { font-size: 10px; color: var(--muted); }
+.timer-live { transition: background .3s; }
+.timer-live.work { border-color: var(--accent); }
+.timer-live.rest { border-color: #4AA8FF; }
+.timer-big { font-size: 72px; font-weight: 900; line-height: 1.1; color: var(--accent); font-variant-numeric: tabular-nums; }
+.rest-live .timer-big { font-size: 56px; }
+.ba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ba { margin: 0; }
+.ba img { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 14px; background: var(--card-2); }
+.ba figcaption { text-align: center; font-size: 11px; color: var(--muted); margin-top: 4px; }

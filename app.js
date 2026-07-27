@@ -7,7 +7,7 @@ const KEY = 'kin_state_v1';
 const SCHEMA_VERSION = 3;
 // Visible build stamp — bumped on each deploy so you can confirm at a glance
 // (in Settings, bottom) that the live site really updated.
-const APP_VERSION = '6.1 · 2026-07-27';
+const APP_VERSION = '7.0 · 2026-07-27';
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 const DEFAULT_STATE = {
@@ -395,6 +395,11 @@ function fmtRest(sec) {
    ROUTER
    ============================================================ */
 function screenHTML() {
+  // Feature module screens register themselves here (features.js), so the core
+  // router stays untouched as we add tools.
+  if (typeof FEATURE_SCREENS === 'object' && FEATURE_SCREENS && FEATURE_SCREENS[route.name]) {
+    return FEATURE_SCREENS[route.name](route.params || {});
+  }
   switch (route.name) {
     case 'onboard': return ScreenOnboard();
     case 'home': return ScreenHome();
@@ -412,16 +417,15 @@ function screenHTML() {
     case 'goals': return ScreenGoals();
     case 'firstweek': return ScreenFirstWeek();
     case 'programs': return ScreenPrograms();
-    case 'builder': return ScreenBuilder();
-    case 'measure': return ScreenMeasure();
     default: return ScreenHome();
   }
 }
 function render() {
   document.body.classList.toggle('light', S.theme === 'light');
   const app = el('app');
-  const navRoutes = ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy', 'cloud', 'settings', 'goals', 'programs', 'builder', 'measure'];
-  const showNav = S.profile && navRoutes.includes(route.name) && route.name !== 'firstweek';
+  const navRoutes = ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy', 'cloud', 'settings', 'goals', 'programs'];
+  const featRoute = typeof FEATURE_ROUTES !== 'undefined' && FEATURE_ROUTES.includes(route.name);
+  const showNav = S.profile && (navRoutes.includes(route.name) || featRoute) && route.name !== 'firstweek';
   let html = '';
   try {
     html = screenHTML();
@@ -747,6 +751,19 @@ function startWorkout() {
   go('active');
   startWarmTimer();
 }
+// Run an arbitrary session object through the normal active-workout engine.
+// Used by the custom workout builder and rest-day flows (features.js).
+window.startSession = function (sess) {
+  active = { sess, phase: 'warmup', wi: 0, ci: 0, i: 0, set: 0, resting: false, restLeft: 0, timer: null, prsThisSession: [] };
+  requestWake();
+  go('active');
+  startWarmTimer();
+};
+// Build a session from a specific ordered list of exercise ids (custom builder).
+window.buildCustomSession = function (ids, name) {
+  const sess = buildSession(S.profile, S.workoutsLog.length, S.exState, { exerciseIds: ids, name: name || 'אימון מותאם אישית', splitLabel: 'בונה אימונים' });
+  return sess;
+};
 // Express ~10-minute session: fewer drills, 3 moves, one less set each.
 function startQuickWorkout() {
   const full = todaysSession();
@@ -938,11 +955,12 @@ function coolNext() {
 }
 function startRest(sec) {
   active.resting = true; active.restLeft = sec; active.restQuote = randomQuote();
+  if (typeof speakCue === 'function') speakCue('מנוחה ' + sec + ' שניות');
   render();
   active.timer = setInterval(() => {
     active.restLeft--;
     if (active.restLeft <= 3 && active.restLeft > 0) beep(1200, 0.07);
-    if (active.restLeft <= 0) { clearInterval(active.timer); active.resting = false; cue(); render(); }
+    if (active.restLeft <= 0) { clearInterval(active.timer); active.resting = false; cue(); if (typeof speakCue === 'function') speakCue('קדימה, הסט הבא'); render(); }
     else { const t = document.querySelector('.timer'); if (t) t.textContent = active.restLeft; }
   }, 1000);
 }
@@ -1481,6 +1499,8 @@ function ScreenProfile() {
       ${p.injuries && p.injuries.length ? `<div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span class="muted">מגבלות</span><span>${p.injuries.map((i) => INJURIES.find((x) => x.id === i)?.label).join(', ')}</span></div>` : ''}
       <div class="between" style="padding:8px 0;border-top:1px solid var(--line)"><span class="muted">יעד קלורי יומי</span><span>${mt.kcal} קל׳</span></div>
     </div>
+    <button class="btn" data-nav="tools">🧰 כלים ותוספות (חדש!)</button>
+    <div class="spacer"></div>
     <button class="btn ghost" data-nav="settings">⚙️ הגדרות (מטרה, תדירות, יחידות)</button>
     <div class="spacer"></div>
     <button class="btn ghost" data-edit-profile>ערוך פרטים אישיים</button>

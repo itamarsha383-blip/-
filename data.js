@@ -416,6 +416,22 @@ function buildSession(profile, sessionOffset = 0, adjustments = {}, opts = {}) {
     });
   }
 
+  // Custom builder override: force the main list to a specific ordered set of ids.
+  if (opts.exerciseIds && opts.exerciseIds.length) {
+    main.length = 0; used.clear();
+    for (const id of opts.exerciseIds) {
+      const e = EXERCISES.find((x) => x.id === id);
+      if (!e || used.has(id)) continue;
+      used.add(id);
+      const timed = e.timed;
+      const adj = adjustments[e.id]?.adjust || 0;
+      const target = repTarget(pg, profile.level, adj);
+      const baseSec = profile.level >= 2 ? 35 : 25;
+      const holdSec = Math.max(15, Math.min(75, baseSec + adj * 5));
+      main.push({ ...e, sets: rx.sets, reps: timed ? `${holdSec} שנ׳` : `${target} חזרות`, repsTarget: timed ? null : target, holdSec: timed ? holdSec : null, adjusted: adj, graduated: false, rest: rx.rest, rpe: rx.rpe, timed });
+    }
+  }
+
   // Warm-up: prioritise drills that prep the muscles THIS session will use.
   const sessPatterns = new Set(main.map((e) => e.pattern));
   const relevant = WARMUPS.filter((w) => (w.for || []).some((p) => sessPatterns.has(p)));
