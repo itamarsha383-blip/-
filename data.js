@@ -558,12 +558,14 @@ const PHOTOS = {
   child_pose: ['Childs_Pose/0.jpg', 'Childs_Pose/1.jpg'],
   shoulder_stretch: ['Shoulder_Stretch/0.jpg', 'Shoulder_Stretch/1.jpg']
 };
-// Every exercise/warm-up/stretch is a video slot. Ids in PHOTOS ship with a
-// bundled .webm placeholder; any id also plays ./videos/<id>.mp4 if you add one.
+// Only ids that actually ship with a bundled ./videos/<id>.webm clip. Listing an
+// id here without a real file makes the player fire a 404 before falling back —
+// so this is the exact set of files present in /videos/. Drop in a new .webm and
+// add its id here (an ./videos/<id>.mp4 also plays automatically if present).
 const VIDEO_CLIPS = [
-  ...EXERCISES.map((e) => e.id),
-  ...WARMUPS.map((w) => w.id),
-  ...COOLDOWNS.map((c) => c.id)
+  'arm_circles', 'bw_squats', 'cat_cow', 'chest_stretch', 'child_pose', 'dip',
+  'glutebridge', 'hamstring', 'jumping_jacks', 'legraise', 'lunge', 'mountain',
+  'pike', 'plank', 'pullup', 'pushup', 'quad', 'rows', 'shoulder_stretch', 'squat'
 ];
 
 // --- focused programs -------------------------------------------------

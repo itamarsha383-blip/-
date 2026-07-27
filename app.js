@@ -7,7 +7,7 @@ const KEY = 'kin_state_v1';
 const SCHEMA_VERSION = 3;
 // Visible build stamp — bumped on each deploy so you can confirm at a glance
 // (in Settings, bottom) that the live site really updated.
-const APP_VERSION = '6.0 · 2026-07-26';
+const APP_VERSION = '6.1 · 2026-07-27';
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 const DEFAULT_STATE = {
@@ -125,6 +125,26 @@ async function shareReport() {
 function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
 function wrapText(ctx, text, x, y, maxW, lh) { const words = text.split(' '); let line = ''; for (const w of words) { const t = line + w + ' '; if (ctx.measureText(t).width > maxW && line) { ctx.fillText(line.trim(), x, y); line = w + ' '; y += lh; } else line = t; } ctx.fillText(line.trim(), x, y); }
 function tap(ms = 8) { try { if (S.vibrate !== false && navigator.vibrate) navigator.vibrate(ms); } catch {} }
+
+// Perf + battery: only play demo clips that are actually on screen, and honor
+// the OS "reduce motion" setting (then we never autoplay).
+let _mediaObserver = null;
+const reduceMotion = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; } };
+function lazyMedia() {
+  const vids = document.querySelectorAll('video.pf-video');
+  if (!vids.length) return;
+  if (reduceMotion()) { vids.forEach((v) => { try { v.autoplay = false; v.pause(); } catch {} }); return; }
+  if (!('IntersectionObserver' in window)) return; // browser autoplay handles it
+  if (_mediaObserver) _mediaObserver.disconnect();
+  _mediaObserver = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      const v = en.target;
+      if (en.isIntersecting) { v.play && v.play().catch(() => {}); }
+      else { v.pause && v.pause(); }
+    });
+  }, { threshold: 0.25 });
+  vids.forEach((v) => { try { v.autoplay = false; v.pause(); _mediaObserver.observe(v); } catch {} });
+}
 
 // Celebratory confetti burst (workout complete, PR, badge).
 function confetti() {
@@ -374,32 +394,50 @@ function fmtRest(sec) {
 /* ============================================================
    ROUTER
    ============================================================ */
+function screenHTML() {
+  switch (route.name) {
+    case 'onboard': return ScreenOnboard();
+    case 'home': return ScreenHome();
+    case 'workouts': return ScreenWorkouts();
+    case 'active': return ScreenActive();
+    case 'library': return ScreenLibrary();
+    case 'exercise': return ScreenExercise(route.params.id);
+    case 'progress': return ScreenProgress();
+    case 'nutrition': return ScreenNutrition();
+    case 'family': return ScreenFamily();
+    case 'profile': return ScreenProfile();
+    case 'privacy': return ScreenPrivacy();
+    case 'cloud': return ScreenCloud();
+    case 'settings': return ScreenSettings();
+    case 'goals': return ScreenGoals();
+    case 'firstweek': return ScreenFirstWeek();
+    case 'programs': return ScreenPrograms();
+    case 'builder': return ScreenBuilder();
+    case 'measure': return ScreenMeasure();
+    default: return ScreenHome();
+  }
+}
 function render() {
   document.body.classList.toggle('light', S.theme === 'light');
   const app = el('app');
-  const showNav = S.profile && ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy', 'cloud', 'settings', 'goals', 'programs'].includes(route.name) && route.name !== 'firstweek';
+  const navRoutes = ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy', 'cloud', 'settings', 'goals', 'programs', 'builder', 'measure'];
+  const showNav = S.profile && navRoutes.includes(route.name) && route.name !== 'firstweek';
   let html = '';
-  switch (route.name) {
-    case 'onboard': html = ScreenOnboard(); break;
-    case 'home': html = ScreenHome(); break;
-    case 'workouts': html = ScreenWorkouts(); break;
-    case 'active': html = ScreenActive(); break;
-    case 'library': html = ScreenLibrary(); break;
-    case 'exercise': html = ScreenExercise(route.params.id); break;
-    case 'progress': html = ScreenProgress(); break;
-    case 'nutrition': html = ScreenNutrition(); break;
-    case 'family': html = ScreenFamily(); break;
-    case 'profile': html = ScreenProfile(); break;
-    case 'privacy': html = ScreenPrivacy(); break;
-    case 'cloud': html = ScreenCloud(); break;
-    case 'settings': html = ScreenSettings(); break;
-    case 'goals': html = ScreenGoals(); break;
-    case 'firstweek': html = ScreenFirstWeek(); break;
-    case 'programs': html = ScreenPrograms(); break;
-    default: html = ScreenHome();
+  try {
+    html = screenHTML();
+  } catch (e) {
+    // Safety net: a render error must never leave a blank screen.
+    console.error('render error', e);
+    html = `<div class="screen"><div class="card" style="margin-top:20vh;text-align:center">
+      <div style="font-size:40px;margin-bottom:8px">😅</div>
+      <div class="ex-name" style="margin-bottom:6px">משהו השתבש בטעינת המסך</div>
+      <p class="muted" style="font-size:13px;margin-bottom:14px">הנתונים שלך בטוחים. אפשר לחזור לבית ולנסות שוב.</p>
+      <button class="btn" data-nav="home">חזרה לבית</button>
+    </div></div>`;
   }
   app.innerHTML = html + (showNav ? Nav() : '');
-  bind();
+  try { bind(); } catch (e) { console.error('bind error', e); }
+  try { lazyMedia(); } catch {}
 }
 
 function Nav() {
@@ -1901,6 +1939,32 @@ function bind() {
    BOOT
    ============================================================ */
 render();
+
+// Last-resort guard: an uncaught error anywhere shouldn't blank the app.
+window.addEventListener('error', (e) => { console.error('global error', e.error || e.message); });
+window.addEventListener('unhandledrejection', (e) => { console.error('promise rejection', e.reason); });
+
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').then((reg) => {
+      // Tell the user when a fresh version has been downloaded and is ready.
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            const bar = document.createElement('div');
+            bar.className = 'update-bar';
+            bar.innerHTML = `<span>גרסה חדשה זמינה ✨</span><button>רענן</button>`;
+            bar.querySelector('button').onclick = () => { try { nw.postMessage('skipWaiting'); } catch {} location.reload(); };
+            document.body.appendChild(bar);
+          }
+        });
+      });
+    }).catch(() => {});
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return; refreshing = true; location.reload();
+    });
+  });
 }

@@ -1,5 +1,5 @@
 // KIN service worker — enables installability + offline use.
-const CACHE = 'kin-v6';
+const CACHE = 'kin-v7';
 const ASSETS = [
   './',
   './index.html',
@@ -17,6 +17,9 @@ const ASSETS = [
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
 });
+
+// Let the page trigger an immediate activation of a freshly-installed version.
+self.addEventListener('message', (e) => { if (e.data === 'skipWaiting') self.skipWaiting(); });
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
