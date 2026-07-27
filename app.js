@@ -7,7 +7,7 @@ const KEY = 'kin_state_v1';
 const SCHEMA_VERSION = 3;
 // Visible build stamp — bumped on each deploy so you can confirm at a glance
 // (in Settings, bottom) that the live site really updated.
-const APP_VERSION = '8.0 · 2026-07-27';
+const APP_VERSION = '8.5 · 2026-07-27';
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 const DEFAULT_STATE = {
@@ -700,7 +700,8 @@ function ScreenWorkouts() {
   return `<div class="screen">
     <div class="between" style="margin-bottom:6px"><h2 class="h-lg">${sess.name}</h2><span class="pill">${goalList(p).map(id=>GOALS.find(g=>g.id===id)?.emoji||'').join('')} ${goalList(p).map(id=>GOALS.find(g=>g.id===id)?.label).filter(Boolean).join(' + ')}</span></div>
     <p class="muted" style="margin:0 0 4px">${sess.splitLabel} · ${sess.days} אימונים בשבוע · כ־${estMinutes(sess)} דק׳</p>
-    <p class="muted" style="margin:0 0 14px;font-size:13px">📋 ${sess.goalStyle} · ${sess.rx.sets} סטים · מנוחה ${fmtRest(sess.rx.rest)} · ${sess.rx.rpe}</p>
+    <p class="muted" style="margin:0 0 8px;font-size:13px">📋 ${sess.goalStyle} · ${sess.rx.sets} סטים · מנוחה ${fmtRest(sess.rx.rest)} · ${sess.rx.rpe}</p>
+    ${sess.ageBand && sess.ageBand.note ? `<div class="card" style="padding:10px 12px;margin-bottom:12px"><div class="ex-meta" style="color:var(--text)">👤 מותאם לגיל (${sess.ageBand.label}): <span class="muted">${sess.ageBand.note}</span></div></div>` : ''}
     ${weekStrip()}
 
     <div class="section-title">🔥 חימום (${sess.warmup.length} תרגילים)</div>

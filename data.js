@@ -432,12 +432,25 @@ function buildSession(profile, sessionOffset = 0, adjustments = {}, opts = {}) {
     }
   }
 
+  // Age-appropriate adaptation: the training plan itself now flexes by age band,
+  // not just nutrition. Youth train for skill (capped volume, no grinding),
+  // masters/seniors get more rest, less volume and extra mobility.
+  const band = ageBand(profile.age);
+  main.forEach((e) => {
+    e.rest = Math.round(e.rest * band.restMult);
+    if (band.setCap) e.sets = Math.min(e.sets, band.setCap);
+    e.sets = Math.max(2, e.sets + (band.setDelta || 0));
+    if (band.rpe) e.rpe = band.rpe;
+    e.ageNote = band.exNote || '';
+  });
+
   // Warm-up: prioritise drills that prep the muscles THIS session will use.
   const sessPatterns = new Set(main.map((e) => e.pattern));
   const relevant = WARMUPS.filter((w) => (w.for || []).some((p) => sessPatterns.has(p)));
   const general = WARMUPS.filter((w) => !relevant.includes(w));
-  const warmup = [...relevant, ...general].slice(0, 3);
-  // Cooldown: rotating stretches.
+  // Masters/seniors get an extra warm-up drill; everyone else 3.
+  const warmup = [...relevant, ...general].slice(0, band.extraWarmup ? 4 : 3);
+  // Cooldown: rotating stretches — seniors get an extra mobility piece.
   const rot = (arr, n) => Array.from({ length: n }, (_, i) => arr[(sessionOffset + i) % arr.length]);
   return {
     name: opts.name || tmpl.name,
@@ -446,9 +459,20 @@ function buildSession(profile, sessionOffset = 0, adjustments = {}, opts = {}) {
     goalStyle: goalList(profile).map((id) => GOALS.find((g) => g.id === id)?.label).filter(Boolean).join(' + '),
     warmup,
     main,
-    cooldown: rot(COOLDOWNS, 3),
-    rx
+    cooldown: rot(COOLDOWNS, band.extraWarmup ? 4 : 3),
+    rx,
+    ageBand: band
   };
+}
+
+// Age band → training adjustments. Coaching-sound, conservative defaults.
+function ageBand(age) {
+  const a = age || 30;
+  if (a < 16) return { key: 'youth', label: 'נוער', restMult: 1.15, setCap: 3, rpe: 'קל–בינוני · דגש על טכניקה', exNote: 'טכניקה לפני כמות', note: 'בגיל צעיר מתמקדים בטכניקה, שליטה וכיף — לא בעומס מקסימלי. מנוחה נדיבה, בלי חזרות עד כשל.' };
+  if (a < 18) return { key: 'teen', label: 'מתבגר', restMult: 1.05, rpe: 'RPE 7–8', note: 'עומס מתון עם דגש על טכניקה נכונה והתקדמות הדרגתית.' };
+  if (a < 50) return { key: 'adult', label: 'מבוגר', restMult: 1, note: '' };
+  if (a < 65) return { key: 'masters', label: 'מאסטרס 50+', restMult: 1.25, setDelta: -1, rpe: 'RPE 7 · 3 במאגר', extraWarmup: true, exNote: 'חימום מלא, בלי כשל', note: 'מנוחה ארוכה יותר, נפח מעט מופחת, חימום מורחב והתאוששות — לאימון בטוח ובר-קיימא.' };
+  return { key: 'senior', label: '65+', restMult: 1.4, setCap: 3, setDelta: -1, rpe: 'קל ומבוקר · הרבה במאגר', extraWarmup: true, exNote: 'עדיפות לניידות ואיזון', note: 'דגש על ניידות, איזון ובריאות מפרקים. עצימות נמוכה, מנוחה ארוכה, בלי תרגילי קפיצה.' };
 }
 
 // --- Nutrition: coach-style targets -----------------------------------
