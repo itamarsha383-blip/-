@@ -7,7 +7,7 @@ const KEY = 'kin_state_v1';
 const SCHEMA_VERSION = 3;
 // Visible build stamp — bumped on each deploy so you can confirm at a glance
 // (in Settings, bottom) that the live site really updated.
-const APP_VERSION = '7.0 · 2026-07-27';
+const APP_VERSION = '7.5 · 2026-07-27';
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 const DEFAULT_STATE = {
@@ -367,7 +367,9 @@ const DAYMS = 864e5;
 const dayNum = (s) => Math.floor(new Date(s + 'T00:00:00').getTime() / DAYMS);
 // A gap of up to 2 days (i.e. one rest/skip day) keeps the chain alive.
 function computeStreak() {
-  const days = [...new Set(S.workoutsLog.map((w) => w.date))].sort(); // asc
+  // Freeze days (spent tokens) count as active days so a planned skip keeps the chain.
+  const days = [...new Set([...S.workoutsLog.map((w) => w.date), ...(S.freezeDays || [])])].sort(); // asc
+  if (!S.workoutsLog.length) return 0;
   if (!days.length) return 0;
   const today = Math.floor(Date.now() / DAYMS);
   const last = dayNum(days[days.length - 1]);
@@ -452,9 +454,9 @@ function Nav() {
     ['nutrition', '🍎', 'תזונה'],
     ['family', '👨‍👩‍👧', 'משפחה']
   ];
-  return `<div class="nav">${items.map(([r, ic, lab]) =>
-    `<button data-nav="${r}" class="${route.name === r ? 'active' : ''}"><span class="ic">${ic}</span>${lab}</button>`
-  ).join('')}</div>`;
+  return `<nav class="nav" aria-label="ניווט ראשי">${items.map(([r, ic, lab]) =>
+    `<button data-nav="${r}" class="${route.name === r ? 'active' : ''}" aria-label="${lab}" aria-current="${route.name === r ? 'page' : 'false'}"><span class="ic" aria-hidden="true">${ic}</span>${lab}</button>`
+  ).join('')}</nav>`;
 }
 
 /* ============================================================
@@ -1035,7 +1037,11 @@ function finishWorkout() {
   go('home');
   confetti(); tap(30);
   checkBadges();
-  if (Cloud.enabled()) { Cloud.resetCache(); Cloud.syncSelf({ workouts: S.workoutsLog.length, streak: S.streak }).catch(() => {}); }
+  if (Cloud.enabled()) {
+    Cloud.resetCache();
+    Cloud.syncSelf({ workouts: S.workoutsLog.length, streak: S.streak }).catch(() => {});
+    if (Cloud.postEvent) Cloud.postEvent('workout', `סיים אימון · רצף ${S.streak} 🔥`).catch(() => {});
+  }
 }
 
 /* ============================================================

@@ -71,6 +71,32 @@ const Cloud = (() => {
     } catch (e) { status = 'error'; lastError = e.message || 'network'; }
   }
 
+  // ---- family activity feed + kudos (optional `events` table) ----
+  // Inert until the user creates the table; failures are swallowed so the app
+  // never breaks when the feed table doesn't exist yet.
+  let feedRows = null;
+  async function postEvent(kind, text) {
+    if (!enabled()) return;
+    try {
+      await fetch(base() + '/rest/v1/events', {
+        method: 'POST',
+        headers: { ...headers(), Prefer: 'return=minimal' },
+        body: JSON.stringify({ family: cfg.family, name: cfg.name, device_id: deviceId(), kind, text })
+      });
+    } catch {}
+  }
+  async function loadFeed() {
+    if (!enabled()) return null;
+    try {
+      const url = base() + '/rest/v1/events?family=eq.' + encodeURIComponent(cfg.family) +
+        '&order=created_at.desc&limit=40&select=id,name,kind,text,created_at';
+      const res = await fetch(url, { headers: headers() });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      feedRows = await res.json();
+      return feedRows;
+    } catch (e) { return null; }
+  }
+
   // Validate URL + key + that the `members` table exists.
   async function test(tmp) {
     const c = tmp || cfg;
@@ -87,6 +113,8 @@ const Cloud = (() => {
   load();
   return {
     load, save, clear, deviceId, configured, enabled, familyCode, syncSelf, refresh, test,
+    postEvent, loadFeed,
+    get feed() { return feedRows; },
     get cfg() { return cfg; },
     get members() { return members; },
     get status() { return status; },

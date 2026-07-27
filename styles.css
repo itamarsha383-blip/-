@@ -364,3 +364,8 @@ h1,h2,h3,.ex-name,.lb-name,.h-xl,.h-lg { unicode-bidi: plaintext; }
 .ba { margin: 0; }
 .ba img { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 14px; background: var(--card-2); }
 .ba figcaption { text-align: center; font-size: 11px; color: var(--muted); margin-top: 4px; }
+.scan-wrap { position: relative; width: 100%; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; background: #000; margin-bottom: 10px; }
+.scan-wrap video { width: 100%; height: 100%; object-fit: cover; }
+.scan-line { position: absolute; inset-inline: 8%; top: 50%; height: 2px; background: var(--accent); box-shadow: 0 0 12px var(--accent); animation: scanmove 2s ease-in-out infinite; }
+@keyframes scanmove { 0%,100% { top: 25%; } 50% { top: 75%; } }
+.sqlbox { background: #0b0e11; color: #7CFF6B; border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 10.5px; line-height: 1.5; overflow-x: auto; white-space: pre; direction: ltr; text-align: left; }
