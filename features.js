@@ -75,6 +75,8 @@
   // --- Tools hub ---
   function ScreenTools() {
     const items = [
+      ['skills', '🌳', 'עץ מיומנויות', 'מסלול למאסל-אפ, פלאנש, הנד-סטנד'],
+      ['journey', '🎮', 'המסע שלי', 'רמות, XP ומשימות יומיות'],
       ['builder', '🏗️', t('builder'), 'בנה אימון משלך מתרגילים לבחירתך'],
       ['timers', '⏱️', t('timers'), 'EMOM · AMRAP · Tabata · אינטרוולים'],
       ['readiness', '🧭', t('readiness'), 'צ׳ק-אין יומי שמתאים את העומס'],

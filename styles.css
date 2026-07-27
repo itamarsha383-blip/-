@@ -369,3 +369,34 @@ h1,h2,h3,.ex-name,.lb-name,.h-xl,.h-lg { unicode-bidi: plaintext; }
 .scan-line { position: absolute; inset-inline: 8%; top: 50%; height: 2px; background: var(--accent); box-shadow: 0 0 12px var(--accent); animation: scanmove 2s ease-in-out infinite; }
 @keyframes scanmove { 0%,100% { top: 25%; } 50% { top: 75%; } }
 .sqlbox { background: #0b0e11; color: #7CFF6B; border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 10.5px; line-height: 1.5; overflow-x: auto; white-space: pre; direction: ltr; text-align: left; }
+
+/* ---------- skill tree ---------- */
+.skill-card { display: flex; align-items: center; gap: 12px; width: 100%; text-align: start; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; font-family: inherit; color: var(--text); cursor: pointer; margin-bottom: 8px; }
+.skill-card.done { border-color: var(--accent); }
+.skill-card:active { transform: scale(.99); }
+.skill-card .sk-emoji { font-size: 30px; }
+.skill-card .sk-body { flex: 1; display: grid; }
+.skill-card .sk-name { font-weight: 800; font-size: 15px; }
+.skill-card .sk-meta { font-size: 11.5px; color: var(--muted); }
+.skill-card .sk-pct { font-weight: 900; color: var(--accent); font-size: 15px; }
+.roadmap { position: relative; }
+.rm-step { display: flex; align-items: center; gap: 12px; padding: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 8px; }
+.rm-step.done { border-color: var(--accent); background: var(--card-2); }
+.rm-dot { width: 30px; height: 30px; flex: none; border-radius: 50%; display: grid; place-items: center; font-weight: 800; background: var(--card-2); color: var(--muted); }
+.rm-step.done .rm-dot { background: var(--accent); color: #0B0E11; }
+.rm-body { flex: 1; }
+.rm-name { font-weight: 700; font-size: 14px; }
+.rm-meta { font-size: 11px; color: var(--muted); }
+
+/* ---------- guided follow-along ---------- */
+.guided-screen { padding: 0; }
+.guided-full { position: fixed; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: calc(24px + var(--safe-t)) 20px calc(24px + var(--safe-b)); background: var(--bg); z-index: 50; }
+.guided-full.work { background: linear-gradient(160deg, #12220f, var(--bg)); }
+.guided-full.rest { background: linear-gradient(160deg, #0f1a22, var(--bg)); }
+.guided-full .g-top { text-align: center; color: var(--muted); font-size: 14px; }
+.guided-full .g-mid { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; }
+.guided-full .g-label { font-size: 30px; font-weight: 900; }
+.guided-full .g-sub { color: var(--muted); font-size: 16px; }
+.guided-full .g-timer { font-size: 96px; font-weight: 900; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1; }
+.guided-full .g-btns { display: flex; gap: 10px; }
+.guided-full .g-btns .btn { flex: 1; }

@@ -7,7 +7,7 @@ const KEY = 'kin_state_v1';
 const SCHEMA_VERSION = 3;
 // Visible build stamp — bumped on each deploy so you can confirm at a glance
 // (in Settings, bottom) that the live site really updated.
-const APP_VERSION = '7.5 · 2026-07-27';
+const APP_VERSION = '8.0 · 2026-07-27';
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 const DEFAULT_STATE = {
@@ -220,7 +220,6 @@ function photoDemo(id, fallbackHTML, tag) {
     inner = `<div class="demo-media">
          <video class="pf-video" autoplay muted loop playsinline preload="auto"
            onerror="this.closest('.demo-media').classList.add('novideo')">
-           <source src="./videos/${id}.mp4" type="video/mp4">
            <source src="./videos/${id}.webm" type="video/webm">
          </video>
          <div class="pf-fallback">${fallbackHTML}</div>
@@ -426,8 +425,9 @@ function render() {
   document.body.classList.toggle('light', S.theme === 'light');
   const app = el('app');
   const navRoutes = ['home', 'workouts', 'library', 'progress', 'nutrition', 'family', 'exercise', 'profile', 'privacy', 'cloud', 'settings', 'goals', 'programs'];
+  const fullScreenRoutes = ['guided']; // immersive modes hide the bottom nav
   const featRoute = typeof FEATURE_ROUTES !== 'undefined' && FEATURE_ROUTES.includes(route.name);
-  const showNav = S.profile && (navRoutes.includes(route.name) || featRoute) && route.name !== 'firstweek';
+  const showNav = S.profile && (navRoutes.includes(route.name) || featRoute) && route.name !== 'firstweek' && !fullScreenRoutes.includes(route.name);
   let html = '';
   try {
     html = screenHTML();
@@ -732,9 +732,11 @@ function ScreenWorkouts() {
 
     <button class="btn" data-start-workout>התחל אימון 🔥</button>
     <div class="spacer"></div>
+    <button class="btn ghost" data-fx="start-guided">🎧 מצב מודרך (ידיים חופשיות)</button>
+    <div class="spacer"></div>
     <div class="row2">
       <button class="btn ghost" data-nav="programs">🎯 תוכניות</button>
-      <button class="btn ghost" data-nav="library">📚 תרגילים</button>
+      <button class="btn ghost" data-fx="nav" data-to="skills">🌳 מיומנויות</button>
     </div>
   </div>`;
 }

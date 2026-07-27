@@ -1,5 +1,5 @@
 // KIN service worker — enables installability + offline use.
-const CACHE = 'kin-v9';
+const CACHE = 'kin-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const ASSETS = [
   './app.js',
   './features.js',
   './features2.js',
+  './features3.js',
   './manifest.json',
   './icon.svg',
   './icon-192.png',
